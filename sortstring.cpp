@@ -290,10 +290,10 @@ get_algorithms()
 	algs[10] = make_pair(CRadix,     "CRadix (Ng, Kakehi)");
 	*/
 
-	algs[20] = make_pair(msd0, "msd_CE0 (Baseline)");
-	algs[21] = make_pair(msd1, "msd_CE1 (Oracle)");
-	algs[22] = make_pair(msd2, "msd_CE2 (Oracle+Loop Fission)");
-	algs[23] = make_pair(msd3, "msd_CE3 (Oracle+Loop Fission+Adaptive)");
+	algs[20] = make_pair(msd_CE0, "msd_CE0 (Baseline)");
+	algs[21] = make_pair(msd_CE1, "msd_CE1 (Oracle)");
+	algs[22] = make_pair(msd_CE2, "msd_CE2 (Oracle+Loop Fission)");
+	algs[23] = make_pair(msd_CE3, "msd_CE3 (Oracle+Loop Fission+Adaptive)");
 
 	algs[25] = make_pair(msd_ci,          "msd_CI");
 	algs[26] = make_pair(msd_ci_adaptive, "msd_CI (Adaptive)");

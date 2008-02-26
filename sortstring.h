@@ -30,10 +30,10 @@ void burstsortL(unsigned char**, size_t);
 void burstsortA(unsigned char**, size_t);
 void CRadix(unsigned char**,     size_t);
 
-void msd0(unsigned char**, size_t);
-void msd1(unsigned char**, size_t);
-void msd2(unsigned char**, size_t);
-void msd3(unsigned char**, size_t);
+void msd_CE0(unsigned char**, size_t);
+void msd_CE1(unsigned char**, size_t);
+void msd_CE2(unsigned char**, size_t);
+void msd_CE3(unsigned char**, size_t);
 
 void msd_ci(unsigned char**, size_t);
 void msd_ci_adaptive(unsigned char**, size_t);

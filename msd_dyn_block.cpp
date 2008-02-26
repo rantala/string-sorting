@@ -40,7 +40,7 @@
 #include <iostream>
 //#include <deque>
 
-void msd2(unsigned char** strings, size_t n, size_t depth);
+void msd_CE2(unsigned char** strings, size_t n, size_t depth);
 
 static inline uint16_t
 double_char(unsigned char* str, size_t depth)
@@ -70,7 +70,7 @@ static void
 msd_D(unsigned char** strings, size_t n, size_t depth)
 {
 	if (n < 0x10000) {
-		msd2(strings, n, depth);
+		msd_CE2(strings, n, depth);
 		return;
 	}
 	assert(n > B);

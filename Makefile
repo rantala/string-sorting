@@ -13,10 +13,7 @@ COMMONSRC=other/adaptive.c\
 	  other/cradix.c
 SRCS=sortstring.cpp \
      clock.cpp \
-     msd0.cpp \
-     msd1.cpp \
-     msd2.cpp \
-     msd3.cpp \
+     msd_ce.cpp \
      msd_ci.cpp \
      msd_dyn_vector.cpp \
      msd_dyn_block.cpp \

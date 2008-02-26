@@ -10,8 +10,8 @@
 
 /* 
  * msd_ci() is an implementation of the MSD radix sort using
- *  - counting sort
- *  - O(n) oracle to reduce memory stalls
+ *  - double sweep counting sort
+ *  - O(n) oracle to reduce cache misses and memory stalls
  *  - the in-place distribution method described by McIlroy, Bostic & McIlroy
  *
  * The adaptive variant msd_ci_adaptive() uses superalphabet when size of the

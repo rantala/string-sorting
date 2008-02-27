@@ -1,11 +1,23 @@
 /*
- *   Copyright 2007-2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
+ * Copyright 2007-2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
  *
- *   *************************************************************************
- *   * Use, modification, and distribution are subject to the Boost Software *
- *   * License, Version 1.0. (See accompanying file LICENSE or a copy at     *
- *   * http://www.boost.org/LICENSE_1_0.txt)                                 *
- *   *************************************************************************
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #include "sortstring.h"
@@ -277,10 +289,9 @@ get_algorithms()
 	using std::make_pair;
 	Algorithms algs;
 
-	/*
-	algs[1]  = make_pair(BenStr,     "Quicksort (Bentley, McIlroy)");
+	algs[1]  = make_pair(quicksort,  "Quicksort (Bentley, McIlroy)");
 	algs[2]  = make_pair(multikey2,  "Multi-Key-Quicksort (Bentley, Sedgewick)");
-	algs[3]  = make_pair(McIlroyCC,  "MSD Radix Sort (McIlroy, Bostic, McIlroy)");
+	algs[3]  = make_pair(mbmradix,   "MSD Radix Sort (McIlroy, Bostic, McIlroy)");
 	algs[4]  = make_pair(MSDsort,    "MSD Radix Sort (Andersson, Nilsson)");
 	algs[5]  = make_pair(arssort,    "Adaptive MSD Radix Sort (Andersson, Nilsson)");
 	algs[6]  = make_pair(frssort1,   "Forward Radix Sort 8-bit (Andersson, Nilsson)");
@@ -288,7 +299,6 @@ get_algorithms()
 	algs[8]  = make_pair(burstsortL, "Burstsort List Based (Sinha, Zobel)");
 	algs[9]  = make_pair(burstsortA, "Burstsort Array Based (Sinha, Zobel)");
 	algs[10] = make_pair(CRadix,     "CRadix (Ng, Kakehi)");
-	*/
 
 	algs[20] = make_pair(msd_CE0, "msd_CE0 (Baseline)");
 	algs[21] = make_pair(msd_CE1, "msd_CE1 (Oracle)");

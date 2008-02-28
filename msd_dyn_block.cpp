@@ -151,7 +151,7 @@ msd_D(unsigned char** strings, size_t n, size_t depth)
 
 		Bucket::const_iterator it = buckets[i].begin();
 		for (size_t bucket_pos=0; bucket_pos < bucketsize[i]; ++it, bucket_pos+=B) {
-			const size_t block_items = std::min(B, bucketsize[i]-bucket_pos);
+			const size_t block_items = std::min(size_t(B), bucketsize[i]-bucket_pos);
 			const size_t block_overlap = (pos+block_items-1)/B;
 
 			if (*it == (strings+pos)) {

@@ -323,13 +323,25 @@ get_algorithms()
 	algs[45] = make_pair(msd_DV_CHEAT_REALLOC_adaptive, "msd_DV (realloc, Adaptive, counter clear)");
 	algs[46] = make_pair(msd_DV_CHEAT_MALLOC,           "msd_DV (malloc, counter clear)");
 	algs[47] = make_pair(msd_DV_CHEAT_MALLOC_adaptive,  "msd_DV (malloc, Adaptive, counter clear)");
-	algs[48] = make_pair(msd_D_vector_block,  "msd_D_vector_block");
-	algs[49] = make_pair(msd_D_vector_brodnik,  "msd_D_vector_brodnik");
-	algs[50] = make_pair(msd_D_vector_bagwell,  "msd_D_vector_bagwell");
+	algs[48] = make_pair(msd_D_vector_block,             "msd_D_vector_block");
+	algs[49] = make_pair(msd_D_vector_block_adaptive,    "msd_D_vector_block_adaptive");
+	algs[50] = make_pair(msd_D_vector_brodnik,           "msd_D_vector_brodnik");
+	algs[51] = make_pair(msd_D_vector_brodnik_adaptive,  "msd_D_vector_brodnik_adaptive");
+	algs[52] = make_pair(msd_D_vector_bagwell,           "msd_D_vector_bagwell");
+	algs[53] = make_pair(msd_D_vector_bagwell_adaptive,  "msd_D_vector_bagwell_adaptive");
 
-	algs[51] = make_pair(msd_DB,          "msd_DB");
+	algs[54] = make_pair(msd_DB,          "msd_DB");
 	algs[55] = make_pair(msd_A,           "msd_A");
 	algs[56] = make_pair(msd_A_adaptive,  "msd_A (Adaptive)");
+
+	algs[100] = make_pair(burstsort_vector,  "burstsort_vector");
+	algs[101] = make_pair(burstsort_brodnik, "burstsort_brodnik");
+	algs[102] = make_pair(burstsort_bagwell, "burstsort_bagwell");
+	algs[103] = make_pair(burstsort_vector_block, "burstsort_vector_block");
+	algs[104] = make_pair(burstsort_superalphabet_vector,  "burstsort_superalphabet_vector");
+	algs[105] = make_pair(burstsort_superalphabet_brodnik, "burstsort_superalphabet_brodnik");
+	algs[106] = make_pair(burstsort_superalphabet_bagwell, "burstsort_superalphabet_bagwell");
+	algs[107] = make_pair(burstsort_superalphabet_vector_block, "burstsort_superalphabet_vector_block");
 
 	return algs;
 }

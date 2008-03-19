@@ -71,10 +71,22 @@ void msd_DV_CHEAT_MALLOC_adaptive(unsigned char**, size_t);
 void msd_D_vector_block(unsigned char**, size_t);
 void msd_D_vector_brodnik(unsigned char**, size_t);
 void msd_D_vector_bagwell(unsigned char**, size_t);
+void msd_D_vector_block_adaptive(unsigned char**, size_t);
+void msd_D_vector_brodnik_adaptive(unsigned char**, size_t);
+void msd_D_vector_bagwell_adaptive(unsigned char**, size_t);
 
 void msd_DB(unsigned char**, size_t);
 void msd_A(unsigned char**, size_t);
 void msd_A_adaptive(unsigned char**, size_t);
+
+void burstsort_vector(unsigned char**, size_t);
+void burstsort_brodnik(unsigned char**, size_t);
+void burstsort_bagwell(unsigned char**, size_t);
+void burstsort_vector_block(unsigned char**, size_t);
+void burstsort_superalphabet_vector(unsigned char**, size_t);
+void burstsort_superalphabet_brodnik(unsigned char**, size_t);
+void burstsort_superalphabet_bagwell(unsigned char**, size_t);
+void burstsort_superalphabet_vector_block(unsigned char**, size_t);
 
 void clockon();
 void clockoff();

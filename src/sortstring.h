@@ -31,6 +31,7 @@
 #define INSERTBREAK 20
 typedef unsigned char* string;
 
+extern "C" {
 void quicksort(unsigned char**,  size_t);
 void mbmradix(unsigned char**,   size_t);
 void multikey2(unsigned char**,  size_t);
@@ -41,6 +42,7 @@ void MSDsort(unsigned char**,    size_t);
 void burstsortL(unsigned char**, size_t);
 void burstsortA(unsigned char**, size_t);
 void CRadix(unsigned char**,     size_t);
+}
 
 void msd_CE0(unsigned char**, size_t);
 void msd_CE1(unsigned char**, size_t);
@@ -65,6 +67,10 @@ void msd_DV_CHEAT_REALLOC(unsigned char**, size_t);
 void msd_DV_CHEAT_REALLOC_adaptive(unsigned char**, size_t);
 void msd_DV_CHEAT_MALLOC(unsigned char**, size_t);
 void msd_DV_CHEAT_MALLOC_adaptive(unsigned char**, size_t);
+
+void msd_D_vector_block(unsigned char**, size_t);
+void msd_D_vector_brodnik(unsigned char**, size_t);
+void msd_D_vector_bagwell(unsigned char**, size_t);
 
 void msd_DB(unsigned char**, size_t);
 void msd_A(unsigned char**, size_t);

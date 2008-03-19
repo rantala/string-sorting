@@ -1,3 +1,40 @@
+/*
+ * Copyright 2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+/*
+ * @inproceedings{673194,
+ *     author = {Andrej Brodnik and Svante Carlsson and Erik D. Demaine and J.
+ *               Ian Munro and Robert Sedgewick},
+ *     title = {Resizable Arrays in Optimal Time and Space},
+ *     booktitle = {WADS '99: Proceedings of the 6th International Workshop on
+ *                  Algorithms and Data Structures},
+ *     year = {1999},
+ *     isbn = {3-540-66279-0},
+ *     pages = {37--48},
+ *     publisher = {Springer-Verlag},
+ *     address = {London, UK},
+ * }
+ */
+
 #ifndef VECTOR_BRODNIK
 #define VECTOR_BRODNIK
 

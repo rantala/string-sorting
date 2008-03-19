@@ -30,7 +30,9 @@
  * subinput is large, as described by Andersson & Nilsson.
  */
 
-#include "util.h"
+#include "util/insertion_sort.h"
+#include <cstddef>
+#include <cstdlib>
 
 template <typename BucketType>
 struct distblock {

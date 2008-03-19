@@ -23,7 +23,8 @@
 #ifndef INSERTION_SORT_H
 #define INSERTION_SORT_H
 
-#include "util/get_char.h"
+#include <cstddef>
+#include "get_char.h"
 
 static inline void
 insertion_sort(unsigned char** strings, int n, size_t depth)

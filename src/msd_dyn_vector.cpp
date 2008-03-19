@@ -34,11 +34,19 @@
  * large, and normal alphabet otherwise.
  */
 
-#include "util.h"
+#include "util/insertion_sort.h"
+#include <cstring>
+#include <cstddef>
 #include <vector>
 #include <list>
 #include <deque>
 #include <algorithm>
+#include "vector_realloc.h"
+#include "vector_malloc.h"
+#include "vector_block.h"
+#include "vector_brodnik.h"
+#include "vector_bagwell.h"
+#include <boost/array.hpp>
 
 static inline uint16_t
 double_char(unsigned char* str, size_t depth)
@@ -75,206 +83,12 @@ private:
 	size_t _size;
 };
 
-template <unsigned int InitialSize>
-class ReallocVector
+template <typename BucketT, typename OutputIterator>
+static inline void
+copy(const BucketT& bucket, OutputIterator dst)
 {
-public:
-	ReallocVector() : _data(0), _size(0), _capacity(0) {}
-	~ReallocVector() { if (_data) free(_data); }
-
-	void push_back(unsigned char* ptr)
-	{
-		if (_size == _capacity) {
-			this->grow();
-		}
-		_data[_size] = ptr;
-		++_size;
-	}
-
-	// Instead of freeing the memory, use realloc() to shrink the size in
-	// half.
-	void clear()
-	{
-		_size = 0;
-		//_capacity = 0; if (_data) free(_data); _data=0;
-		this->shrink();
-	}
-
-	unsigned char** begin() const { return _data; }
-	unsigned char** end() const   { return _data + _size; }
-
-	size_t capacity() const { return _capacity; }
-	size_t size() const     { return _size; }
-
-private:
-	void grow()
-	{
-		_capacity = _capacity * 2;
-		if (_capacity == 0) _capacity = InitialSize;
-		unsigned char** new_data = (unsigned char**)
-			realloc(_data, _capacity*sizeof(unsigned char*));
-		assert(new_data != 0);
-		_data = new_data;
-	}
-
-	void shrink()
-	{
-		if (_capacity <= InitialSize) return;
-		assert(_size == 0);
-		_capacity = _capacity / 2;
-		unsigned char** new_data = (unsigned char**)
-			realloc(_data, _capacity*sizeof(unsigned char*));
-		assert(new_data != 0);
-		_data = new_data;
-	}
-
-	unsigned char** _data;
-	size_t _size;
-	size_t _capacity;
-};
-
-template <unsigned int InitialSize>
-class ReallocCheatVector
-{
-public:
-	ReallocCheatVector() : _data(0), _size(0), _capacity(0) {}
-	~ReallocCheatVector() { if (_data) free(_data); }
-
-	void push_back(unsigned char* ptr)
-	{
-		if (_size == _capacity) {
-			this->grow();
-		}
-		_data[_size] = ptr;
-		++_size;
-	}
-
-	void clear() { _size = 0; }
-
-	unsigned char** begin() const { return _data; }
-	unsigned char** end() const   { return _data + _size; }
-
-	size_t capacity() const { return _capacity; }
-	size_t size() const     { return _size; }
-
-private:
-	void grow()
-	{
-		_capacity = _capacity * 2;
-		if (_capacity == 0) _capacity = InitialSize;
-		unsigned char** new_data = (unsigned char**)
-			realloc(_data, _capacity*sizeof(unsigned char*));
-		assert(new_data != 0);
-		_data = new_data;
-	}
-
-	unsigned char** _data;
-	size_t _size;
-	size_t _capacity;
-};
-
-template <unsigned int InitialSize>
-class MallocVector
-{
-public:
-	MallocVector() : _data(0), _size(0), _capacity(0) {}
-	~MallocVector() { if (_data) free(_data); }
-
-	void push_back(unsigned char* ptr)
-	{
-		if (_size == _capacity) {
-			this->grow();
-		}
-		_data[_size] = ptr;
-		++_size;
-	}
-
-	void clear()
-	{
-		if (_data) free(_data);
-		_data = 0;
-		_size = 0;
-		_capacity = 0;
-	}
-
-	unsigned char** begin() const { return _data; }
-	unsigned char** end() const   { return _data + _size; }
-
-	size_t capacity() const { return _capacity; }
-	size_t size() const     { return _size; }
-
-private:
-	void grow()
-	{
-		if (_capacity == 0) {
-			_capacity = InitialSize;
-			_data = (unsigned char**)
-				malloc(InitialSize*sizeof(unsigned char*));
-		} else {
-			_capacity = _capacity * 2;
-			unsigned char** new_data = (unsigned char**)
-				malloc(_capacity*sizeof(unsigned char*));
-			assert(new_data != 0);
-			memcpy(new_data, _data, _size * sizeof(unsigned char*));
-			free(_data);
-			_data = new_data;
-		}
-	}
-
-	unsigned char** _data;
-	size_t _size;
-	size_t _capacity;
-};
-
-template <unsigned int InitialSize>
-class MallocCheatVector
-{
-public:
-	MallocCheatVector() : _data(0), _size(0), _capacity(0) {}
-	~MallocCheatVector() { if (_data) free(_data); }
-
-	void push_back(unsigned char* ptr)
-	{
-		if (_size == _capacity) {
-			this->grow();
-		}
-		_data[_size] = ptr;
-		++_size;
-	}
-
-	void clear()
-	{
-		_size = 0;
-	}
-
-	unsigned char** begin() const { return _data; }
-	unsigned char** end() const   { return _data + _size; }
-
-	size_t capacity() const { return _capacity; }
-	size_t size() const     { return _size; }
-
-private:
-	void grow()
-	{
-		if (_capacity == 0) {
-			_capacity = InitialSize;
-			_data = (unsigned char**)
-				malloc(InitialSize*sizeof(unsigned char*));
-		} else {
-			_capacity = _capacity * 2;
-			unsigned char** new_data = (unsigned char**)
-				malloc(_capacity*sizeof(unsigned char*));
-			assert(new_data != 0);
-			memcpy(new_data, _data, _size * sizeof(unsigned char*));
-			free(_data);
-			_data = new_data;
-		}
-	}
-
-	unsigned char** _data;
-	size_t _size;
-	size_t _capacity;
-};
+	std::copy(bucket.begin(), bucket.end(), dst);
+}
 
 template <typename Bucket>
 static void
@@ -305,7 +119,7 @@ msd_D(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 	size_t pos = 0;
 	for (unsigned i=0; i < 256; ++i) {
 		if (bucketsize[i] == 0) continue;
-		std::copy(buckets[i].begin(), buckets[i].end(), strings+pos);
+		copy(buckets[i], strings+pos);
 		pos += bucketsize[i];
 	}
 	for (unsigned i=0; i < 256; ++i) {
@@ -348,7 +162,7 @@ msd_D_adaptive(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 	size_t pos = 0;
 	for (unsigned i=0; i < 0x10000; ++i) {
 		if (bucketsize[i] == 0) continue;
-		std::copy(buckets[i].begin(), buckets[i].end(), strings+pos);
+		copy(buckets[i], strings+pos);
 		pos += bucketsize[i];
 	}
 	for (unsigned i=0; i < 0x10000; ++i) {
@@ -400,44 +214,62 @@ void msd_DD_adaptive(unsigned char** strings, size_t n)
 
 void msd_DV_REALLOC(unsigned char** strings, size_t n)
 {
-	ReallocVector<16> buckets[256];
+	vector_realloc<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
 }
 void msd_DV_REALLOC_adaptive(unsigned char** strings, size_t n)
 {
-	ReallocVector<32> buckets[0x10000];
+	vector_realloc<unsigned char*, 32> buckets[0x10000];
 	msd_D_adaptive(strings, n, 0, buckets);
 }
 
 void msd_DV_MALLOC(unsigned char** strings, size_t n)
 {
-	MallocVector<16> buckets[256];
+	vector_malloc<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
 }
 void msd_DV_MALLOC_adaptive(unsigned char** strings, size_t n)
 {
-	MallocVector<32> buckets[0x10000];
+	vector_malloc<unsigned char*, 32> buckets[0x10000];
 	msd_D_adaptive(strings, n, 0, buckets);
 }
 
 void msd_DV_CHEAT_REALLOC(unsigned char** strings, size_t n)
 {
-	ReallocCheatVector<16> buckets[256];
+	vector_realloc_counter_clear<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
 }
 void msd_DV_CHEAT_REALLOC_adaptive(unsigned char** strings, size_t n)
 {
-	ReallocCheatVector<32> buckets[0x10000];
+	vector_realloc_counter_clear<unsigned char*, 32> buckets[0x10000];
 	msd_D_adaptive(strings, n, 0, buckets);
 }
 
 void msd_DV_CHEAT_MALLOC(unsigned char** strings, size_t n)
 {
-	MallocCheatVector<16> buckets[256];
+	vector_malloc_counter_clear<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
 }
 void msd_DV_CHEAT_MALLOC_adaptive(unsigned char** strings, size_t n)
 {
-	MallocCheatVector<32> buckets[0x10000];
+	vector_malloc_counter_clear<unsigned char*, 32> buckets[0x10000];
 	msd_D_adaptive(strings, n, 0, buckets);
+}
+
+void msd_D_vector_block(unsigned char** strings, size_t n)
+{
+	vector_block<unsigned char*> buckets[256];
+	msd_D(strings, n, 0, buckets);
+}
+
+void msd_D_vector_brodnik(unsigned char** strings, size_t n)
+{
+	vector_brodnik<unsigned char*> buckets[256];
+	msd_D(strings, n, 0, buckets);
+}
+
+void msd_D_vector_bagwell(unsigned char** strings, size_t n)
+{
+	vector_bagwell<unsigned char*> buckets[256];
+	msd_D(strings, n, 0, buckets);
 }

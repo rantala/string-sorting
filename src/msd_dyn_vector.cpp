@@ -261,15 +261,30 @@ void msd_D_vector_block(unsigned char** strings, size_t n)
 	vector_block<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
 }
+void msd_D_vector_block_adaptive(unsigned char** strings, size_t n)
+{
+	vector_block<unsigned char*> buckets[0x10000];
+	msd_D_adaptive(strings, n, 0, buckets);
+}
 
 void msd_D_vector_brodnik(unsigned char** strings, size_t n)
 {
 	vector_brodnik<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
 }
+void msd_D_vector_brodnik_adaptive(unsigned char** strings, size_t n)
+{
+	vector_brodnik<unsigned char*> buckets[0x10000];
+	msd_D_adaptive(strings, n, 0, buckets);
+}
 
 void msd_D_vector_bagwell(unsigned char** strings, size_t n)
 {
 	vector_bagwell<unsigned char*> buckets[256];
 	msd_D(strings, n, 0, buckets);
+}
+void msd_D_vector_bagwell_adaptive(unsigned char** strings, size_t n)
+{
+	vector_bagwell<unsigned char*> buckets[0x10000];
+	msd_D_adaptive(strings, n, 0, buckets);
 }

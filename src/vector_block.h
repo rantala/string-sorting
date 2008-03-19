@@ -59,8 +59,17 @@ struct vector_block
 	}
 	size_t size() const
 	{
-		if (_index_block.empty()) return B-_left_in_block;
+		if (_index_block.empty()) return 0;
 		return (_index_block.size()-1)*B + B-_left_in_block;
+	}
+	void clear()
+	{
+		for (size_t i=0; i < _index_block.size(); ++i) {
+			free(_index_block[i]);
+		}
+		_index_block.clear();
+		_insertpos=0;
+		_left_in_block=0;
 	}
 	~vector_block()
 	{
@@ -80,6 +89,7 @@ template <typename T, unsigned B, typename OutputIterator>
 static inline void
 copy(const vector_block<T, B>& v, OutputIterator dst)
 {
+	assert(not v._index_block.empty());
 	for (size_t i=1; i < v._index_block.size(); ++i) {
 		std::copy(v._index_block[i-1],
 		          v._index_block[i-1]+B,

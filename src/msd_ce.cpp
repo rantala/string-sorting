@@ -45,7 +45,10 @@
  * C3 is the fastest implementation in most cases.
  */
 
-#include "util.h"
+#include "util/insertion_sort.h"
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 void
 msd_CE0(unsigned char** strings, size_t n, size_t depth)

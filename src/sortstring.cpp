@@ -315,16 +315,19 @@ get_algorithms()
 	algs[34] = make_pair(msd_DD,          "msd_DD (std::deque)");
 	algs[35] = make_pair(msd_DD_adaptive, "msd_DD (std::deque, Adaptive)");
 
-	//algs[63] = make_pair(msd_DV_REALLOC,          "msd_DV (realloc)");
-	//algs[64] = make_pair(msd_DV_REALLOC_adaptive, "msd_DV (realloc, Adaptive)");
-	algs[40] = make_pair(msd_DV_MALLOC,                 "msd_DV (malloc, full clear)");
-	algs[41] = make_pair(msd_DV_MALLOC_adaptive,        "msd_DV (malloc, Adaptive, full clear)");
-	algs[42] = make_pair(msd_DV_CHEAT_REALLOC,          "msd_DV (realloc, counter clear)");
-	algs[43] = make_pair(msd_DV_CHEAT_REALLOC_adaptive, "msd_DV (realloc, Adaptive, counter clear)");
-	algs[44] = make_pair(msd_DV_CHEAT_MALLOC,           "msd_DV (malloc, counter clear)");
-	algs[45] = make_pair(msd_DV_CHEAT_MALLOC_adaptive,  "msd_DV (malloc, Adaptive, counter clear)");
+	algs[40] = make_pair(msd_DV_REALLOC,          "msd_DV (realloc)");
+	algs[41] = make_pair(msd_DV_REALLOC_adaptive, "msd_DV (realloc, Adaptive)");
+	algs[42] = make_pair(msd_DV_MALLOC,                 "msd_DV (malloc, full clear)");
+	algs[43] = make_pair(msd_DV_MALLOC_adaptive,        "msd_DV (malloc, Adaptive, full clear)");
+	algs[44] = make_pair(msd_DV_CHEAT_REALLOC,          "msd_DV (realloc, counter clear)");
+	algs[45] = make_pair(msd_DV_CHEAT_REALLOC_adaptive, "msd_DV (realloc, Adaptive, counter clear)");
+	algs[46] = make_pair(msd_DV_CHEAT_MALLOC,           "msd_DV (malloc, counter clear)");
+	algs[47] = make_pair(msd_DV_CHEAT_MALLOC_adaptive,  "msd_DV (malloc, Adaptive, counter clear)");
+	algs[48] = make_pair(msd_D_vector_block,  "msd_D_vector_block");
+	algs[49] = make_pair(msd_D_vector_brodnik,  "msd_D_vector_brodnik");
+	algs[50] = make_pair(msd_D_vector_bagwell,  "msd_D_vector_bagwell");
 
-	algs[50] = make_pair(msd_DB,          "msd_DB");
+	algs[51] = make_pair(msd_DB,          "msd_DB");
 	algs[55] = make_pair(msd_A,           "msd_A");
 	algs[56] = make_pair(msd_A_adaptive,  "msd_A (Adaptive)");
 

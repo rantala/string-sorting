@@ -38,6 +38,11 @@
 #ifndef VECTOR_BRODNIK
 #define VECTOR_BRODNIK
 
+#include <cstdlib>
+#include <cassert>
+#include <inttypes.h>
+#include <vector>
+
 template <typename T>
 struct vector_brodnik
 {

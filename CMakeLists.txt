@@ -8,6 +8,7 @@ set(INTERNAL_SRCS
 	src/msd_ci.cpp
 	src/msd_dyn_block.cpp
 	src/msd_dyn_vector.cpp
+	src/burstsort.cpp
 	src/sortstring.cpp)
 
 set(EXTERNAL_SRCS

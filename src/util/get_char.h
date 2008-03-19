@@ -23,15 +23,16 @@
 #ifndef GET_CHAR_H
 #define GET_CHAR_H
 
-#include <cassert>
+#include <cstddef>
 #include <inttypes.h>
+#include <cassert>
 
 template <typename CharT>
-static inline CharT
+inline CharT
 get_char(unsigned char* ptr, size_t depth);
 
 template <>
-static inline unsigned char
+inline unsigned char
 get_char(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
@@ -39,7 +40,7 @@ get_char(unsigned char* ptr, size_t depth)
 }
 
 template <>
-static inline uint16_t
+inline uint16_t
 get_char(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
@@ -48,7 +49,7 @@ get_char(unsigned char* ptr, size_t depth)
 }
 
 template <>
-static inline uint32_t
+inline uint32_t
 get_char(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
@@ -64,10 +65,10 @@ get_char(unsigned char* ptr, size_t depth)
 }
 
 template <>
-static inline uint64_t
+inline uint64_t
 get_char(unsigned char* ptr, size_t depth)
 {
-	CharT c = 0;
+	uint64_t c = 0;
 	if (ptr[depth] == 0) return c;
 	c = (uint64_t(ptr[depth]) << 56); ++ptr;
 	if (ptr[depth] == 0) return c;
@@ -146,38 +147,28 @@ get_char(unsigned char* ptr)
 	}
 	else {
 		assert(0);
-		exit(1);
 	}
 }
 
 template <typename CharT>
-static inline bool
-is_end(CharT c);
+inline bool is_end(CharT c);
 
-template <>
-static inline bool
-is_end(unsigned char c)
+template <> inline bool is_end(unsigned char c)
 {
 	return c==0;
 }
 
-template <>
-static inline bool
-is_end(uint16_t c)
+template <> inline bool is_end(uint16_t c)
 {
 	return (c&0xFF)==0;
 }
 
-template <>
-static inline bool
-is_end(uint32_t c)
+template <> inline bool is_end(uint32_t c)
 {
 	return (c&0xFF)==0;
 }
 
-template <>
-static inline bool
-is_end(uint64_t c)
+template <> inline bool is_end(uint64_t c)
 {
 	return (c&0xFF)==0;
 }

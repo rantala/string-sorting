@@ -21,6 +21,7 @@
 */
 
 #include "nilsson.h"
+#include <stdlib.h>
 
 #define IS_ENDMARK(ch) (ch == '\0')
 #define CHAR(s, p) s[p]

@@ -18,7 +18,6 @@
    Stefan.Nilsson@hut.fi
 */
 
-#include "sortstring.h"
 #include "utils.h"
 
 enum { SIZE = 1024, THRESHOLD = 10 };

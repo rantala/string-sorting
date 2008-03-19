@@ -1,7 +1,6 @@
 #ifndef NILSSON_H
 #define NILSSON_H
 
-#include "sortstring.h"
 #include "utils.h"
 
 #define MAXBLOCKS 100
@@ -11,7 +10,6 @@
 
 typedef int boolean;
 typedef int character;
-typedef unsigned char* string;
 
 typedef struct listrec *list;
 struct listrec {

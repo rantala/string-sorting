@@ -18,7 +18,6 @@
 */
 
 #include <stddef.h>
-#include "sortstring.h"
 #include "utils.h"
 
 #define swap(a, b)  (t = (a), (a) = (b), (b) = t)

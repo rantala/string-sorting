@@ -17,6 +17,7 @@
 */
 
 #include "nilsson.h"
+#include <stdlib.h>
 
 #define BUCKETS CHARS*CHARS
 #define IS_ENDMARK(ch) ((ch & (CHARS-1)) == 0)

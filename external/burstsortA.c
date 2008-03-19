@@ -30,8 +30,9 @@
 
 */
 
-#include "sortstring.h"
 #include "utils.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #define THRESHOLD 8192 
 #define THRESHOLDMINUSONE (THRESHOLD - 1) 

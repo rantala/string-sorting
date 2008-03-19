@@ -21,7 +21,6 @@
 
 */
 
-#include "sortstring.h"
 #include "utils.h"
 
 /* MULTIKEY QUICKSORT */

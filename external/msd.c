@@ -17,6 +17,7 @@
 */
 
 #include "nilsson.h"
+#include <stdlib.h>
 
 #define CHAR(s, p) s[p]
 

@@ -29,8 +29,8 @@
        4. It is solely meant for academic use
 */
 
-#include "sortstring.h"
 #include "utils.h"
+#include <stdlib.h>
 
 #define THRESHOLD 8192
 #define ALPHABET 256

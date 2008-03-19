@@ -20,7 +20,8 @@
    Stefan.Nilsson@hut.fi
 */
 
-#include "sortstring.h"
+#include "utils.h"
+#include <stdlib.h>
 
 #ifndef min
 #define min(a, b) ((a)<=(b) ? (a) : (b))

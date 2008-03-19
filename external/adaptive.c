@@ -26,6 +26,7 @@
 */
 
 #include "nilsson.h"
+#include <stdlib.h>
 
 /******************* A simple memory allocator ********************/
 

@@ -45,12 +45,15 @@
  *    For small n, we switch to more efficient MSD radix sort variants.
  */
 
-#include "util.h"
+#include <cstddef>
 #include <vector>
 #include <list>
 #include <algorithm>
 #include <iostream>
 //#include <deque>
+#include <boost/array.hpp>
+#include <cassert>
+#include <cstring>
 
 void msd_CE2(unsigned char** strings, size_t n, size_t depth);
 

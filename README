@@ -1,0 +1,27 @@
+========================================================
+A collection of string sorting algorithm implementations
+========================================================
+
+Copyright 2007-2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>.
+
+For complete details, see the project page:
+
+    http://string-sorting.googlecode.com/
+
+
+Requirements
+------------
+
+    * Boost
+    * CMake
+
+
+Compilation
+-----------
+
+    $ svn checkout http://string-sorting.googlecode.com/svn/trunk/ string-sorting-read-only
+    $ mkdir string-sorting-read-only-build
+    $ cd string-sorting-read-only-build
+    $ cmake -DCMAKE_BUILD_TYPE=release ../string-sorting-read-only
+    $ make
+    $ ./sorstring

@@ -23,7 +23,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "util/get_char.h"
+#include "get_char.h"
 
 template <typename CharT>
 static CharT

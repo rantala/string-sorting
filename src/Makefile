@@ -1,16 +1,16 @@
 PROGRAM=sortstring${PROG_SUFFIX}
-COMMONSRC=other/adaptive.c\
-	  other/quicksort.c\
-	  other/burstsortA.c\
-	  other/burstsortL.c\
-	  other/forward16.c\
-	  other/forward8.c\
-	  other/mbmradix.c\
-	  other/mkqsort.c\
-	  other/msd.c\
-	  other/multikey.c\
-	  other/utils.c\
-	  other/cradix.c
+EXTERNAL_SRC=../external/adaptive.c\
+	     ../external/quicksort.c\
+	     ../external/burstsortA.c\
+	     ../external/burstsortL.c\
+	     ../external/forward16.c\
+	     ../external/forward8.c\
+	     ../external/mbmradix.c\
+	     ../external/mkqsort.c\
+	     ../external/msd.c\
+	     ../external/multikey.c\
+	     ../external/utils.c\
+	     ../external/cradix.c
 SRCS=sortstring.cpp \
      clock.cpp \
      msd_ce.cpp \
@@ -18,7 +18,7 @@ SRCS=sortstring.cpp \
      msd_dyn_vector.cpp \
      msd_dyn_block.cpp \
      msd_a.cpp \
-     $(COMMONSRC)
+     $(EXTERNAL_SRC)
 
 default: $(PROGRAM)
 

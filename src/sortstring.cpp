@@ -57,6 +57,7 @@ struct Options {
 	bool check_result;
 	bool oprofile;
 	bool write;
+	bool xml_stats;
 	std::string write_filename;
 };
 
@@ -244,6 +245,39 @@ check_result(unsigned char** strings, size_t n)
 	}
 }
 
+static std::string human_readable_results(int algnum, const std::string& algname,
+		size_t n, const std::string& filename, const std::string& time)
+{
+	using std::setw;
+	using std::setfill;
+	using std::left;
+	std::stringstream strm;
+	strm << setw(3)  << setfill('0') << algnum << setfill(' ') << " * "
+	     << setw(50) << left << algname << " * "
+	     << setw(15) << left << bazename(filename) << "*"
+	     << " time: " << time;
+	return strm.str();
+}
+
+static std::string xml_results(int algnum, const std::string& algname,
+		size_t n, const std::string& filename, const std::string& time)
+{
+	std::stringstream strm;
+	strm << "<event>\n"
+	        "  <algorithm num=\""<<algnum<<"\" name=\""<<algname<<"\"/>\n"
+	        "  <input fullpath=\""<<filename<<"\" n=\""<<n<<"\"/>\n"
+	        "  <time seconds=\""<<time<<"\"/>\n"
+	        "</event>";
+	return strm.str();
+}
+
+static std::string time_str()
+{
+	std::stringstream strm;
+	strm << std::fixed << std::setprecision(2) << 1000*gettime();
+	return strm.str();
+}
+
 // extern "C" so that run() will be demangled in the binary -> we can use the
 // function name with callgrind for example.
 extern "C"
@@ -255,11 +289,9 @@ run(int algnum,
     const std::string& filename)
 {
 	Algorithms::mapped_type alg;
-	std::stringstream strm;
+	std::string output_human, output_xml;
 	if (algs.find(algnum) != algs.end())
 		alg = algs.find(algnum)->second;
-	strm << std::setw(2) << std::setfill('0') << algnum << std::setfill(' ') << " * ";
-	strm << std::setw(50) << std::left;
 	if (alg.first) {
 		opcontrol_start();
 		clockon();
@@ -268,19 +300,21 @@ run(int algnum,
 		opcontrol_stop();
 		check_result(strings, n);
 		write_result(strings, n);
-		strm << alg.second;
+		output_human = human_readable_results(algnum, alg.second, n,
+				filename, time_str());
+		output_xml = xml_results(algnum, alg.second, n, filename,
+				time_str());
 	} else {
-		strm << "NA";
+		output_human = human_readable_results(algnum, "NA", n,
+				filename, "NA");
+		output_xml = xml_results(algnum, "NA", n, filename, "NA");
 	}
-	strm << " * ";
-	strm << std::setw(15) << std::left << bazename(filename) << "*";
-	if (alg.first)
-		strm << " time: " << std::fixed << std::setprecision(2) << 1000*gettime();
-	else
-		strm << " time: NA";
-	strm << std::endl;
-	std::cout << strm.str();
-	log_perf(strm.str());
+	log_perf(output_human);
+	if (opts.xml_stats) {
+		std::cout << output_xml << std::endl;
+	} else {
+		std::cout << output_human << std::endl;
+	}
 }
 
 static Algorithms
@@ -334,6 +368,13 @@ get_algorithms()
 	algs[55] = make_pair(msd_A,           "msd_A");
 	algs[56] = make_pair(msd_A_adaptive,  "msd_A (Adaptive)");
 
+	algs[90] = make_pair(burstsort_mkq_simpleburst_1,    "burstsort_mkq_simpleburst_1");
+	algs[91] = make_pair(burstsort_mkq_simpleburst_2,    "burstsort_mkq_simpleburst_2");
+	algs[92] = make_pair(burstsort_mkq_simpleburst_4,    "burstsort_mkq_simpleburst_4");
+	algs[95] = make_pair(burstsort_mkq_recursiveburst_1, "burstsort_mkq_recursiveburst_1");
+	algs[96] = make_pair(burstsort_mkq_recursiveburst_2, "burstsort_mkq_recursiveburst_2");
+	algs[97] = make_pair(burstsort_mkq_recursiveburst_4, "burstsort_mkq_recursiveburst_4");
+
 	algs[100] = make_pair(burstsort_vector,  "burstsort_vector");
 	algs[101] = make_pair(burstsort_brodnik, "burstsort_brodnik");
 	algs[102] = make_pair(burstsort_bagwell, "burstsort_bagwell");
@@ -374,33 +415,35 @@ print_alg_name(const Algorithms& algs, int num)
 static void
 usage(const Algorithms& algs)
 {
-	std::cout << "String sorting\n"
-		     "--------------\n"
-		     "\n"
-		     "Usage: ./sortstring [options] <algorithm> <filename>\n"
-		     "\n"
-		     "Examples:\n"
-		     "   ./sortstring 1 ~/testdata/testfile1\n"
-		     "   ./sortstring --check --suffix-sorting 1 ~/testdata/text\n"
-		     "\n"
-		     "Options:\n"
-		     "   --check          : Tries to check output for validity. Might not catch\n"
-		     "                      all errors. Prints a warning when errors found.\n"
-		     "   --oprofile       : Executes `oprofile --start' just before calling the\n"
-		     "                      actual sorting algorithm, and `oprofile --stop' after\n"
-		     "                      returning from the call. Can be used to obtain more\n"
-		     "                      accurate statistics with OProfile.\n"
-		     "   --alg-nums       : Prints available algorithm numbers, useful for scripts.\n"
-		     "                      Example:\n"
-		     "                         for i in `./sortstring --alg-nums` ; do\n"
-		     "                                   ./sortstring $i input ; done\n"
-		     "   --alg-name=k     : Print the name of algorithm number `k'.\n"
-		     "   --suffix-sorting : Treat input as text, and sort each suffix of the text.\n"
-		     "                      Can be _very_ slow.\n"
-		     "   --write          : Writes sorted output to `/tmp/$USERNAME/alg.out'\n"
-		     "   --write=outfile  : Writes sorted output to `outfile'\n"
-		     "\n"
-		     "Available algorithms:\n";
+	std::cout <<
+	     "String sorting\n"
+	     "--------------\n"
+	     "\n"
+	     "Usage: ./sortstring [options] <algorithm> <filename>\n"
+	     "\n"
+	     "Examples:\n"
+	     "   ./sortstring 1 ~/testdata/testfile1\n"
+	     "   ./sortstring --check --suffix-sorting 1 ~/testdata/text\n"
+	     "\n"
+	     "Options:\n"
+	     "   --check          : Tries to check output for validity. Might not catch\n"
+	     "                      all errors. Prints a warning when errors found.\n"
+	     "   --oprofile       : Executes `oprofile --start' just before calling the\n"
+	     "                      actual sorting algorithm, and `oprofile --stop' after\n"
+	     "                      returning from the call. Can be used to obtain more\n"
+	     "                      accurate statistics with OProfile.\n"
+	     "   --alg-nums       : Prints available algorithm numbers, useful for scripts.\n"
+	     "                      Example:\n"
+	     "                         for i in `./sortstring --alg-nums` ; do\n"
+	     "                                   ./sortstring $i input ; done\n"
+	     "   --alg-name=k     : Print the name of algorithm number `k'.\n"
+	     "   --suffix-sorting : Treat input as text, and sort each suffix of the text.\n"
+	     "                      Can be _very_ slow.\n"
+	     "   --write          : Writes sorted output to `/tmp/$USERNAME/alg.out'\n"
+	     "   --write=outfile  : Writes sorted output to `outfile'\n"
+	     "   --xml-stats      : Outputs statistics in XML (default: human readable)\n"
+	     "\n"
+	     "Available algorithms:\n";
 
 	print_alg_names(algs);
 }
@@ -437,6 +480,7 @@ int main(int argc, char** argv)
 		{"write",          2, 0, 1005},
 		{"alg-name",       1, 0, 1006},
 		{"oprofile",       0, 0, 1007},
+		{"xml-stats",      0, 0, 1008},
 		{0,                0, 0, 0}
 	};
 	while (true) {
@@ -468,6 +512,9 @@ int main(int argc, char** argv)
 			return 0;
 		case 1007:
 			opts.oprofile = true;
+			break;
+		case 1008:
+			opts.xml_stats = true;
 			break;
 		case '?':
 		default:

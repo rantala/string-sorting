@@ -121,10 +121,15 @@ private:
 	}
 	void shrink()
 	{
-		if (_capacity <= InitialSize) return;
-		_capacity = _capacity / 2;
-		_data = static_cast<T*>(
-			realloc(_data, _capacity*sizeof(T*)));
+		if (_capacity <= InitialSize) {
+			free(_data);
+			_data = 0;
+			_capacity = 0;
+		} else {
+			_capacity = _capacity / 2;
+			_data = static_cast<T*>(
+				realloc(_data, _capacity*sizeof(T)));
+		}
 	}
 	T* _data;
 	size_t _size;

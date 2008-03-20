@@ -95,6 +95,10 @@ void burstsort_mkq_recursiveburst_1(unsigned char**, size_t);
 void burstsort_mkq_recursiveburst_2(unsigned char**, size_t);
 void burstsort_mkq_recursiveburst_4(unsigned char**, size_t);
 
+void multikey_simd1(unsigned char**, size_t);
+void multikey_simd2(unsigned char**, size_t);
+void multikey_simd4(unsigned char**, size_t);
+
 void clockon();
 void clockoff();
 double gettime();

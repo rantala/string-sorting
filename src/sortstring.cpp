@@ -334,6 +334,10 @@ get_algorithms()
 	algs[9]  = make_pair(burstsortA, "Burstsort Array Based (Sinha, Zobel)");
 	algs[10] = make_pair(CRadix,     "CRadix (Ng, Kakehi)");
 
+	algs[11] = make_pair(multikey_simd1, "multikey_simd1");
+	algs[12] = make_pair(multikey_simd2, "multikey_simd2");
+	algs[13] = make_pair(multikey_simd4, "multikey_simd4");
+
 	algs[20] = make_pair(msd_CE0, "msd_CE0 (Baseline)");
 	algs[21] = make_pair(msd_CE1, "msd_CE1 (Oracle)");
 	algs[22] = make_pair(msd_CE2, "msd_CE2 (Oracle+Loop Fission)");

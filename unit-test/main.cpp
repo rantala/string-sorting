@@ -56,6 +56,7 @@ void test_basics()
 
 int main()
 {
+	/*********************************************************/
 	test_basics<vector_brodnik<int> >();
 	test_basics<vector_bagwell<int> >();
 	test_basics<vector_block<int> >();
@@ -64,5 +65,15 @@ int main()
 	test_basics<vector_realloc<int> >();
 	test_basics<vector_realloc_counter_clear<int> >();
 	test_basics<vector_realloc_shrink_clear<int> >();
+	/*********************************************************/
+	test_basics<vector_brodnik<uint64_t> >();
+	test_basics<vector_bagwell<uint64_t> >();
+	test_basics<vector_block<uint64_t> >();
+	test_basics<vector_malloc<uint64_t> >();
+	test_basics<vector_malloc_counter_clear<uint64_t> >();
+	test_basics<vector_realloc<uint64_t> >();
+	test_basics<vector_realloc_counter_clear<uint64_t> >();
+	test_basics<vector_realloc_shrink_clear<uint64_t> >();
+	/*********************************************************/
 	std::cerr<<"All OK\n";
 }

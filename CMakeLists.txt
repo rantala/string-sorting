@@ -9,6 +9,7 @@ set(INTERNAL_SRCS
 	src/msd_dyn_block.cpp
 	src/msd_dyn_vector.cpp
 	src/burstsort.cpp
+	src/burstsort_mkq.cpp
 	src/sortstring.cpp)
 
 set(EXTERNAL_SRCS
@@ -29,11 +30,20 @@ add_executable(sortstring
 	${INTERNAL_SRCS}
 	${EXTERNAL_SRCS})
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Drestrict=__restrict__ -msse2")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+option(USE_ICC "Use the Intel C/C++ compiler" OFF)
 
-set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -DBOOST_DISABLE_ASSERTS -march=core2")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DBOOST_DISABLE_ASSERTS -march=core2")
-set(CMAKE_C_FLAGS_RELEASE        "${CMAKE_C_FLAGS_RELEASE} -march=core2")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -march=core2")
+add_definitions(-Drestrict=__restrict__)
+
+if(USE_ICC)
+	set(CMAKE_CXX_COMPILER "icpc")
+	set(CMAKE_C_COMPILER "icc")
+	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -ipo -xT -O2")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -ipo -xT -O2")
+	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG -ipo -xT -O2")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-g -DNDEBUG -ipo -xT -O2")
+else(USE_ICC)
+	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=core2 ${CMAKE_CXX_FLAGS_RELEASE}")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=core2 ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG -march=core2 ${CMAKE_C_FLAGS_RELEASE}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-g -DNDEBUG -march=core2 ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+endif(USE_ICC)

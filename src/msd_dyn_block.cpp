@@ -57,13 +57,6 @@
 
 void msd_CE2(unsigned char** strings, size_t n, size_t depth);
 
-static inline uint16_t
-double_char(unsigned char* str, size_t depth)
-{
-	unsigned c = str[depth];
-	return (c << 8) | (c != 0 ? str[depth+1] : c);
-}
-
 typedef unsigned char** Block;
 //typedef std::deque<Block> FreeBlocks;
 typedef std::list<Block> FreeBlocks;

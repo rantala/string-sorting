@@ -46,6 +46,7 @@
  */
 
 #include "util/insertion_sort.h"
+#include "util/get_char.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -151,14 +152,6 @@ msd_CE2(unsigned char** strings, size_t n, size_t depth)
 void msd_CE2(unsigned char** strings, size_t n)
 { msd_CE2(strings, n, 0); }
 
-static inline uint16_t
-double_char(unsigned char* str, size_t depth)
-{
-	unsigned c = str[depth];
-	if (c == 0) return 0;
-	return (c << 8) | str[depth+1];
-}
-
 void
 msd_CE3(unsigned char** strings, size_t n, size_t depth)
 {
@@ -169,7 +162,7 @@ msd_CE3(unsigned char** strings, size_t n, size_t depth)
 	uint16_t* restrict oracle =
 		(uint16_t*) malloc(n*sizeof(uint16_t));
 	for (size_t i=0; i < n; ++i)
-		oracle[i] = double_char(strings[i], depth);
+		oracle[i] = get_char<uint16_t>(strings[i], depth);
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
 	for (size_t i=0; i < n; ++i)

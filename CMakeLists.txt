@@ -10,6 +10,7 @@ set(INTERNAL_SRCS
 	src/msd_dyn_vector.cpp
 	src/burstsort.cpp
 	src/burstsort_mkq.cpp
+	src/multikey_simd.cpp
 	src/sortstring.cpp)
 
 set(EXTERNAL_SRCS
@@ -42,6 +43,7 @@ if(USE_ICC)
 	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG -ipo -xT -O2")
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-g -DNDEBUG -ipo -xT -O2")
 else(USE_ICC)
+	add_definitions(-msse2)
 	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=core2 ${CMAKE_CXX_FLAGS_RELEASE}")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=core2 ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG -march=core2 ${CMAKE_C_FLAGS_RELEASE}")

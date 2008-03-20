@@ -1,6 +1,11 @@
 #ifndef VECTOR_MALLOC
 #define VECTOR_MALLOC
 
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
+#include <cassert>
+
 template <typename T, unsigned InitialSize=16>
 class vector_malloc
 {
@@ -19,6 +24,11 @@ public:
 		_data = 0;
 		_size = 0;
 		_capacity = 0;
+	}
+	T operator[](size_t index) const
+	{
+		assert(index < size());
+		return _data[index];
 	}
 	const T* begin() const { return _data; }
 	const T* end() const  { return _data+_size; }
@@ -56,6 +66,11 @@ public:
 		++_size;
 	}
 	void clear() { _size=0; }
+	T operator[](size_t index) const
+	{
+		assert(index < size());
+		return _data[index];
+	}
 	const T* begin() const  { return _data;       }
 	const T* end() const    { return _data+_size; }
 	size_t capacity() const { return _capacity;   }

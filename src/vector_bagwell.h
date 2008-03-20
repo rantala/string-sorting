@@ -42,6 +42,8 @@
 #ifndef VLIST_VECTOR_HPP
 #define VLIST_VECTOR_HPP
 
+#include <cstdlib>
+#include <cstddef>
 #include <vector>
 #include <cassert>
 #include <boost/static_assert.hpp>

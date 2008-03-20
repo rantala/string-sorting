@@ -88,6 +88,13 @@ void burstsort_superalphabet_brodnik(unsigned char**, size_t);
 void burstsort_superalphabet_bagwell(unsigned char**, size_t);
 void burstsort_superalphabet_vector_block(unsigned char**, size_t);
 
+void burstsort_mkq_simpleburst_1(unsigned char**, size_t);
+void burstsort_mkq_simpleburst_2(unsigned char**, size_t);
+void burstsort_mkq_simpleburst_4(unsigned char**, size_t);
+void burstsort_mkq_recursiveburst_1(unsigned char**, size_t);
+void burstsort_mkq_recursiveburst_2(unsigned char**, size_t);
+void burstsort_mkq_recursiveburst_4(unsigned char**, size_t);
+
 void clockon();
 void clockoff();
 double gettime();

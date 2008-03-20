@@ -26,7 +26,7 @@
 #include "get_char.h"
 
 template <typename CharT>
-static CharT
+CharT
 med3char(CharT a, CharT b, CharT c)
 {
 	if (a == b)           return a;
@@ -42,7 +42,7 @@ med3char(CharT a, CharT b, CharT c)
 }
 
 template <typename CharT, typename Cmp>
-static CharT&
+CharT&
 med3char(CharT& a, CharT& b, CharT& c, Cmp cmp)
 {
 	if (cmp(a, b) == 0)                   return a;
@@ -55,6 +55,19 @@ med3char(CharT& a, CharT& b, CharT& c, Cmp cmp)
 	if (cmp(b, c) > 0) return b;
 	if (cmp(a, c) < 0) return a;
 	return c;
+}
+
+template <typename CharT>
+inline CharT
+pseudo_median(CharT* begin, CharT* end)
+{
+	size_t N=end-begin;
+	assert(N>3);
+	return med3char(
+			med3char(begin[0],   begin[1],     begin[2]),
+			med3char(begin[N/2], begin[N/2+1], begin[N/2+2]),
+			med3char(begin[N-3], begin[N-2],   begin[N-1])
+		       );
 }
 
 template <typename CharT>

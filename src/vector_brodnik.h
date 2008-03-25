@@ -35,6 +35,16 @@
  * }
  */
 
+/*
+ * Example with superblocks, blocks and indices marked.
+ *
+ *  SB=0 : [0]
+ *  SB=1 : [1,2]
+ *  SB=2 : [3,4] [5,6]
+ *  SB=3 : [7,8,9,10] [11,12,13,14]
+ *  SB=4 : [15,16,17,18] [19,20,21,22] [23,24,25,26] [27,28,29,30]
+ */
+
 #ifndef VECTOR_BRODNIK
 #define VECTOR_BRODNIK
 
@@ -46,6 +56,14 @@
 template <typename T>
 struct vector_brodnik
 {
+	// Skip some of the smallest blocks for better performance.
+	enum {
+		InitialSuperBlock = 6,
+		InitialBlocksize  = 8,
+		InitialSuperBlocksize = 1 << (InitialSuperBlock/2),
+		SkippedElements       = (1 << InitialSuperBlock) - 1,
+		SkippedDatablocks     = 14,
+	};
 	typedef T value_type;
 	typedef std::vector<T*> index_block_type;
 	void push_back(const T& t)
@@ -60,7 +78,8 @@ struct vector_brodnik
 		// The sum of elements in superblocks 0,...,k-1 is 2^k-1.
 		return ((1 << (_superblock+1))-1)
 			- _left_in_block
-			- (_block_size*_left_in_superblock);
+			- (_block_size*_left_in_superblock)
+			- SkippedElements;
 	}
 	void grow()
 	{
@@ -80,7 +99,7 @@ struct vector_brodnik
 	{
 		// See the paper for details.
 		assert(index < size());
-		const size_t r = index+1;
+		const size_t r = index+1+SkippedElements;
 		const unsigned k = 31 - __builtin_clz(r);
 		const unsigned msbit = 1 << (31 - __builtin_clz(r));
 		const size_t b = (r & ~msbit) >> (k-k/2);
@@ -96,8 +115,8 @@ struct vector_brodnik
 			<<"\te    ="<<e<<"\n"
 			<<"\tp    ="<<p<<"\n\n";
 		*/
-		assert(p+b < _index_block.size());
-		return _index_block[p+b][e];
+		assert((p+b-SkippedDatablocks) < _index_block.size());
+		return _index_block[p+b-SkippedDatablocks][e];
 	}
 	void clear()
 	{
@@ -107,10 +126,10 @@ struct vector_brodnik
 		_index_block.clear();
 		_insertpos = 0;
 		_left_in_block = 0;
-		_left_in_superblock = 1;
-		_block_size = 1;
-		_superblock_size = 1;
-		_superblock = 0;
+		_left_in_superblock = InitialSuperBlocksize;
+		_block_size = InitialBlocksize;
+		_superblock_size = InitialSuperBlocksize;
+		_superblock = InitialSuperBlock;
 	}
 	~vector_brodnik()
 	{
@@ -132,9 +151,9 @@ template <typename T, typename OutputIterator>
 static inline void
 copy(const vector_brodnik<T>& bucket, OutputIterator dst)
 {
-	bool superblock_odd=false;
-	size_t superblocksize=1;
-	size_t blocksize=1;
+	bool superblock_odd=(vector_brodnik<T>::InitialSuperBlock % 2 == 1);
+	size_t superblocksize=vector_brodnik<T>::InitialSuperBlocksize;
+	size_t blocksize=vector_brodnik<T>::InitialBlocksize;
 	for (size_t i=0; i < bucket._index_block.size(); ) {
 		for (size_t j=0; j < superblocksize; ++j) {
 			if (i+j == (bucket._index_block.size()-1)) goto done;

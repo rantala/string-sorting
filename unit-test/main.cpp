@@ -23,18 +23,12 @@ void test_basics()
 	{
 		Container v;
 		const unsigned N=1000000;
-		for (unsigned i=0; i < N; ++i) v.push_back(i);
+		for (unsigned i=0; i < N; ++i) {
+			assert(v.size()==i);
+			v.push_back(i);
+			assert(v[i]==i);
+		}
 		assert(v.size()==N);
-		for (unsigned i=0; i < N; ++i) assert(v[i]==i);
-	}
-	{
-		Container v;
-		v.push_back(1);
-		v.clear();
-		assert(v.size()==0);
-		v.push_back(2);
-		assert(v.size()==1);
-		assert(v[0]==2);
 	}
 	{
 		Container v;

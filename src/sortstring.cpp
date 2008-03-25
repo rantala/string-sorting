@@ -383,6 +383,9 @@ get_algorithms()
 	algs[72] = make_pair(multikey_dynamic_vector_block1, "multikey_dynamic_vector_block1");
 	algs[73] = make_pair(multikey_dynamic_vector_block2, "multikey_dynamic_vector_block2");
 	algs[74] = make_pair(multikey_dynamic_vector_block4, "multikey_dynamic_vector_block4");
+	algs[75] = make_pair(multikey_block1, "multikey_block1");
+	algs[76] = make_pair(multikey_block2, "multikey_block2");
+	algs[77] = make_pair(multikey_block4, "multikey_block4");
 
 	algs[90] = make_pair(burstsort_mkq_simpleburst_1,    "burstsort_mkq_simpleburst_1");
 	algs[91] = make_pair(burstsort_mkq_simpleburst_2,    "burstsort_mkq_simpleburst_2");

@@ -110,6 +110,9 @@ void multikey_dynamic_bagwell4(unsigned char**, size_t);
 void multikey_dynamic_vector_block1(unsigned char**, size_t);
 void multikey_dynamic_vector_block2(unsigned char**, size_t);
 void multikey_dynamic_vector_block4(unsigned char**, size_t);
+void multikey_block1(unsigned char**, size_t);
+void multikey_block2(unsigned char**, size_t);
+void multikey_block4(unsigned char**, size_t);
 
 void clockon();
 void clockoff();

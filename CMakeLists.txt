@@ -12,6 +12,7 @@ set(INTERNAL_SRCS
 	src/burstsort_mkq.cpp
 	src/multikey_simd.cpp
 	src/multikey_dynamic.cpp
+	src/multikey_block.cpp
 	src/sortstring.cpp)
 
 set(EXTERNAL_SRCS

@@ -103,7 +103,7 @@ log_perf(const std::string& msg)
 		std::cerr << "Warning: could not open file for logging!\n";
 		return;
 	}
-	file << msg;
+	file << msg << std::endl;
 }
 
 static std::ofstream* log_file = 0;

@@ -334,10 +334,6 @@ get_algorithms()
 	algs[9]  = make_pair(burstsortA, "Burstsort Array Based (Sinha, Zobel)");
 	algs[10] = make_pair(CRadix,     "CRadix (Ng, Kakehi)");
 
-	algs[11] = make_pair(multikey_simd1, "multikey_simd1");
-	algs[12] = make_pair(multikey_simd2, "multikey_simd2");
-	algs[13] = make_pair(multikey_simd4, "multikey_simd4");
-
 	algs[20] = make_pair(msd_CE0, "msd_CE0 (Baseline)");
 	algs[21] = make_pair(msd_CE1, "msd_CE1 (Oracle)");
 	algs[22] = make_pair(msd_CE2, "msd_CE2 (Oracle+Loop Fission)");
@@ -371,6 +367,22 @@ get_algorithms()
 	algs[54] = make_pair(msd_DB,          "msd_DB");
 	algs[55] = make_pair(msd_A,           "msd_A");
 	algs[56] = make_pair(msd_A_adaptive,  "msd_A (Adaptive)");
+
+	algs[60] = make_pair(multikey_simd1, "multikey_simd1");
+	algs[61] = make_pair(multikey_simd2, "multikey_simd2");
+	algs[62] = make_pair(multikey_simd4, "multikey_simd4");
+	algs[63] = make_pair(multikey_dynamic_vector1, "multikey_dynamic_vector1");
+	algs[64] = make_pair(multikey_dynamic_vector2, "multikey_dynamic_vector2");
+	algs[65] = make_pair(multikey_dynamic_vector4, "multikey_dynamic_vector4");
+	algs[66] = make_pair(multikey_dynamic_brodnik1, "multikey_dynamic_brodnik1");
+	algs[67] = make_pair(multikey_dynamic_brodnik2, "multikey_dynamic_brodnik2");
+	algs[68] = make_pair(multikey_dynamic_brodnik4, "multikey_dynamic_brodnik4");
+	algs[69] = make_pair(multikey_dynamic_bagwell1, "multikey_dynamic_bagwell1");
+	algs[70] = make_pair(multikey_dynamic_bagwell2, "multikey_dynamic_bagwell2");
+	algs[71] = make_pair(multikey_dynamic_bagwell4, "multikey_dynamic_bagwell4");
+	algs[72] = make_pair(multikey_dynamic_vector_block1, "multikey_dynamic_vector_block1");
+	algs[73] = make_pair(multikey_dynamic_vector_block2, "multikey_dynamic_vector_block2");
+	algs[74] = make_pair(multikey_dynamic_vector_block4, "multikey_dynamic_vector_block4");
 
 	algs[90] = make_pair(burstsort_mkq_simpleburst_1,    "burstsort_mkq_simpleburst_1");
 	algs[91] = make_pair(burstsort_mkq_simpleburst_2,    "burstsort_mkq_simpleburst_2");

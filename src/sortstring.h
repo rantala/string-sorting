@@ -98,6 +98,18 @@ void burstsort_mkq_recursiveburst_4(unsigned char**, size_t);
 void multikey_simd1(unsigned char**, size_t);
 void multikey_simd2(unsigned char**, size_t);
 void multikey_simd4(unsigned char**, size_t);
+void multikey_dynamic_vector1(unsigned char**, size_t);
+void multikey_dynamic_vector2(unsigned char**, size_t);
+void multikey_dynamic_vector4(unsigned char**, size_t);
+void multikey_dynamic_brodnik1(unsigned char**, size_t);
+void multikey_dynamic_brodnik2(unsigned char**, size_t);
+void multikey_dynamic_brodnik4(unsigned char**, size_t);
+void multikey_dynamic_bagwell1(unsigned char**, size_t);
+void multikey_dynamic_bagwell2(unsigned char**, size_t);
+void multikey_dynamic_bagwell4(unsigned char**, size_t);
+void multikey_dynamic_vector_block1(unsigned char**, size_t);
+void multikey_dynamic_vector_block2(unsigned char**, size_t);
+void multikey_dynamic_vector_block4(unsigned char**, size_t);
 
 void clockon();
 void clockoff();

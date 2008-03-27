@@ -13,6 +13,7 @@ set(INTERNAL_SRCS
 	src/multikey_simd.cpp
 	src/multikey_dynamic.cpp
 	src/multikey_block.cpp
+	src/multikey_multipivot.cpp
 	src/sortstring.cpp)
 
 set(EXTERNAL_SRCS

@@ -1,0 +1,11 @@
+#!/bin/bash
+OUT=algs.xml
+if [[ -e $OUT ]] ; then
+	rm $OUT
+fi
+echo "<algs>" >> $OUT
+for A in `./sortstring --alg-nums` ; do
+	echo "    <algnum value=\"$A\"/>" >> $OUT
+done
+echo "</algs>" >> $OUT
+echo "Generated ''$OUT''."

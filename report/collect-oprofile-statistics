@@ -1,0 +1,95 @@
+#!/bin/bash
+################################################################################
+# Copyright 2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+################################################################################
+if [[ `id -u` != 0 ]] ; then
+	echo "Sorry, profiling requires root priviledges"
+	exit 1
+fi
+################################################################################
+function die() {
+	echo "ERROR: $1"
+	exit 1
+}
+################################################################################
+EVENTS="CPU_CLK_UNHALTED:100000
+	LOAD_BLOCK:10000:0x02
+	LOAD_BLOCK:10000:0x04
+	LOAD_BLOCK:10000:0x08
+	LOAD_BLOCK:10000:0x10
+	LOAD_BLOCK:10000:0x20
+	STORE_BLOCK:10000:0x02
+	INST_RETIRED:100000
+	DTLB_MISSES:10000
+	MEM_LOAD_RETIRED:10000:0x01
+	MEM_LOAD_RETIRED:10000:0x02
+	MEM_LOAD_RETIRED:10000:0x04
+	MEM_LOAD_RETIRED:10000:0x08
+	MEM_LOAD_RETIRED:10000:0x10
+	L2_LINES_IN:10000
+	L1D_CACHE_LD:10000"
+################################################################################
+if [[ -z $BIN  ]] ; then BIN=./sortstring ; fi
+if [[ ! -x $BIN ]] ; then die "Sorry, binary not executable" ; fi
+if [[ -z $ALGS ]] ; then ALGS=`$BIN --alg-nums` ; fi
+if [[ -z $INFILES ]] ; then INFILES="input/url3 input/nodup3 input/genome3" ; fi
+if [[ -z $OUTDIR ]] ; then OUTDIR="data" ; fi
+mkdir -p $OUTDIR
+for I in $INFILES ; do
+        if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
+done
+################################################################################
+# 1. event to monitor
+# 2. algorithm
+# 3. input file name
+# 4. oprofile XML output file name
+################################################################################
+function round() {
+	echo "  Profiling algorithm ''$2'', input ''$3'', event ''$1'' ..."
+	opcontrol --reset >>.op_log 2>&1 || die "Could not reset OProfile"
+	# Nuke old configuration file. Only (?) way to _really_ clean up old
+	# settings.
+	rm -f /root/.oprofile/daemonrc
+	opcontrol --image=$BIN --no-vmlinux --event=$1 >>.op_log 2>&1 || die "Could not setup OProfile correctly"
+	$BIN --oprofile $2 $3 >>.op_log 2>&1
+	if [[ $? -ne 0 ]] ; then echo "WARNING: failure was reported" ; fi
+	opcontrol --shutdown >>.op_log 2>&1 || die "Could not shutdown OProfile correctly"
+	opreport --xml $BIN >/dev/null 2>/dev/null || die "Report failed"
+	opreport --xml $BIN | xsltproc op.xsl - >>$4
+	#opreport --xml $BIN | tee -a $5 | xsltproc op.xsl - >> $4
+}
+################################################################################
+echo "ALGS=$ALGS"
+echo "EVENTS=$EVENTS"
+echo "INFILES=$INFILES"
+echo "Starting measurements ..."
+for FILE in $INFILES ; do
+	echo "Input file $FILE ..."
+	for ALG in $ALGS ; do
+		XMLOUT=$OUTDIR/oprofile_`basename ${FILE}`_${ALG}.xml
+		echo "<simple>" > $XMLOUT || die "Could not create $XMLOUT"
+		chown ttrantal.ttrantal $XMLOUT || die "Could not set access right for $XMLOUT"
+		for EVENT in $EVENTS ; do
+			round $EVENT $ALG $FILE $XMLOUT
+		done
+		echo "</simple>" >> $XMLOUT
+	done
+done

@@ -59,8 +59,7 @@ struct vector_block
 	}
 	size_t size() const
 	{
-		if (_index_block.empty()) return 0;
-		return (_index_block.size()-1)*B + B-_left_in_block;
+		return _index_block.size()*B - _left_in_block;
 	}
 	void clear()
 	{

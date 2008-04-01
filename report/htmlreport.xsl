@@ -128,29 +128,24 @@
 			<th>L2 cache line misses x10^6</th>
 			<th>Load blocks x10^6</th>
 			<th>Store order blocks x10^6</th>
+			<th>Heap peak (megabytes)</th>
+			<th>{m,c,re}alloc calls</th>
 		</tr>
 	</xsl:template>
 	<xsl:template name="read-info">
 		<xsl:param name="input"/>
-		<xsl:for-each select="/algs/algnum">
-			<xsl:call-template name="read-info-alg">
-				<xsl:with-param name="input" select="$input"/>
-				<xsl:with-param name="alg" select="@value"/>
-			</xsl:call-template>
+		<xsl:for-each select="/algs/alg">
+			<tr>
+				<td><xsl:value-of select="@algnum"/></td>
+				<td><xsl:value-of select="@algname"/></td>
+				<xsl:apply-templates select="document(concat('data/timings_',  $input, '_', @algnum, '.xml'))"/>
+				<xsl:apply-templates select="document(concat('data/oprofile_', $input, '_', @algnum, '.xml'))"/>
+				<xsl:apply-templates select="document(concat('data/memusage_', $input, '_', @algnum, '.xml'))"/>
+			</tr>
 		</xsl:for-each>
-	</xsl:template>
-	<xsl:template name="read-info-alg">
-		<xsl:param name="input"/>
-		<xsl:param name="alg"/>
-		<tr>
-			<xsl:apply-templates select="document(concat('data/timings_',  $input, '_', $alg, '.xml'))"/>
-			<xsl:apply-templates select="document(concat('data/oprofile_', $input, '_', $alg, '.xml'))"/>
-		</tr>
 	</xsl:template>
 	<!-- these come from the timings data -->
 	<xsl:template match="/event">
-		<td><xsl:value-of select="algorithm/@num"/></td>
-		<td><xsl:value-of select="algorithm/@name"/></td>
 		<td><xsl:value-of select="time/@seconds"/></td>
 	</xsl:template>
 	<!-- these come from the oprofile data -->
@@ -171,5 +166,10 @@
 				  event[@name='LOAD_BLOCK' and @mask='32']/@value) div 1e6,
 				'#')"/></td>
 		<td><xsl:value-of select="format-number(event[@name='STORE_BLOCK']/@value div 1e6, '#')"/></td>
+	</xsl:template>
+	<!-- memusage data -->
+	<xsl:template match="/memusage/event">
+		<td><xsl:value-of select="format-number(@heap-peak div 1048576, '#')"/></td>
+		<td><xsl:value-of select="format-number(@calls-malloc + @calls-realloc + @calls-calloc, '#')"/></td>
 	</xsl:template>
 </xsl:stylesheet>

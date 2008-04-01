@@ -4,8 +4,11 @@ if [[ -e $OUT ]] ; then
 	rm $OUT
 fi
 echo "<algs>" >> $OUT
-for A in `./sortstring --alg-nums` ; do
-	echo "    <algnum value=\"$A\"/>" >> $OUT
+for ALGNUM in `./sortstring --alg-nums` ; do
+	# replace normal spaces with non-breaking space &#x00a0;
+	# replace normal hyphens with non-breaking hyphens &#x2011;
+	ALGNAME="`./sortstring --alg-name=$ALGNUM | sed 's/ /\\&#x00a0;/g' | sed 's/-/\\&#x2011;/g'`"
+	echo "    <alg algnum=\"$ALGNUM\" algname=\"$ALGNAME\"/>" >> $OUT
 done
 echo "</algs>" >> $OUT
 echo "Generated ''$OUT''."

@@ -1,0 +1,95 @@
+#!/bin/bash
+################################################################################
+# Copyright 2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+################################################################################
+function nuketmp() {
+	if [[ -e .tmp ]] ; then
+		rm .tmp
+	fi
+}
+function die() {
+	echo "ERROR: $1"
+	nuketmp
+	exit 1
+}
+################################################################################
+if [[ -z $BIN  ]] ; then BIN=./sortstring ; fi
+if [[ ! -x $BIN ]] ; then die "Sorry, binary not executable" ; fi
+if [[ -z $ALGS ]] ; then ALGS=`$BIN --alg-nums` ; fi
+if [[ -z $INFILES ]] ; then INFILES="input/url3 input/nodup3 input/genome3" ; fi
+if [[ -z $OUTDIR ]] ; then OUTDIR="data" ; fi
+mkdir -p $OUTDIR
+for I in $INFILES ; do
+        if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
+done
+################################################################################
+echo "ALGS=$ALGS"
+echo "EVENTS=$EVENTS"
+echo "INFILES=$INFILES"
+echo "Starting measurements ..."
+for FILE in $INFILES ; do
+	echo "Input file $FILE ..."
+	# Find out baseline values by running with non-existent algorithm. We
+	# can then find out how much memory the actual algorithm requires and
+	# how many malloc calls it makes.
+	memusage $BIN 0 $FILE >/dev/null 2>.tmp
+	BLHEAPTOTAL=`grep "heap total" .tmp | sed 's/.*heap total: \([0-9]*\),.*/\1/'`
+	BLHEAPPEAK=`grep "heap peak" .tmp   | sed 's/.*heap peak: \([0-9]*\),.*/\1/'`
+	BLSTACKPEAK=`grep "stack peak" .tmp | sed 's/.*stack peak: \([0-9]*\)/\1/'`
+	BLCALLSMALLOC=`grep "malloc" .tmp   | awk '{print \$3}'`
+	BLCALLSREALLOC=`grep "realloc" .tmp | awk '{print \$3}'`
+	BLCALLSCALLOC=`grep "calloc" .tmp   | awk '{print \$3}'`
+	#echo "BLHEAPTOTAL=$BLHEAPTOTAL"
+	#echo "BLHEAPPEAK=$BLHEAPPEAK"
+	#echo "BLSTACKPEAK=$BLSTACKPEAK"
+	#echo "BLCALLSMALLOC=$BLCALLSMALLOC"
+	#echo "BLCALLSREALLOC=$BLCALLSREALLOC"
+	#echo "BLCALLSCALLOC=$BLCALLSCALLOC"
+	for ALG in $ALGS ; do
+		XMLOUT=$OUTDIR/memusage_`basename ${FILE}`_${ALG}.xml
+		memusage $BIN $ALG $FILE >/dev/null 2>.tmp
+		if [[ $? -ne 0 ]] ; then
+			echo "WARNING: failure with alg=$ALG input=$FILE"
+		fi
+		HEAPTOTAL=`grep "heap total" .tmp | sed 's/.*heap total: \([0-9]*\),.*/\1/'`
+		HEAPPEAK=`grep "heap peak" .tmp   | sed 's/.*heap peak: \([0-9]*\),.*/\1/'`
+		STACKPEAK=`grep "stack peak" .tmp | sed 's/.*stack peak: \([0-9]*\)/\1/'`
+		CALLSMALLOC=`grep "malloc" .tmp   | awk '{print \$3}'`
+		CALLSREALLOC=`grep "realloc" .tmp | awk '{print \$3}'`
+		CALLSCALLOC=`grep "calloc" .tmp   | awk '{print \$3}'`
+		HEAPTOTAL=$(($HEAPTOTAL-$BLHEAPTOTAL))
+		HEAPPEAK=$(($HEAPPEAK-$BLHEAPPEAK))
+		STACKPEAK=$(($STACKPEAK-$BLSTACKPEAK))
+		CALLSMALLOC=$(($CALLSMALLOC-$BLCALLSMALLOC))
+		CALLSREALLOC=$(($CALLSREALLOC-$BLCALLSREALLOC))
+		CALLSCALLOC=$(($CALLSCALLOC-$BLCALLSCALLOC))
+		if [[ $HEAPTOTAL -lt 0 ]]    ; then echo "WARNING: heap-total negative, alg=$ALG"    ; fi
+		if [[ $HEAPPEAK -lt 0 ]]     ; then echo "WARNING: heap-peak negative, alg=$ALG"     ; fi
+		if [[ $STACKPEAK -lt 0 ]]    ; then echo "WARNING: stack-peak negative, alg=$ALG"    ; fi
+		if [[ $CALLSMALLOC -lt 0 ]]  ; then echo "WARNING: malloc-calls negative, alg=$ALG"  ; fi
+		if [[ $CALLSREALLOC -lt 0 ]] ; then echo "WARNING: realloc-calls negative, alg=$ALG" ; fi
+		if [[ $CALLSCALLOC -lt 0 ]]  ; then echo "WARNING: calloc-calls negative, alg=$ALG"  ; fi
+		echo "<memusage>" > $XMLOUT || die "Could not create $XMLOUT"
+		echo "  <event heap-total=\"$HEAPTOTAL\" heap-peak=\"$HEAPPEAK\" stack-peak=\"$STACKPEAK\" calls-malloc=\"$CALLSMALLOC\" calls-realloc=\"$CALLSREALLOC\" calls-calloc=\"$CALLSCALLOC\"/>" >> $XMLOUT
+		echo "</memusage>" >> $XMLOUT
+	done
+done
+nuketmp

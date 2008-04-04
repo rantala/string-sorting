@@ -162,6 +162,12 @@ static void
 create_strings(std::vector<unsigned char>& text,
                std::vector<unsigned char*>& strings)
 {
+	// Calculate how many strings we'll have to reserve correct amount of
+	// bytes for the strings vector. Makes it easier to calculate the heap
+	// peak memory taken by algorithms.
+	size_t strs = 0;
+	foreach(unsigned char& c, text) { if (c == '\n') ++strs; }
+	strings.reserve(strs);
 	size_t pos = 0;
 	unsigned char* line_start = &text[0];
 	foreach(unsigned char& c, text) {

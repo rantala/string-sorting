@@ -80,31 +80,49 @@
 				}
 				]]>
 			</script>
+			<script type="text/javascript">
+				<![CDATA[
+				function hidetable (_id) {
+					var table = document.getElementById(_id);
+					if (table.style.display.indexOf('none') >= 0) {
+						table.style.display = '';
+					} else {
+						table.style.display = 'none';
+					}
+				}
+				]]>
+			</script>
 			<body>
 				<!-- allows filtering algorithm names -->
-				<xsl:text>Filter:</xsl:text>
 				<form>
+					<xsl:text>Filter: </xsl:text>
 					<input name="filter"
-					       onkeyup="filter2(this, 'genome');
-						filter2(this, 'nodup');
-						filter2(this, 'url');" type="text"/>
+					       onkeyup="filter2(this, 'genome3');
+						filter2(this, 'nodup3');
+						filter2(this, 'url3');" type="text"/>
+				</form>
+				<form>
+					<xsl:text>Show/hide tables: </xsl:text>
+					<button type="button" onclick="hidetable('genome3')">genome3</button>
+					<button type="button" onclick="hidetable('nodup3')">nodup3</button>
+					<button type="button" onclick="hidetable('url3')">url3</button>
 				</form>
 				<center>
-					<table class="sortable" id="genome" summary="Comparison of algorithm performance with genome dataset.">
+					<table class="sortable" id="genome3" summary="Comparison of algorithm performance with genome dataset.">
 						<caption>genome3</caption>
 						<xsl:call-template name="output-table-header"/>
 						<xsl:call-template name="read-info">
 							<xsl:with-param name="input">genome3</xsl:with-param>
 						</xsl:call-template>
 					</table>
-					<table class="sortable" id="nodup" summary="Comparison of algorithm performance with no-duplicates dataset.">
+					<table class="sortable" id="nodup3" summary="Comparison of algorithm performance with no-duplicates dataset.">
 						<caption>nodup3</caption>
 						<xsl:call-template name="output-table-header"/>
 						<xsl:call-template name="read-info">
 							<xsl:with-param name="input">nodup3</xsl:with-param>
 						</xsl:call-template>
 					</table>
-					<table class="sortable" id="url" summary="Comparison of algorithm performance with URL dataset.">
+					<table class="sortable" id="url3" summary="Comparison of algorithm performance with URL dataset.">
 						<caption>url3</caption>
 						<xsl:call-template name="output-table-header"/>
 						<xsl:call-template name="read-info">

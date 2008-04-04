@@ -36,8 +36,3 @@ CMake. This sets the proper compiler and some ICC specific flags.
     $ cmake -DCMAKE_BUILD_TYPE=release -DUSE_ICC=true ../string-sorting-read-only
     $ make
     $ ./sorstring
-
-If you dont have CMake:
-
-    $ cd string-sorting-read-only
-    $ g++ -O3 -Drestrict=__restrict__ -march=core2 *.cpp ../external/*.c -o sortstring

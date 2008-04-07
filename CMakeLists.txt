@@ -14,6 +14,7 @@ set(INTERNAL_SRCS
 	src/multikey_dynamic.cpp
 	src/multikey_block.cpp
 	src/multikey_multipivot.cpp
+	src/multikey_cache.cpp
 	src/sortstring.cpp)
 
 set(EXTERNAL_SRCS

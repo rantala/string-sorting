@@ -116,6 +116,8 @@ void multikey_block4(unsigned char**, size_t);
 void multikey_multipivot_brute_simd1(unsigned char**, size_t);
 void multikey_multipivot_brute_simd2(unsigned char**, size_t);
 void multikey_multipivot_brute_simd4(unsigned char**, size_t);
+void multikey_cache4(unsigned char**, size_t);
+void multikey_cache8(unsigned char**, size_t);
 
 void clockon();
 void clockoff();

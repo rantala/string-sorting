@@ -395,6 +395,8 @@ get_algorithms()
 	algs[78] = make_pair(multikey_multipivot_brute_simd1, "multikey_multipivot_brute_simd1");
 	algs[79] = make_pair(multikey_multipivot_brute_simd2, "multikey_multipivot_brute_simd2");
 	algs[80] = make_pair(multikey_multipivot_brute_simd4, "multikey_multipivot_brute_simd4");
+	algs[81] = make_pair(multikey_cache4, "multikey_cache4");
+	algs[82] = make_pair(multikey_cache8, "multikey_cache8");
 
 	algs[90] = make_pair(burstsort_mkq_simpleburst_1,    "burstsort_mkq_simpleburst_1");
 	algs[91] = make_pair(burstsort_mkq_simpleburst_2,    "burstsort_mkq_simpleburst_2");

@@ -42,7 +42,6 @@ for I in $INFILES ; do
 done
 ################################################################################
 echo "ALGS=$ALGS"
-echo "EVENTS=$EVENTS"
 echo "INFILES=$INFILES"
 echo "Starting measurements ..."
 for FILE in $INFILES ; do

@@ -23,6 +23,7 @@ set(EXTERNAL_SRCS
 	external/mkqsort.c
 	external/forward8.c
 	external/cradix.c
+	external/cradix-improved.c
 	external/msd.c
 	external/multikey.c
 	external/burstsortL.c

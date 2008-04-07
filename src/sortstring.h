@@ -42,6 +42,7 @@ void MSDsort(unsigned char**,    size_t);
 void burstsortL(unsigned char**, size_t);
 void burstsortA(unsigned char**, size_t);
 void CRadix(unsigned char**,     size_t);
+void cradix_improved(unsigned char**, size_t);
 }
 
 void msd_CE0(unsigned char**, size_t);

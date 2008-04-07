@@ -339,6 +339,7 @@ get_algorithms()
 	algs[8]  = make_pair(burstsortL, "Burstsort List Based (Sinha, Zobel)");
 	algs[9]  = make_pair(burstsortA, "Burstsort Array Based (Sinha, Zobel)");
 	algs[10] = make_pair(CRadix,     "CRadix (Ng, Kakehi)");
+	algs[11] = make_pair(cradix_improved, "CRadix (Ng, Kakehi) (Modified by T. Rantala)");
 
 	algs[20] = make_pair(msd_CE0, "msd_CE0 (Baseline)");
 	algs[21] = make_pair(msd_CE1, "msd_CE1 (Oracle)");

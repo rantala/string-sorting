@@ -73,8 +73,8 @@ function round() {
 	if [[ $? -ne 0 ]] ; then echo "WARNING: failure was reported" ; fi
 	opcontrol --shutdown >>.op_log 2>&1 || die "Could not shutdown OProfile correctly"
 	opreport --xml $BIN >/dev/null 2>/dev/null || die "Report failed"
-	opreport --xml $BIN | xsltproc op.xsl - >>$4
-	#opreport --xml $BIN | tee -a $5 | xsltproc op.xsl - >> $4
+	opreport --xml $BIN | xsltproc oprofile-simplify.xsl - >>$4
+	#opreport --xml $BIN | tee -a $5 | xsltproc oprofile-simplify.xsl - >> $4
 }
 ################################################################################
 echo "ALGS=$ALGS"

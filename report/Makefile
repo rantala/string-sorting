@@ -1,6 +1,6 @@
 default: report.html
 
-algs.xml: generate-algs-xml Makefile
+algs.xml: generate-algs-xml Makefile ./sortstring
 	./generate-algs-xml
 
 report.html: Makefile htmlreport.xsl algs.xml sortable.js

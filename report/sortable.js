@@ -9,8 +9,8 @@
    */
 
 /* You can change these values */
-var image_down = "&nbsp;&#x25BE";
-var image_up   = "&nbsp;&#x25B4";
+var image_down = "&nbsp;&#x25BE;";
+var image_up   = "&nbsp;&#x25B4;";
 
 /* Don't change anything below this unless you know what you're doing */
 addEvent(window, "load", sortables_init);

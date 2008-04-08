@@ -24,17 +24,71 @@
 # Postprocesses the outputs from the tools we have used to gather data to HTML.
 #
 ################################################################################
-for E in tool-output/memusage_* ; do
-	case $E in
-		*.html | *~) ;;
-		*)
-		echo "<html><body><pre>" > $E.html
+if [[ -z $BIN  ]] ; then BIN=./sortstring ; fi
+if [[ ! -x $BIN ]] ; then die "Sorry, binary not executable" ; fi
+if [[ -z $ALGS ]] ; then ALGS=`$BIN --alg-nums` ; fi
+if [[ -z $INFILES ]] ; then INFILES="input/url3 input/nodup3 input/genome3" ; fi
+if [[ -z $OUTDIR ]] ; then OUTDIR="data" ; fi
+mkdir -p $OUTDIR
+if [[ -z $TOOLOUTDIR ]] ; then TOOLOUTDIR="tool-output"; fi
+for I in $INFILES ; do
+        if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
+done
+################################################################################
+echo "ALGS=$ALGS"
+echo "INFILES=$INFILES"
+echo "Processing XML ..."
+for FILE in $INFILES ; do
+	TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_0
+	BLHEAPTOTAL=`grep "heap total" $TOOLOUT | sed 's/.*heap total: \([0-9]*\),.*/\1/'`
+	BLHEAPPEAK=`grep "heap peak" $TOOLOUT   | sed 's/.*heap peak: \([0-9]*\),.*/\1/'`
+	BLSTACKPEAK=`grep "stack peak" $TOOLOUT | sed 's/.*stack peak: \([0-9]*\)/\1/'`
+	BLCALLSMALLOC=`grep "malloc" $TOOLOUT   | awk '{print \$3}'`
+	BLCALLSREALLOC=`grep "realloc" $TOOLOUT | awk '{print \$2}'`
+	BLCALLSCALLOC=`grep "calloc" $TOOLOUT   | awk '{print \$3}'`
+	#echo "BLHEAPTOTAL=$BLHEAPTOTAL"
+	#echo "BLHEAPPEAK=$BLHEAPPEAK"
+	#echo "BLSTACKPEAK=$BLSTACKPEAK"
+	#echo "BLCALLSMALLOC=$BLCALLSMALLOC"
+	#echo "BLCALLSREALLOC=$BLCALLSREALLOC"
+	#echo "BLCALLSCALLOC=$BLCALLSCALLOC"
+	for ALG in $ALGS ; do
+		XMLOUT=$OUTDIR/memusage_`basename ${FILE}`_${ALG}.xml
+		TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_${ALG}
+		HEAPTOTAL=`grep "heap total" $TOOLOUT | sed 's/.*heap total: \([0-9]*\),.*/\1/'`
+		HEAPPEAK=`grep "heap peak" $TOOLOUT   | sed 's/.*heap peak: \([0-9]*\),.*/\1/'`
+		STACKPEAK=`grep "stack peak" $TOOLOUT | sed 's/.*stack peak: \([0-9]*\)/\1/'`
+		CALLSMALLOC=`grep "malloc" $TOOLOUT   | awk '{print \$3}'`
+		CALLSREALLOC=`grep "realloc" $TOOLOUT | awk '{print \$2}'`
+		CALLSCALLOC=`grep "calloc" $TOOLOUT   | awk '{print \$3}'`
+		HEAPTOTAL=$(($HEAPTOTAL-$BLHEAPTOTAL))
+		HEAPPEAK=$(($HEAPPEAK-$BLHEAPPEAK))
+		STACKPEAK=$(($STACKPEAK-$BLSTACKPEAK))
+		CALLSMALLOC=$(($CALLSMALLOC-$BLCALLSMALLOC))
+		CALLSREALLOC=$(($CALLSREALLOC-$BLCALLSREALLOC))
+		CALLSCALLOC=$(($CALLSCALLOC-$BLCALLSCALLOC))
+		if [[ $HEAPTOTAL -lt 0 ]]    ; then HEAPTOTAL=0                                      ; fi
+		if [[ $HEAPPEAK -lt 0 ]]     ; then echo "WARNING: heap-peak negative, alg=$ALG"     ; fi
+		if [[ $STACKPEAK -lt 0 ]]    ; then echo "WARNING: stack-peak negative, alg=$ALG"    ; fi
+		if [[ $CALLSMALLOC -lt 0 ]]  ; then echo "WARNING: malloc-calls negative, alg=$ALG"  ; fi
+		if [[ $CALLSREALLOC -lt 0 ]] ; then echo "WARNING: realloc-calls negative, alg=$ALG" ; fi
+		if [[ $CALLSCALLOC -lt 0 ]]  ; then echo "WARNING: calloc-calls negative, alg=$ALG"  ; fi
+		echo "<memusage>" > $XMLOUT || die "Could not create $XMLOUT"
+		echo "  <event heap-total=\"$HEAPTOTAL\" heap-peak=\"$HEAPPEAK\" stack-peak=\"$STACKPEAK\" calls-malloc=\"$CALLSMALLOC\" calls-realloc=\"$CALLSREALLOC\" calls-calloc=\"$CALLSCALLOC\"/>" >> $XMLOUT
+		echo "</memusage>" >> $XMLOUT
+	done
+done
+echo "Processing HTML ..."
+for FILE in $INFILES ; do
+	for ALG in $ALGS ; do
+		HTMLOUT=$OUTDIR/memusage_`basename ${FILE}`_${ALG}.html
+		TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_${ALG}
+		echo "<html><body><pre>" > $HTMLOUT
 		# Rip ASCII color codes for now, maybe convert to equivalent CSS colors?
-		sed 's/\x1b\[[0-9][0-9]*;*[0-9]*m//g' $E >> $E.html
+		sed 's/\x1b\[[0-9][0-9]*;*[0-9]*m//g' $TOOLOUT >> $HTMLOUT
 		# Append baseline results
-		echo "</pre><hr/>Baseline:<pre>" >> $E.html
-		sed 's/\x1b\[[0-9][0-9]*;*[0-9]*m//g' `echo $E | sed 's/_[0-9]*\$//'`_0 >> $E.html
-		echo "</pre></body></html>" >> $E.html
-		;;
-	esac
+		echo "</pre><hr/>Baseline:<pre>" >> $HTMLOUT
+		sed 's/\x1b\[[0-9][0-9]*;*[0-9]*m//g' `echo $TOOLOUT | sed 's/_[0-9]*\$//'`_0 >> $HTMLOUT
+		echo "</pre></body></html>" >> $HTMLOUT
+	done
 done

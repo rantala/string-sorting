@@ -48,6 +48,15 @@ copy(const std::vector<unsigned char*>& bucket, unsigned char** dst)
 	std::copy(bucket.begin(), bucket.end(), dst);
 }
 
+template <typename BucketT>
+static inline void
+clear_bucket(BucketT& bucket)
+{ bucket.clear(); }
+
+static inline void
+clear_bucket(std::vector<unsigned char*>& bucket)
+{ bucket.clear(); std::vector<unsigned char*>().swap(bucket); }
+
 extern "C" void mkqsort(unsigned char**, int, int);
 
 template <typename BucketT, typename CharT>
@@ -58,10 +67,7 @@ multikey_dynamic(unsigned char** strings, size_t N, size_t depth)
 		mkqsort(strings, N, depth);
 		return;
 	}
-	// Use heap instead of stack array, so that we can _really_ clean up
-	// the buckets before recursion. With std::vector we would need to use
-	// the swap trick.
-	BucketT* buckets = new BucketT[3];
+	boost::array<BucketT, 3> buckets;
 	CharT partval = pseudo_median<CharT>(strings, N, depth);
 	// Use a small cache to reduce memory stalls.
 	size_t i=0;
@@ -88,7 +94,9 @@ multikey_dynamic(unsigned char** strings, size_t N, size_t depth)
 	if (bucketsize[0]) copy(buckets[0], strings);
 	if (bucketsize[1]) copy(buckets[1], strings+bucketsize[0]);
 	if (bucketsize[2]) copy(buckets[2], strings+bucketsize[0]+bucketsize[1]);
-	delete [] buckets;
+	clear_bucket(buckets[0]);
+	clear_bucket(buckets[1]);
+	clear_bucket(buckets[2]);
 	multikey_dynamic<BucketT, CharT>(strings, bucketsize[0], depth);
 	if (not is_end(partval))
 		multikey_dynamic<BucketT, CharT>(strings+bucketsize[0],

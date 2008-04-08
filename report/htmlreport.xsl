@@ -20,79 +20,140 @@
   IN THE SOFTWARE.
 -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-	<xsl:output method="html"/>
+	<xsl:output method="html" doctype-public="-//W3C//DTD HTML 4.0 Transitional//EN"/>
 	<xsl:strip-space elements="*"/>
 	<xsl:template match="/algs">
 		<html>
+			<head>
+			<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 			<script src="sortable.js" type="text/javascript"/>
 			<style type="text/css">
-				table.sortable {
-					border-spacing: 0;
-					border: 1px solid #000;
-					border-collapse: collapse;
-				}
-				table.sortable th, table.sortable td {
-					text-align: left;
-					padding: 2px 4px 2px 4px;
-					width: 100px;
-					border-style: solid;
-					border-color: #444;
-				}
-				table.sortable th {
-					border-width: 0px 1px 1px 1px;
-					background-color: #ccc;
-				}
-				table.sortable td {
-					border-width: 0px 1px 0px 1px;
-				}
-				table.sortable tr.odd td {
-					background-color: #ddd;
-				}
-				table.sortable tr.even td {
-					background-color: #fff;
-				}
-				table.sortable tr.sortbottom td {
-					border-top: 1px solid #444;
-					background-color: #ccc;
-					font-weight: bold;
-				}
+			<![CDATA[
+			table.sortable {
+				border-spacing: 0;
+				border: 1px solid #000;
+				border-collapse: collapse;
+			}
+			table.sortable th, table.sortable td {
+				text-align: left;
+				padding: 2px 4px 2px 4px;
+				width: 100px;
+				border-style: solid;
+				border-color: #444;
+			}
+			table.sortable th {
+				border-width: 0px 1px 1px 1px;
+				background-color: #ccc;
+			}
+			table.sortable td {
+				border-width: 0px 1px 0px 1px;
+			}
+			table.sortable tr.odd td {
+				background-color: #ddd;
+			}
+			table.sortable tr.even td {
+				background-color: #fff;
+			}
+			table.sortable tr.sortbottom td {
+				border-top: 1px solid #444;
+				background-color: #ccc;
+				font-weight: bold;
+			}
+			a.popup {
+				text-decoration: none;
+				color: inherit;
+			}
+			a.popup:hover {
+				color: blue;
+			}
+			div.popup {
+				position: absolute;
+				width: 80%;
+				height: 80%;
+				top: 10%;
+				left: 10%;
+				text-align: center;
+				padding: 5px;
+				background: white;
+			}
+			div.popup iframe {
+				width: 100%;
+				height: 100%;
+				border: 2px solid black;
+			}
+			]]>
 			</style>
+			<script type="text/javascript">
+			<![CDATA[
+			function createPopUp(destination) {
+				var div    = document.createElement('div');
+				var iframe = document.createElement('iframe');
+				var br     = document.createElement('br');
+				var close  = document.createElement('button');
+				div.className = "popup";
+				iframe.src = destination;
+				close.onclick = function () {
+					this.parentNode.parentNode.removeChild(this.parentNode);
+				}
+				close.innerHTML = "Close";
+				div.appendChild(iframe);
+				div.appendChild(br);
+				div.appendChild(close);
+				document.body.appendChild(div);
+			}
+			]]>
+			</script>
 			<!-- source: http://www.vonloesch.de/node/23 -->
 			<script type="text/javascript">
-				<![CDATA[
-				function filter2 (phrase, _id){
-					var words = phrase.value.toLowerCase().split(" ");
-					var table = document.getElementById(_id);
-					var ele;
-					for (var r = 1; r < table.rows.length; r++){
-						ele = table.rows[r].innerHTML.replace(/<[^>]+>/g,"");
-						var displayStyle = 'none';
-						for (var i = 0; i < words.length; i++) {
-						    if (ele.toLowerCase().indexOf(words[i])>=0)
-							displayStyle = '';
-						    else {
-							displayStyle = 'none';
-							break;
-						    }
-						}
-						table.rows[r].style.display = displayStyle;
+			<![CDATA[
+			function filter2 (phrase, _id){
+				var words = phrase.value.toLowerCase().split(" ");
+				var table = document.getElementById(_id);
+				var ele;
+				for (var r = 1; r < table.rows.length; r++){
+					ele = table.rows[r].innerHTML.replace(/<[^>]+>/g,"");
+					var displayStyle = 'none';
+					for (var i = 0; i < words.length; i++) {
+					    if (ele.toLowerCase().indexOf(words[i])>=0)
+						displayStyle = '';
+					    else {
+						displayStyle = 'none';
+						break;
+					    }
 					}
+					table.rows[r].style.display = displayStyle;
 				}
-				]]>
+			}
+			]]>
 			</script>
 			<script type="text/javascript">
-				<![CDATA[
-				function hidetable (_id) {
-					var table = document.getElementById(_id);
-					if (table.style.display.indexOf('none') >= 0) {
-						table.style.display = '';
-					} else {
-						table.style.display = 'none';
+			<![CDATA[
+			function hidetable (_id) {
+				var table = document.getElementById(_id);
+				if (table.style.display.indexOf('none') >= 0) {
+					table.style.display = '';
+				} else {
+					table.style.display = 'none';
+				}
+			}
+			function keyListener(e) {
+				if (e.keyCode == 27) {
+					// Removing nodes also shrinks the list.
+					var popupList = document.getElementsByTagName("div");
+					rm = popupList.length;
+					for (var i=0; i < rm; ++i) {
+						var popup = popupList[i];
+						if (popup.className == "popup") {
+							popup.parentNode.removeChild(popup);
+							--rm; --i;
+						}
 					}
 				}
-				]]>
+			}
+			]]>
 			</script>
-			<body>
+			</head>
+			<body onload="document.onkeydown=keyListener">
 				<!-- allows filtering algorithm names -->
 				<form>
 					<xsl:text>Filter: </xsl:text>
@@ -158,7 +219,10 @@
 				<td><xsl:value-of select="@algname"/></td>
 				<xsl:apply-templates select="document(concat('data/timings_',  $input, '_', @algnum, '.xml'))"/>
 				<xsl:apply-templates select="document(concat('data/oprofile_', $input, '_', @algnum, '.xml'))"/>
-				<xsl:apply-templates select="document(concat('data/memusage_', $input, '_', @algnum, '.xml'))"/>
+				<xsl:call-template name="get-memusage-data">
+					<xsl:with-param name="input"><xsl:value-of select="$input"/></xsl:with-param>
+					<xsl:with-param name="algnum"><xsl:value-of select="@algnum"/></xsl:with-param>
+				</xsl:call-template>
 			</tr>
 		</xsl:for-each>
 	</xsl:template>
@@ -186,8 +250,12 @@
 		<td><xsl:value-of select="format-number(event[@name='STORE_BLOCK']/@value div 1e6, '#')"/></td>
 	</xsl:template>
 	<!-- memusage data -->
-	<xsl:template match="/memusage/event">
-		<td><xsl:value-of select="format-number(@heap-peak div 1048576, '#')"/></td>
-		<td><xsl:value-of select="format-number(@calls-malloc + @calls-realloc + @calls-calloc, '#')"/></td>
+	<xsl:template name="get-memusage-data">
+		<xsl:param name="input"/>
+		<xsl:param name="algnum"/>
+		<xsl:for-each select="document(concat('data/memusage_', $input, '_', $algnum, '.xml'))">
+			<td><a class="popup" onclick="createPopUp(&quot;data/memusage_{$input}_{$algnum}.html&quot;)"><xsl:value-of select="format-number(memusage/event/@heap-peak div 1048576, '#')"/></a></td>
+			<td><xsl:value-of select="format-number(memusage/event/@calls-malloc + memusage/event/@calls-realloc + memusage/event/@calls-calloc, '#')"/></td>
+		</xsl:for-each>
 	</xsl:template>
 </xsl:stylesheet>

@@ -20,11 +20,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 ################################################################################
-function nuketmp() {
-	if [[ -e .tmp ]] ; then
-		rm .tmp
-	fi
-}
 function die() {
 	echo "ERROR: $1"
 	nuketmp
@@ -37,6 +32,7 @@ if [[ -z $ALGS ]] ; then ALGS=`$BIN --alg-nums` ; fi
 if [[ -z $INFILES ]] ; then INFILES="input/url3 input/nodup3 input/genome3" ; fi
 if [[ -z $OUTDIR ]] ; then OUTDIR="data" ; fi
 mkdir -p $OUTDIR
+if [[ -z $TOOLOUTDIR ]] ; then TOOLOUTDIR="tool-output"; fi
 for I in $INFILES ; do
         if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
 done
@@ -49,46 +45,13 @@ for FILE in $INFILES ; do
 	# Find out baseline values by running with non-existent algorithm. We
 	# can then find out how much memory the actual algorithm requires and
 	# how many malloc calls it makes.
-	memusage $BIN 0 $FILE >/dev/null 2>.tmp
-	BLHEAPTOTAL=`grep "heap total" .tmp | sed 's/.*heap total: \([0-9]*\),.*/\1/'`
-	BLHEAPPEAK=`grep "heap peak" .tmp   | sed 's/.*heap peak: \([0-9]*\),.*/\1/'`
-	BLSTACKPEAK=`grep "stack peak" .tmp | sed 's/.*stack peak: \([0-9]*\)/\1/'`
-	BLCALLSMALLOC=`grep "malloc" .tmp   | awk '{print \$3}'`
-	BLCALLSREALLOC=`grep "realloc" .tmp | awk '{print \$3}'`
-	BLCALLSCALLOC=`grep "calloc" .tmp   | awk '{print \$3}'`
-	#echo "BLHEAPTOTAL=$BLHEAPTOTAL"
-	#echo "BLHEAPPEAK=$BLHEAPPEAK"
-	#echo "BLSTACKPEAK=$BLSTACKPEAK"
-	#echo "BLCALLSMALLOC=$BLCALLSMALLOC"
-	#echo "BLCALLSREALLOC=$BLCALLSREALLOC"
-	#echo "BLCALLSCALLOC=$BLCALLSCALLOC"
+	TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_0
+	memusage $BIN 0 $FILE >/dev/null 2>$TOOLOUT
 	for ALG in $ALGS ; do
-		XMLOUT=$OUTDIR/memusage_`basename ${FILE}`_${ALG}.xml
-		memusage $BIN $ALG $FILE >/dev/null 2>.tmp
+		TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_${ALG}
+		memusage $BIN $ALG $FILE >/dev/null 2>$TOOLOUT
 		if [[ $? -ne 0 ]] ; then
 			echo "WARNING: failure with alg=$ALG input=$FILE"
 		fi
-		HEAPTOTAL=`grep "heap total" .tmp | sed 's/.*heap total: \([0-9]*\),.*/\1/'`
-		HEAPPEAK=`grep "heap peak" .tmp   | sed 's/.*heap peak: \([0-9]*\),.*/\1/'`
-		STACKPEAK=`grep "stack peak" .tmp | sed 's/.*stack peak: \([0-9]*\)/\1/'`
-		CALLSMALLOC=`grep "malloc" .tmp   | awk '{print \$3}'`
-		CALLSREALLOC=`grep "realloc" .tmp | awk '{print \$3}'`
-		CALLSCALLOC=`grep "calloc" .tmp   | awk '{print \$3}'`
-		HEAPTOTAL=$(($HEAPTOTAL-$BLHEAPTOTAL))
-		HEAPPEAK=$(($HEAPPEAK-$BLHEAPPEAK))
-		STACKPEAK=$(($STACKPEAK-$BLSTACKPEAK))
-		CALLSMALLOC=$(($CALLSMALLOC-$BLCALLSMALLOC))
-		CALLSREALLOC=$(($CALLSREALLOC-$BLCALLSREALLOC))
-		CALLSCALLOC=$(($CALLSCALLOC-$BLCALLSCALLOC))
-		if [[ $HEAPTOTAL -lt 0 ]]    ; then echo "WARNING: heap-total negative, alg=$ALG"    ; fi
-		if [[ $HEAPPEAK -lt 0 ]]     ; then echo "WARNING: heap-peak negative, alg=$ALG"     ; fi
-		if [[ $STACKPEAK -lt 0 ]]    ; then echo "WARNING: stack-peak negative, alg=$ALG"    ; fi
-		if [[ $CALLSMALLOC -lt 0 ]]  ; then echo "WARNING: malloc-calls negative, alg=$ALG"  ; fi
-		if [[ $CALLSREALLOC -lt 0 ]] ; then echo "WARNING: realloc-calls negative, alg=$ALG" ; fi
-		if [[ $CALLSCALLOC -lt 0 ]]  ; then echo "WARNING: calloc-calls negative, alg=$ALG"  ; fi
-		echo "<memusage>" > $XMLOUT || die "Could not create $XMLOUT"
-		echo "  <event heap-total=\"$HEAPTOTAL\" heap-peak=\"$HEAPPEAK\" stack-peak=\"$STACKPEAK\" calls-malloc=\"$CALLSMALLOC\" calls-realloc=\"$CALLSREALLOC\" calls-calloc=\"$CALLSCALLOC\"/>" >> $XMLOUT
-		echo "</memusage>" >> $XMLOUT
 	done
 done
-nuketmp

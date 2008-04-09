@@ -181,7 +181,7 @@ multikey_block(unsigned char** strings, size_t n, size_t depth)
 		}
 	}
 	freeblocks.clear();
-	backlinks.clear();
+	backlinks.clear(); BackLinks().swap(backlinks);
 	multikey_block<B, CharT>(strings, bucketsize[0], depth);
 	if (not is_end(partval))
 		multikey_block<B, CharT>(strings+bucketsize[0], bucketsize[1],

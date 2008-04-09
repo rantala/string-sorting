@@ -47,7 +47,6 @@ inssort_cache(cacheblock_t* cache, int n, size_t depth)
 {
 	cacheblock_t *pi, *pj;
 	unsigned char *s, *t;
-
 	for (pi = cache + 1; --n > 0; ++pi) {
 		unsigned char* tmp = pi->ptr;
 		for (pj = pi; pj > cache; --pj) {
@@ -79,10 +78,7 @@ fill_cache(cacheblock_t* cache, size_t N, size_t depth)
 }
 
 static void
-msd_A(cacheblock_t* cache,
-          size_t N,
-          size_t cache_depth,
-          size_t true_depth)
+msd_A(cacheblock_t* cache, size_t N, size_t cache_depth, size_t true_depth)
 {
 	if (N < 32) {
 		inssort_cache(cache, N, true_depth);
@@ -121,67 +117,43 @@ msd_A_adaptive(cacheblock_t* cache,
                size_t cache_depth,
                size_t true_depth)
 {
-	if (N < 32) {
-		inssort_cache(cache, N, true_depth);
+	if (N < 0x10000) {
+		msd_A(cache, N, cache_depth, true_depth);
 		return;
 	}
 	if (cache_depth >= CACHED_BYTES) {
 		fill_cache(cache, N, true_depth);
 		cache_depth = 0;
 	}
-	if (N < 0x10000) {
-		size_t bucketsize[256] = {0};
-		for (size_t i=0; i < N; ++i)
-			++bucketsize[cache[i].bytes[cache_depth]];
-		cacheblock_t* sorted = (cacheblock_t*)
-			malloc(N*sizeof(cacheblock_t));
-		static size_t bucketindex[256];
-		bucketindex[0] = 0;
-		for (unsigned i=1; i < 256; ++i)
-			bucketindex[i] = bucketindex[i-1] + bucketsize[i-1];
-		for (size_t i=0; i < N; ++i)
-			memcpy(&sorted[bucketindex[cache[i].bytes[cache_depth]]++],
-					cache+i, sizeof(cacheblock_t));
-		memcpy(cache, sorted, N*sizeof(cacheblock_t));
-		free(sorted);
-		size_t bsum = bucketsize[0];
-		for (unsigned i=1; i < 256; ++i) {
-			if (bucketsize[i] == 0) continue;
-			msd_A_adaptive(cache+bsum, bucketsize[i],
-			          cache_depth+1, true_depth+1);
-			bsum += bucketsize[i];
-		}
-	} else {
-		size_t* bucketsize = (size_t*) calloc(0x10000, sizeof(size_t));
-		for (size_t i=0; i < N; ++i) {
-			uint16_t bucket =
-			        (cache[i].bytes[cache_depth] << 8) |
-			         cache[i].bytes[cache_depth+1];
-			++bucketsize[bucket];
-		}
-		cacheblock_t* sorted = (cacheblock_t*)
-			malloc(N*sizeof(cacheblock_t));
-		static size_t bucketindex[0x10000];
-		bucketindex[0] = 0;
-		for (unsigned i=1; i < 0x10000; ++i)
-			bucketindex[i] = bucketindex[i-1] + bucketsize[i-1];
-		for (size_t i=0; i < N; ++i) {
-			uint16_t bucket = (cache[i].bytes[cache_depth] << 8)
-				| cache[i].bytes[cache_depth+1];
-			memcpy(&sorted[bucketindex[bucket]++],
-				cache+i, sizeof(cacheblock_t));
-		}
-		memcpy(cache, sorted, N*sizeof(cacheblock_t));
-		free(sorted);
-		size_t bsum = bucketsize[0];
-		for (unsigned i=1; i < 0x10000; ++i) {
-			if (bucketsize[i] == 0) continue;
-			if (i & 0xFF) msd_A_adaptive(cache+bsum, bucketsize[i],
-					cache_depth+2, true_depth+2);
-			bsum += bucketsize[i];
-		}
-		free(bucketsize);
+	size_t* bucketsize = (size_t*) calloc(0x10000, sizeof(size_t));
+	for (size_t i=0; i < N; ++i) {
+		uint16_t bucket =
+			(cache[i].bytes[cache_depth] << 8) |
+			cache[i].bytes[cache_depth+1];
+		++bucketsize[bucket];
 	}
+	cacheblock_t* sorted = (cacheblock_t*)
+		malloc(N*sizeof(cacheblock_t));
+	static size_t bucketindex[0x10000];
+	bucketindex[0] = 0;
+	for (unsigned i=1; i < 0x10000; ++i)
+		bucketindex[i] = bucketindex[i-1] + bucketsize[i-1];
+	for (size_t i=0; i < N; ++i) {
+		uint16_t bucket = (cache[i].bytes[cache_depth] << 8)
+			| cache[i].bytes[cache_depth+1];
+		memcpy(&sorted[bucketindex[bucket]++],
+				cache+i, sizeof(cacheblock_t));
+	}
+	memcpy(cache, sorted, N*sizeof(cacheblock_t));
+	free(sorted);
+	size_t bsum = bucketsize[0];
+	for (unsigned i=1; i < 0x10000; ++i) {
+		if (bucketsize[i] == 0) continue;
+		if (i & 0xFF) msd_A_adaptive(cache+bsum, bucketsize[i],
+				cache_depth+2, true_depth+2);
+		bsum += bucketsize[i];
+	}
+	free(bucketsize);
 }
 
 void

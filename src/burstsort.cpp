@@ -213,9 +213,11 @@ traverse(TrieNode<CharT>* node,
 	return dst;
 }
 
-//#define SmallSort mkqsort
-#define SmallSort msd_CE2
-void msd_CE2(unsigned char**, size_t, size_t);
+#define SmallSort mkqsort
+extern "C" void mkqsort(unsigned char**, int, int);
+
+//#define SmallSort msd_CE2
+//void msd_CE2(unsigned char**, size_t, size_t);
 
 void burstsort_vector(unsigned char** strings, size_t n)
 {

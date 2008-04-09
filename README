@@ -36,3 +36,9 @@ CMake. This sets the proper compiler and some ICC specific flags.
     $ cmake -DCMAKE_BUILD_TYPE=release -DUSE_ICC=true ../string-sorting-read-only
     $ make
     $ ./sorstring
+
+Use a separate debug build for easier debugging:
+
+    $ mkdir debug-build
+    $ cd debug-build
+    $ cmake -DCMAKE_BUILD_TYPE=debug ../string-sorting-read-only

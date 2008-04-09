@@ -297,7 +297,7 @@ void burstsort_superalphabet_bagwell(unsigned char** strings, size_t n)
 void burstsort_superalphabet_vector_block(unsigned char** strings, size_t n)
 {
 	typedef uint16_t CharT;
-	typedef vector_block<unsigned char*> BucketT;
+	typedef vector_block<unsigned char*, 128> BucketT;
 	typedef BurstSimple<CharT> BurstImpl;
 	//typedef BurstRecursive<CharT> BurstImpl;
 	TrieNode<CharT>* root = new TrieNode<CharT>;

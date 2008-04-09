@@ -4,6 +4,7 @@ find_package(Boost REQUIRED)
 set(INTERNAL_SRCS
 	src/clock.cpp
 	src/msd_a.cpp
+	src/msd_a2.cpp
 	src/msd_ce.cpp
 	src/msd_ci.cpp
 	src/msd_dyn_block.cpp

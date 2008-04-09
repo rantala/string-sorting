@@ -79,6 +79,8 @@ void msd_D_vector_bagwell_adaptive(unsigned char**, size_t);
 void msd_DB(unsigned char**, size_t);
 void msd_A(unsigned char**, size_t);
 void msd_A_adaptive(unsigned char**, size_t);
+void msd_A2(unsigned char**, size_t);
+void msd_A2_adaptive(unsigned char**, size_t);
 
 void burstsort_vector(unsigned char**, size_t);
 void burstsort_brodnik(unsigned char**, size_t);

@@ -373,7 +373,9 @@ get_algorithms()
 
 	algs[54] = make_pair(msd_DB,          "msd_DB");
 	algs[55] = make_pair(msd_A,           "msd_A");
-	algs[56] = make_pair(msd_A_adaptive,  "msd_A (Adaptive)");
+	algs[56] = make_pair(msd_A_adaptive,  "msd_A_adaptive");
+	algs[57] = make_pair(msd_A2,          "msd_A2");
+	algs[58] = make_pair(msd_A2_adaptive, "msd_A2_adaptive");
 
 	algs[60] = make_pair(multikey_simd1, "multikey_simd1");
 	algs[61] = make_pair(multikey_simd2, "multikey_simd2");

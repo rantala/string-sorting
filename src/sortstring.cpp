@@ -39,6 +39,7 @@
 #include <utility>
 #include <vector>
 #include <cmath>
+#include <cstdlib>
 
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
@@ -63,18 +64,47 @@ struct Options {
 
 static Options opts;
 
+static std::ofstream* log_file = 0;
+static std::ostream&
+log()
+{
+	assert(log_file);
+	time_t t = time(0);
+	std::string tmp = ctime(&t);
+	tmp = tmp.substr(0, tmp.size()-1);
+	return *log_file << "[" << tmp << "] ";
+}
+
 static void
 opcontrol_start()
 {
-	if (opts.oprofile)
-		system("opcontrol --start");
+	if (opts.oprofile) {
+		int ret = system("opcontrol --start");
+		if (ret == -1 or WIFEXITED(ret) == false or WEXITSTATUS(ret) != 0) {
+			std::cerr << "FATAL: opcontrol --start failed." << std::endl;
+			log()     << "FATAL: opcontrol --start failed. ret=" << ret
+			          << ", WIFEXITED=" << WIFEXITED(ret)
+			          << ", WEXITSTATUS=" << WEXITSTATUS(ret)
+			          << std::endl;
+			exit(1);
+		}
+	}
 }
 
 static void
 opcontrol_stop()
 {
-	if (opts.oprofile)
-		system("opcontrol --stop");
+	if (opts.oprofile) {
+		int ret = system("opcontrol --stop");
+		if (ret == -1 or WIFEXITED(ret) == false or WEXITSTATUS(ret) != 0) {
+			std::cerr << "FATAL: opcontrol --stop failed." << std::endl;
+			log()     << "FATAL: opcontrol --stop failed. ret=" << ret
+			          << ", WIFEXITED=" << WIFEXITED(ret)
+			          << ", WEXITSTATUS=" << WEXITSTATUS(ret)
+			          << std::endl;
+			exit(1);
+		}
+	}
 }
 
 static char*
@@ -104,18 +134,6 @@ log_perf(const std::string& msg)
 		return;
 	}
 	file << msg << std::endl;
-}
-
-static std::ofstream* log_file = 0;
-
-static std::ostream&
-log()
-{
-	time_t t = time(0);
-	std::string tmp = ctime(&t);
-	tmp = tmp.substr(0, tmp.size()-1);
-
-	return *log_file << "[" << tmp << "] ";
 }
 
 static void

@@ -30,22 +30,22 @@ function die() {
 	exit 1
 }
 ################################################################################
-EVENTS="CPU_CLK_UNHALTED:100000
-	LOAD_BLOCK:10000:0x02
-	LOAD_BLOCK:10000:0x04
-	LOAD_BLOCK:10000:0x08
-	LOAD_BLOCK:10000:0x10
-	LOAD_BLOCK:10000:0x20
-	STORE_BLOCK:10000:0x02
-	INST_RETIRED:100000
-	DTLB_MISSES:10000
-	MEM_LOAD_RETIRED:10000:0x01
-	MEM_LOAD_RETIRED:10000:0x02
-	MEM_LOAD_RETIRED:10000:0x04
-	MEM_LOAD_RETIRED:10000:0x08
-	MEM_LOAD_RETIRED:10000:0x10
-	L2_LINES_IN:10000
-	L1D_CACHE_LD:10000"
+if [[ -z $EVENTS ]] ; then
+	EVENTS="CPU_CLK_UNHALTED:100000
+		LOAD_BLOCK:10000:0x02
+		LOAD_BLOCK:10000:0x04
+		LOAD_BLOCK:10000:0x08
+		LOAD_BLOCK:10000:0x10
+		LOAD_BLOCK:10000:0x20
+		STORE_BLOCK:10000:0x02
+		INST_RETIRED:100000
+		DTLB_MISSES:10000
+		MEM_LOAD_RETIRED:10000:0x02
+		MEM_LOAD_RETIRED:10000:0x08
+		L2_LINES_IN:10000
+		L1D_CACHE_LD:10000
+		SIMD_INST_RETIRED:100000"
+fi
 ################################################################################
 if [[ -z $BIN  ]] ; then BIN=./sortstring ; fi
 if [[ ! -x $BIN ]] ; then die "Sorry, binary not executable" ; fi
@@ -53,9 +53,13 @@ if [[ -z $ALGS ]] ; then ALGS=`$BIN --alg-nums` ; fi
 if [[ -z $INFILES ]] ; then INFILES="input/url3 input/nodup3 input/genome3" ; fi
 if [[ -z $OUTDIR ]] ; then OUTDIR="data" ; fi
 mkdir -p $OUTDIR
+if [[ -z $TOOLOUTDIR ]] ; then TOOLOUTDIR="tool-output"; fi
 for I in $INFILES ; do
-        if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
+        if [[ ! -r "$I" ]] ; then die "Sorry, ''$I'' not readable" ; fi
 done
+# Oprofile requires absolute path.
+OPSESSIONDIR=$PWD/$TOOLOUTDIR/oprofile-session-dir
+mkdir -p $OPSESSIONDIR
 ################################################################################
 # 1. event to monitor
 # 2. algorithm
@@ -64,32 +68,44 @@ done
 ################################################################################
 function round() {
 	echo "  Profiling algorithm ''$2'', input ''$3'', event ''$1'' ..."
-	opcontrol --reset >>.op_log 2>&1 || die "Could not reset OProfile"
+	local SESSIONNAME=`basename "$3"`_${2}_`echo $1 | sed 's/:/_/g'`
+	if [[ -e "$OPSESSIONDIR/samples/$SESSIONNAME" ]] ; then
+		rm -rf "$OPSESSIONDIR/samples/$SESSIONNAME"
+	fi
+	opcontrol --session-dir=$OPSESSIONDIR --reset >>.op_log 2>&1 || die "Could not reset OProfile"
 	# Nuke old configuration file. Only (?) way to _really_ clean up old
 	# settings.
 	rm -f /root/.oprofile/daemonrc
-	opcontrol --image=$BIN --no-vmlinux --event=$1 >>.op_log 2>&1 || die "Could not setup OProfile correctly"
-	$BIN --oprofile $2 $3 >>.op_log 2>&1
+	opcontrol --session-dir=$OPSESSIONDIR --image=$BIN --no-vmlinux --event=$1 >>.op_log 2>&1 || die "Could not setup OProfile correctly"
+	$BIN --oprofile $2 "$3" >>.op_log 2>&1
 	if [[ $? -ne 0 ]] ; then echo "WARNING: failure was reported" ; fi
-	opcontrol --shutdown >>.op_log 2>&1 || die "Could not shutdown OProfile correctly"
-	opreport --xml $BIN >/dev/null 2>/dev/null || die "Report failed"
-	opreport --xml $BIN | xsltproc oprofile-simplify.xsl - >>$4
-	#opreport --xml $BIN | tee -a $5 | xsltproc oprofile-simplify.xsl - >> $4
+	opcontrol --session-dir=$OPSESSIONDIR --shutdown >>.op_log 2>&1 || die "Could not shutdown OProfile correctly"
+	opcontrol --session-dir=$OPSESSIONDIR --save=$SESSIONNAME
+	if [[ $? -ne 0 ]] ; then die "Failed in --save"; fi
 }
 ################################################################################
 echo "ALGS=$ALGS"
 echo "EVENTS=$EVENTS"
 echo "INFILES=$INFILES"
+if [[ -e $OPSESSIONDIR/lock ]] ; then
+	echo "WARNING: oprofile lock file exists!"
+	KILLPID=`cat $OPSESSIONDIR/lock`
+	echo "killing PID $KILLPID"
+	kill $KILLPID
+	sleep 1
+fi
+# kill old daemons
+ps -C oprofiled >/dev/null 2>&1
+if [[ $? -ne 1 ]] ; then
+	echo "WARNING: oprofiled alive, killing!"
+	killall oprofiled
+fi
 echo "Starting measurements ..."
 for FILE in $INFILES ; do
 	echo "Input file $FILE ..."
 	for ALG in $ALGS ; do
-		XMLOUT=$OUTDIR/oprofile_`basename ${FILE}`_${ALG}.xml
-		echo "<simple>" > $XMLOUT || die "Could not create $XMLOUT"
-		chown ttrantal.ttrantal $XMLOUT || die "Could not set access right for $XMLOUT"
 		for EVENT in $EVENTS ; do
-			round $EVENT $ALG $FILE $XMLOUT
+			round $EVENT $ALG "$FILE" $XMLOUT
 		done
-		echo "</simple>" >> $XMLOUT
 	done
 done

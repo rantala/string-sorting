@@ -1,16 +1,16 @@
 <!--
   Copyright 2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to
   deal in the Software without restriction, including without limitation the
   rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
   sell copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
- 
+
   The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
- 
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   IN THE SOFTWARE.
 -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:math="http://exslt.org/math">
 	<xsl:output method="html" doctype-public="-//W3C//DTD HTML 4.0 Transitional//EN"/>
 	<xsl:strip-space elements="*"/>
 	<xsl:template match="/algs">
@@ -107,7 +107,7 @@
 			<script type="text/javascript">
 			<![CDATA[
 			function filter2 (phrase, _id){
-				var words = phrase.value.toLowerCase().split(" ");
+				var words = phrase.toLowerCase().split(" ");
 				var table = document.getElementById(_id);
 				var ele;
 				for (var r = 1; r < table.rows.length; r++){
@@ -136,6 +136,7 @@
 					table.style.display = 'none';
 				}
 			}
+			// Close popups with ESC
 			function keyListener(e) {
 				if (e.keyCode == 27) {
 					// Removing nodes also shrinks the list.
@@ -155,12 +156,12 @@
 			</head>
 			<body onload="document.onkeydown=keyListener">
 				<!-- allows filtering algorithm names -->
-				<form>
+				<form onreset="filter2('', 'genome3');filter2('', 'nodup3');filter2('', 'url3');">
 					<xsl:text>Filter: </xsl:text>
 					<input name="filter"
-					       onkeyup="filter2(this, 'genome3');
-						filter2(this, 'nodup3');
-						filter2(this, 'url3');" type="text"/>
+						onkeyup="filter2(this.value, 'genome3');filter2(this.value, 'nodup3');filter2(this.value, 'url3');"
+						type="text"/>
+					<input type="reset"/>
 				</form>
 				<form>
 					<xsl:text>Show/hide tables: </xsl:text>
@@ -217,8 +218,14 @@
 			<tr>
 				<td><xsl:value-of select="@algnum"/></td>
 				<td><xsl:value-of select="@algname"/></td>
-				<xsl:apply-templates select="document(concat('data/timings_',  $input, '_', @algnum, '.xml'))"/>
-				<xsl:apply-templates select="document(concat('data/oprofile_', $input, '_', @algnum, '.xml'))"/>
+				<xsl:call-template name="get-timings">
+					<xsl:with-param name="input"><xsl:value-of select="$input"/></xsl:with-param>
+					<xsl:with-param name="algnum"><xsl:value-of select="@algnum"/></xsl:with-param>
+				</xsl:call-template>
+				<xsl:call-template name="get-oprofile-data">
+					<xsl:with-param name="input"><xsl:value-of select="$input"/></xsl:with-param>
+					<xsl:with-param name="algnum"><xsl:value-of select="@algnum"/></xsl:with-param>
+				</xsl:call-template>
 				<xsl:call-template name="get-memusage-data">
 					<xsl:with-param name="input"><xsl:value-of select="$input"/></xsl:with-param>
 					<xsl:with-param name="algnum"><xsl:value-of select="@algnum"/></xsl:with-param>
@@ -226,36 +233,65 @@
 			</tr>
 		</xsl:for-each>
 	</xsl:template>
-	<!-- these come from the timings data -->
-	<xsl:template match="/event">
-		<td><xsl:value-of select="time/@seconds"/></td>
+	<!-- timings data -->
+	<xsl:template name="get-timings">
+		<xsl:param name="input"/>
+		<xsl:param name="algnum"/>
+		<td>
+			<xsl:variable name="events" select="(
+				document(concat('data/timings_', $input, '_', $algnum, '_1.xml')) |
+				document(concat('data/timings_', $input, '_', $algnum, '_2.xml')) |
+				document(concat('data/timings_', $input, '_', $algnum, '_3.xml')) |
+				document(concat('data/timings_', $input, '_', $algnum, '_4.xml')) |
+				document(concat('data/timings_', $input, '_', $algnum, '_5.xml')) |
+				document(concat('data/timings_', $input, '_', $algnum, '_6.xml')) |
+				document(concat('data/timings_', $input, '_', $algnum, '_7.xml'))
+				)/event/time"/>
+			<abbr title="{$events[1]/@seconds} {$events[2]/@seconds} {$events[3]/@seconds} {$events[4]/@seconds} {$events[5]/@seconds} {$events[6]/@seconds} {$events[7]/@seconds}">
+			<xsl:value-of select="format-number(
+				(sum($events/@seconds) - math:min($events/@seconds) - math:max($events/@seconds)) div 5,
+				'#.##')"/></abbr>
+		 </td>
 	</xsl:template>
-	<!-- these come from the oprofile data -->
-	<xsl:template match="/simple">
-		<td><xsl:value-of select="format-number(event[@name='CPU_CLK_UNHALTED']/@value div 1e6,   '#')"/></td>
-		<td><xsl:value-of select="format-number(event[@name='INST_RETIRED.ANY_P']/@value div 1e6, '#')"/></td>
-		<td><xsl:value-of
-				select="format-number(event[@name='CPU_CLK_UNHALTED']/@value div
-				event[@name='INST_RETIRED.ANY_P']/@value, '#.##')"/></td>
-		<td><xsl:value-of select="format-number(event[@name='DTLB_MISSES']/@value div 1e6, '#')"/></td>
-		<td><xsl:value-of select="format-number(event[@name='MEM_LOAD_RETIRED' and @mask='2']/@value div 1e6, '#')"/></td>
-		<td><xsl:value-of select="format-number(event[@name='MEM_LOAD_RETIRED' and @mask='8']/@value div 1e6, '#')"/></td>
-		<td><xsl:value-of select="format-number(
-				 (event[@name='LOAD_BLOCK' and @mask='2']/@value +
-				  event[@name='LOAD_BLOCK' and @mask='4']/@value +
-				  event[@name='LOAD_BLOCK' and @mask='8']/@value +
-				  event[@name='LOAD_BLOCK' and @mask='16']/@value +
-				  event[@name='LOAD_BLOCK' and @mask='32']/@value) div 1e6,
-				'#')"/></td>
-		<td><xsl:value-of select="format-number(event[@name='STORE_BLOCK']/@value div 1e6, '#')"/></td>
+	<!-- oprofile data -->
+	<xsl:template name="get-oprofile-data">
+		<xsl:param name="input"/>
+		<xsl:param name="algnum"/>
+		<xsl:for-each select="document(concat('data/oprofile_', $input, '_', $algnum, '.xml'))">
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_CPU_CLK_UNHALTED.html')">
+					<xsl:value-of select="format-number(simple/event[@name='CPU_CLK_UNHALTED']/@value div 1e6,   '#')"/></a></td>
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_INST_RETIRED.html')">
+					<xsl:value-of select="format-number(simple/event[@name='INST_RETIRED.ANY_P']/@value div 1e6, '#')"/></a></td>
+			<td><xsl:value-of
+					select="format-number(simple/event[@name='CPU_CLK_UNHALTED']/@value div
+					simple/event[@name='INST_RETIRED.ANY_P']/@value, '#.##')"/></td>
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_DTLB_MISSES.html')">
+					<xsl:value-of select="format-number(simple/event[@name='DTLB_MISSES']/@value div 1e6, '#')"/></a></td>
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_MEM_LOAD_RETIRED_0x02.html')">
+					<xsl:value-of select="format-number(simple/event[@name='MEM_LOAD_RETIRED' and @mask='2']/@value div 1e6, '#')"/></a></td>
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_MEM_LOAD_RETIRED_0x08.html')">
+					<xsl:value-of select="format-number(simple/event[@name='MEM_LOAD_RETIRED' and @mask='8']/@value div 1e6, '#')"/></a></td>
+			<td><xsl:value-of select="format-number(
+					(simple/event[@name='LOAD_BLOCK' and @mask='2']/@value +
+					 simple/event[@name='LOAD_BLOCK' and @mask='4']/@value +
+					  simple/event[@name='LOAD_BLOCK' and @mask='8']/@value +
+					  simple/event[@name='LOAD_BLOCK' and @mask='16']/@value +
+					  simple/event[@name='LOAD_BLOCK' and @mask='32']/@value) div 1e6,
+					'#')"/></td>
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_STORE_BLOCK_0x02.html')">
+					<xsl:value-of select="format-number(simple/event[@name='STORE_BLOCK']/@value div 1e6, '#')"/></a></td>
+		</xsl:for-each>
 	</xsl:template>
 	<!-- memusage data -->
 	<xsl:template name="get-memusage-data">
 		<xsl:param name="input"/>
 		<xsl:param name="algnum"/>
 		<xsl:for-each select="document(concat('data/memusage_', $input, '_', $algnum, '.xml'))">
-			<td><a class="popup" onclick="createPopUp(&quot;data/memusage_{$input}_{$algnum}.html&quot;)"><xsl:value-of select="format-number(memusage/event/@heap-peak div 1048576, '#')"/></a></td>
+			<td><a class="popup" onclick="createPopUp('data/memusage_{$input}_{$algnum}.html')">
+					<xsl:value-of select="format-number(memusage/event/@heap-peak div 1048576, '#')"/></a></td>
 			<td><xsl:value-of select="format-number(memusage/event/@calls-malloc + memusage/event/@calls-realloc + memusage/event/@calls-calloc, '#')"/></td>
 		</xsl:for-each>
 	</xsl:template>
 </xsl:stylesheet>
+<!-- vim:ts=2:sw=2:
+  -->

@@ -35,15 +35,30 @@ for I in $INFILES ; do
 	if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
 done
 ################################################################################
+let ALGCOUNT=0; for A in $ALGS ; do let ++ALGCOUNT; done
+################################################################################
 echo "ALGS=$ALGS"
 echo "INFILES=$INFILES"
 echo "Starting measurements ..."
 for I in $INFILES ; do
 	echo "Input file $I ..."
+	KDIALOG=`which kdialog 2>/dev/null`
+	if [[ -x "$KDIALOG" ]] ; then
+		DCOPREF=`kdialog --progressbar "-" $((7*$ALGCOUNT))`
+	fi
+	if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setAutoClose 1 ; fi
 	for A in $ALGS ; do
-		$BIN --xml-stats $A $I >$OUTDIR/timings_`basename ${I}`_${A}.xml
-		if [[ $? -ne 0 ]] ; then
-			echo "WARNING: failure with input=$I alg=$A"
+		if [[ -n "$DCOPREF" ]] ; then
+			dcop $DCOPREF setLabel "<pre>$I</pre><pre>`$BIN --alg-name=$A`</pre>" 2>/dev/null
 		fi
+		for ITER in `seq 1 7` ; do
+			$BIN --xml-stats $A $I \
+				>$OUTDIR/timings_`basename ${I}`_${A}_${ITER}.xml
+			if [[ $? -ne 0 ]] ; then
+				echo "WARNING: failure with input=$I alg=$A"
+			fi
+			if [[ -n "$DCOPREF" ]] ; then PROGRESS=`dcop $DCOPREF progress` ; fi
+			if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setProgress $((PROGRESS+1)) 2>/dev/null ; fi
+		done
 	done
 done

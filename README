@@ -26,7 +26,7 @@ Default compilation with GCC:
     $ cd string-sorting-read-only-build
     $ cmake -DCMAKE_BUILD_TYPE=release ../string-sorting-read-only
     $ make
-    $ ./sorstring
+    $ ./sortstring
 
 The Intel C/C++ compiler is also supported, set USE_ICC to true when running
 CMake. This sets the proper compiler and some ICC specific flags.
@@ -35,7 +35,7 @@ CMake. This sets the proper compiler and some ICC specific flags.
     $ cd string-sorting-read-only-build-icc
     $ cmake -DCMAKE_BUILD_TYPE=release -DUSE_ICC=true ../string-sorting-read-only
     $ make
-    $ ./sorstring
+    $ ./sortstring
 
 Use a separate debug build for easier debugging:
 

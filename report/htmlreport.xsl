@@ -233,7 +233,9 @@
 			</tr>
 		</xsl:for-each>
 	</xsl:template>
-	<!-- timings data -->
+	<!-- timings data: we have 7 timings for each input & algorithm pair. Ignore
+	smallest and largest, and pick the mean value of the remaining 5 times. Also
+	show all the values in tooltip style using the abbr tag. -->
 	<xsl:template name="get-timings">
 		<xsl:param name="input"/>
 		<xsl:param name="algnum"/>

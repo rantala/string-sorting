@@ -41,9 +41,6 @@
 #include <cmath>
 #include <cstdlib>
 
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
-
 void system(const std::string& cmd)
 {
 	(void) system(cmd.c_str());
@@ -184,17 +181,16 @@ create_strings(std::vector<unsigned char>& text,
 	// bytes for the strings vector. Makes it easier to calculate the heap
 	// peak memory taken by algorithms.
 	size_t strs = 0;
-	foreach(unsigned char& c, text) { if (c == '\n') ++strs; }
+	for (size_t i=0;i<text.size();++i) { if (text[i] == '\n') ++strs; }
 	strings.reserve(strs);
 	size_t pos = 0;
 	unsigned char* line_start = &text[0];
-	foreach(unsigned char& c, text) {
-		if (c == '\n') {
+	for (size_t pos=0; pos<text.size(); ++pos) {
+		if (text[pos] == '\n') {
 			strings.push_back(line_start);
 			line_start = &text[0] + pos + 1;
-			c = 0;
+			text[pos] = 0;
 		}
-		++pos;
 	}
 }
 
@@ -441,17 +437,19 @@ get_algorithms()
 static void
 print_alg_names(const Algorithms& algs)
 {
-	foreach(Algorithms::const_iterator::value_type pr, algs) {
-		std::cout << "\t" << std::setw(2) << pr.first << ":"
-		          << pr.second.second << "\n";
+	Algorithms::const_iterator it = algs.begin();
+	for (; it != algs.end(); ++it) {
+		std::cout << "\t" << std::setw(2) << it->first << ":"
+		          << it->second.second << "\n";
 	}
 }
 
 static void
 print_alg_nums(const Algorithms& algs)
 {
-	foreach(Algorithms::const_iterator::value_type pr, algs) {
-		std::cout << pr.first << " ";
+	Algorithms::const_iterator it = algs.begin();
+	for (; it != algs.end(); ++it) {
+		std::cout << it->first << " ";
 	}
 	std::cout << std::endl;
 }

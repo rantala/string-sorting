@@ -68,17 +68,16 @@
 			}
 			div.popup {
 				position: absolute;
-				width: 80%;
-				height: 80%;
-				top: 10%;
-				left: 10%;
+				width: 90%;
+				height: 90%;
+				top: 5%;
+				left: 5%;
 				text-align: center;
-				padding: 5px;
-				background: white;
 			}
 			div.popup iframe {
 				width: 100%;
 				height: 100%;
+				background: white;
 				border: 2px solid black;
 			}
 			]]>
@@ -86,19 +85,38 @@
 			<script type="text/javascript">
 			<![CDATA[
 			function createPopUp(destination) {
+				var dsts   = destination.split(" ");
 				var div    = document.createElement('div');
 				var iframe = document.createElement('iframe');
 				var br     = document.createElement('br');
 				var close  = document.createElement('button');
 				div.className = "popup";
-				iframe.src = destination;
+				iframe.src = dsts[0];
 				close.onclick = function () {
 					this.parentNode.parentNode.removeChild(this.parentNode);
 				}
 				close.innerHTML = "Close";
-				div.appendChild(iframe);
-				div.appendChild(br);
 				div.appendChild(close);
+				if (dsts.length > 1) {
+					for (var i=0; i < dsts.length; ++i) {
+						var bt = document.createElement('button');
+						bt.innerHTML = "Report "+i;
+						bt.my_dest = dsts[i];
+						bt.onclick = function() {
+							var siblings = this.parentNode.childNodes;
+							var i=0;
+							for (; i < siblings.length; ++i) {
+								if (siblings[i].tagName.toLowerCase() == 'iframe') {
+									break;
+								}
+							}
+							siblings[i].src = this.my_dest;
+						}
+						div.appendChild(bt);
+					}
+				}
+				div.appendChild(br);
+				div.appendChild(iframe);
 				document.body.appendChild(div);
 			}
 			]]>
@@ -110,16 +128,16 @@
 				var words = phrase.toLowerCase().split(" ");
 				var table = document.getElementById(_id);
 				var ele;
-				for (var r = 1; r < table.rows.length; r++){
+				for (var r = 1; r < table.rows.length; r++) {
 					ele = table.rows[r].innerHTML.replace(/<[^>]+>/g,"");
 					var displayStyle = 'none';
 					for (var i = 0; i < words.length; i++) {
-					    if (ele.toLowerCase().indexOf(words[i])>=0)
-						displayStyle = '';
-					    else {
-						displayStyle = 'none';
-						break;
-					    }
+						if (ele.toLowerCase().indexOf(words[i])>=0) {
+							displayStyle = '';
+						} else {
+							displayStyle = 'none';
+							break;
+						}
 					}
 					table.rows[r].style.display = displayStyle;
 				}
@@ -273,13 +291,14 @@
 					<xsl:value-of select="format-number(simple/event[@name='MEM_LOAD_RETIRED' and @mask='2']/@value div 1e6, '#')"/></a></td>
 			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_MEM_LOAD_RETIRED_0x08.html')">
 					<xsl:value-of select="format-number(simple/event[@name='MEM_LOAD_RETIRED' and @mask='8']/@value div 1e6, '#')"/></a></td>
-			<td><xsl:value-of select="format-number(
+			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x02.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x04.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x08.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x10.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x20.html')">
+					<xsl:value-of select="format-number(
 					(simple/event[@name='LOAD_BLOCK' and @mask='2']/@value +
 					 simple/event[@name='LOAD_BLOCK' and @mask='4']/@value +
 					  simple/event[@name='LOAD_BLOCK' and @mask='8']/@value +
 					  simple/event[@name='LOAD_BLOCK' and @mask='16']/@value +
 					  simple/event[@name='LOAD_BLOCK' and @mask='32']/@value) div 1e6,
-					'#')"/></td>
+						'#')"/></a></td>
 			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_STORE_BLOCK_0x02.html')">
 					<xsl:value-of select="format-number(simple/event[@name='STORE_BLOCK']/@value div 1e6, '#')"/></a></td>
 		</xsl:for-each>

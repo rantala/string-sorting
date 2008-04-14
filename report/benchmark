@@ -44,7 +44,10 @@ for I in $INFILES ; do
 	echo "Input file $I ..."
 	KDIALOG=`which kdialog 2>/dev/null`
 	if [[ -x "$KDIALOG" ]] ; then
-		DCOPREF=`kdialog --progressbar "-" $((7*$ALGCOUNT))`
+		# dont spawn kdialog in a subshell
+		kdialog --progressbar "-" $((7*$ALGCOUNT)) 2>/dev/null >.tmp
+		DCOPREF=`cat .tmp`
+		rm .tmp
 	fi
 	if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setAutoClose 1 ; fi
 	for A in $ALGS ; do

@@ -37,21 +37,34 @@ for I in $INFILES ; do
         if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
 done
 ################################################################################
+let ALGCOUNT=0; for A in $ALGS ; do let ++ALGCOUNT; done
+let FILECOUNT=0; for F in $INFILES ; do let ++FILECOUNT; done
+################################################################################
 echo "ALGS=$ALGS"
 echo "INFILES=$INFILES"
 echo "Starting measurements ..."
+KDIALOG=`which kdialog 2>/dev/null`
+if [[ -x "$KDIALOG" ]] ; then
+	# dont spawn kdialog in a subshell
+	kdialog --caption "memusage" --progressbar "-" $(($FILECOUNT*$ALGCOUNT)) 2>/dev/null >.tmp
+	DCOPREF=`cat .tmp`
+	rm .tmp
+fi
+if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setAutoClose 1 ; fi
 for FILE in $INFILES ; do
 	echo "Input file $FILE ..."
+	if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setLabel "<pre>$FILE</pre><pre>Baseline calculation ...</pre>" ; fi
 	# Find out baseline values by running with non-existent algorithm. We
 	# can then find out how much memory the actual algorithm requires and
 	# how many malloc calls it makes.
 	TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_0
 	memusage $BIN 0 $FILE >/dev/null 2>$TOOLOUT
 	for ALG in $ALGS ; do
+		if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setLabel "<pre>$FILE</pre><pre>`$BIN --alg-name=$ALG`</pre>" ; fi
 		TOOLOUT=$TOOLOUTDIR/memusage_`basename ${FILE}`_${ALG}
 		memusage $BIN $ALG $FILE >/dev/null 2>$TOOLOUT
-		if [[ $? -ne 0 ]] ; then
-			echo "WARNING: failure with alg=$ALG input=$FILE"
-		fi
+		if [[ $? -ne 0 ]] ; then echo "WARNING: failure with alg=$ALG input=$FILE" ; fi
+		if [[ -n "$DCOPREF" ]] ; then PROGRESS=`dcop $DCOPREF progress` ; fi
+		if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setProgress $((PROGRESS+1)) ; fi
 	done
 done

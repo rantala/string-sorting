@@ -38,6 +38,7 @@
  */
 
 #include "util/get_char.h"
+#include "util/debug.h"
 #include <vector>
 #include <iostream>
 #include <bitset>
@@ -144,6 +145,69 @@ struct BurstRecursive
 	}
 };
 
+// Uses a random sample to create an initial tree.
+template <typename CharT>
+static TrieNode<CharT>*
+random_sample(unsigned char** strings, size_t n)
+{
+	// Limit the maximum number of nodes to whatever fits in 30 megabytes.
+	const size_t sample_size = n/8192;
+	size_t max_nodes = 30000000/sizeof(TrieNode<CharT>);
+	debug()<<__PRETTY_FUNCTION__<<" sampling "<<sample_size<<" strings\n";
+	TrieNode<CharT>* root = new TrieNode<CharT>;
+	for (size_t i=0; i < sample_size; ++i) {
+		unsigned char* str = strings[size_t(drand48()*n)];
+		size_t depth = 0;
+		TrieNode<CharT>* node = root;
+		while (true) {
+			CharT c = get_char<CharT>(str, depth);
+			if (is_end(c)) break;
+			depth += sizeof(CharT);
+			if (not node->is_trie[c]) {
+				node->is_trie[c] = true;
+				node->buckets[c] = new TrieNode<CharT>;
+				if (--max_nodes==0) goto finish;
+			}
+			node = static_cast<TrieNode<CharT>*>(node->buckets[c]);
+			assert(node);
+		}
+	}
+finish:
+	return root;
+}
+
+// Uses a pseudo random sample to create an initial tree.
+template <typename CharT>
+static TrieNode<CharT>*
+pseudo_sample(unsigned char** strings, size_t n)
+{
+	// Limit the maximum number of nodes to whatever fits in 30 megabytes.
+	debug()<<__func__<<"(): sampling "<<n/8192<<" strings ...\n";
+	size_t max_nodes = 30000000/sizeof(TrieNode<CharT>);
+	TrieNode<CharT>* root = new TrieNode<CharT>;
+	for (size_t i=0; i < n; i += 8192) {
+		unsigned char* str = strings[i];
+		size_t depth = 0;
+		TrieNode<CharT>* node = root;
+		while (true) {
+			CharT c = get_char<CharT>(str, depth);
+			if (is_end(c)) break;
+			depth += sizeof(CharT);
+			if (not node->is_trie[c]) {
+				node->is_trie[c] = true;
+				node->buckets[c] = new TrieNode<CharT>;
+				if (--max_nodes==0) goto finish;
+			}
+			node = static_cast<TrieNode<CharT>*>(node->buckets[c]);
+			assert(node);
+		}
+	}
+finish:
+	debug()<<"   Sampling done, created "
+	       <<(30000000/sizeof(TrieNode<CharT>))-max_nodes<<" nodes.\n";
+	return root;
+}
+
 template <unsigned Threshold, typename BucketT,
           typename BurstImpl, typename CharT>
 static inline void
@@ -219,6 +283,9 @@ extern "C" void mkqsort(unsigned char**, int, int);
 //#define SmallSort msd_CE2
 //void msd_CE2(unsigned char**, size_t, size_t);
 
+//
+// Normal variants
+//
 void burstsort_vector(unsigned char** strings, size_t n)
 {
 	typedef unsigned char CharT;
@@ -229,7 +296,6 @@ void burstsort_vector(unsigned char** strings, size_t n)
 	insert<8000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
-
 void burstsort_brodnik(unsigned char** strings, size_t n)
 {
 	typedef unsigned char CharT;
@@ -240,7 +306,6 @@ void burstsort_brodnik(unsigned char** strings, size_t n)
 	insert<16000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
-
 void burstsort_bagwell(unsigned char** strings, size_t n)
 {
 	typedef unsigned char CharT;
@@ -251,7 +316,6 @@ void burstsort_bagwell(unsigned char** strings, size_t n)
 	insert<16000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
-
 void burstsort_vector_block(unsigned char** strings, size_t n)
 {
 	typedef unsigned char CharT;
@@ -263,6 +327,9 @@ void burstsort_vector_block(unsigned char** strings, size_t n)
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
 
+//
+// Superalphabet variants
+//
 void burstsort_superalphabet_vector(unsigned char** strings, size_t n)
 {
 	typedef uint16_t CharT;
@@ -273,7 +340,6 @@ void burstsort_superalphabet_vector(unsigned char** strings, size_t n)
 	insert<32000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
-
 void burstsort_superalphabet_brodnik(unsigned char** strings, size_t n)
 {
 	typedef uint16_t CharT;
@@ -284,7 +350,6 @@ void burstsort_superalphabet_brodnik(unsigned char** strings, size_t n)
 	insert<32000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
-
 void burstsort_superalphabet_bagwell(unsigned char** strings, size_t n)
 {
 	typedef uint16_t CharT;
@@ -295,7 +360,6 @@ void burstsort_superalphabet_bagwell(unsigned char** strings, size_t n)
 	insert<32000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }
-
 void burstsort_superalphabet_vector_block(unsigned char** strings, size_t n)
 {
 	typedef uint16_t CharT;
@@ -303,6 +367,94 @@ void burstsort_superalphabet_vector_block(unsigned char** strings, size_t n)
 	typedef BurstSimple<CharT> BurstImpl;
 	//typedef BurstRecursive<CharT> BurstImpl;
 	TrieNode<CharT>* root = new TrieNode<CharT>;
+	insert<32000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+
+//
+// Sampling variants - byte alphabet
+//
+void burstsort_sampling_vector(unsigned char** strings, size_t n)
+{
+	typedef unsigned char CharT;
+	typedef std::vector<unsigned char*> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<8000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+void burstsort_sampling_brodnik(unsigned char** strings, size_t n)
+{
+	typedef unsigned char CharT;
+	typedef vector_brodnik<unsigned char*> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<16000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+void burstsort_sampling_bagwell(unsigned char** strings, size_t n)
+{
+	typedef unsigned char CharT;
+	typedef vector_bagwell<unsigned char*> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<16000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+void burstsort_sampling_vector_block(unsigned char** strings, size_t n)
+{
+	typedef unsigned char CharT;
+	typedef vector_block<unsigned char*, 128> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<16000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+
+//
+// Sampling variants - superalphabet
+//
+void burstsort_sampling_superalphabet_vector(unsigned char** strings, size_t n)
+{
+	typedef uint16_t CharT;
+	typedef std::vector<unsigned char*> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<16000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+void burstsort_sampling_superalphabet_brodnik(unsigned char** strings, size_t n)
+{
+	typedef uint16_t CharT;
+	typedef vector_brodnik<unsigned char*> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<32000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+void burstsort_sampling_superalphabet_bagwell(unsigned char** strings, size_t n)
+{
+	typedef uint16_t CharT;
+	typedef vector_bagwell<unsigned char*> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
+	insert<32000, BucketT, BurstImpl>(root, strings, n);
+	traverse<BucketT>(root, strings, 0, SmallSort);
+}
+void burstsort_sampling_superalphabet_vector_block(unsigned char** strings, size_t n)
+{
+	typedef uint16_t CharT;
+	typedef vector_block<unsigned char*, 128> BucketT;
+	typedef BurstSimple<CharT> BurstImpl;
+	//typedef BurstRecursive<CharT> BurstImpl;
+	TrieNode<CharT>* root = pseudo_sample<CharT>(strings, n);
 	insert<32000, BucketT, BurstImpl>(root, strings, n);
 	traverse<BucketT>(root, strings, 0, SmallSort);
 }

@@ -431,6 +431,15 @@ get_algorithms()
 	algs[106] = make_pair(burstsort_superalphabet_bagwell, "burstsort_superalphabet_bagwell");
 	algs[107] = make_pair(burstsort_superalphabet_vector_block, "burstsort_superalphabet_vector_block");
 
+	algs[110] = make_pair(burstsort_sampling_vector,  "burstsort_sampling_vector");
+	algs[111] = make_pair(burstsort_sampling_brodnik, "burstsort_sampling_brodnik");
+	algs[112] = make_pair(burstsort_sampling_bagwell, "burstsort_sampling_bagwell");
+	algs[113] = make_pair(burstsort_sampling_vector_block, "burstsort_sampling_vector_block");
+	algs[114] = make_pair(burstsort_sampling_superalphabet_vector,  "burstsort_sampling_superalphabet_vector");
+	algs[115] = make_pair(burstsort_sampling_superalphabet_brodnik, "burstsort_sampling_superalphabet_brodnik");
+	algs[116] = make_pair(burstsort_sampling_superalphabet_bagwell, "burstsort_sampling_superalphabet_bagwell");
+	algs[117] = make_pair(burstsort_sampling_superalphabet_vector_block, "burstsort_sampling_superalphabet_vector_block");
+
 	return algs;
 }
 

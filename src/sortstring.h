@@ -90,7 +90,6 @@ void burstsort_superalphabet_vector(unsigned char**, size_t);
 void burstsort_superalphabet_brodnik(unsigned char**, size_t);
 void burstsort_superalphabet_bagwell(unsigned char**, size_t);
 void burstsort_superalphabet_vector_block(unsigned char**, size_t);
-
 void burstsort_sampling_vector(unsigned char**, size_t);
 void burstsort_sampling_brodnik(unsigned char**, size_t);
 void burstsort_sampling_bagwell(unsigned char**, size_t);
@@ -99,6 +98,23 @@ void burstsort_sampling_superalphabet_vector(unsigned char**, size_t);
 void burstsort_sampling_superalphabet_brodnik(unsigned char**, size_t);
 void burstsort_sampling_superalphabet_bagwell(unsigned char**, size_t);
 void burstsort_sampling_superalphabet_vector_block(unsigned char**, size_t);
+
+void burstsort2_vector(unsigned char**, size_t);
+void burstsort2_brodnik(unsigned char**, size_t);
+void burstsort2_bagwell(unsigned char**, size_t);
+void burstsort2_vector_block(unsigned char**, size_t);
+void burstsort2_superalphabet_vector(unsigned char**, size_t);
+void burstsort2_superalphabet_brodnik(unsigned char**, size_t);
+void burstsort2_superalphabet_bagwell(unsigned char**, size_t);
+void burstsort2_superalphabet_vector_block(unsigned char**, size_t);
+void burstsort2_sampling_vector(unsigned char**, size_t);
+void burstsort2_sampling_brodnik(unsigned char**, size_t);
+void burstsort2_sampling_bagwell(unsigned char**, size_t);
+void burstsort2_sampling_vector_block(unsigned char**, size_t);
+void burstsort2_sampling_superalphabet_vector(unsigned char**, size_t);
+void burstsort2_sampling_superalphabet_brodnik(unsigned char**, size_t);
+void burstsort2_sampling_superalphabet_bagwell(unsigned char**, size_t);
+void burstsort2_sampling_superalphabet_vector_block(unsigned char**, size_t);
 
 void burstsort_mkq_simpleburst_1(unsigned char**, size_t);
 void burstsort_mkq_simpleburst_2(unsigned char**, size_t);

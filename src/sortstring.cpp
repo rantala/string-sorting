@@ -430,7 +430,6 @@ get_algorithms()
 	algs[105] = make_pair(burstsort_superalphabet_brodnik, "burstsort_superalphabet_brodnik");
 	algs[106] = make_pair(burstsort_superalphabet_bagwell, "burstsort_superalphabet_bagwell");
 	algs[107] = make_pair(burstsort_superalphabet_vector_block, "burstsort_superalphabet_vector_block");
-
 	algs[110] = make_pair(burstsort_sampling_vector,  "burstsort_sampling_vector");
 	algs[111] = make_pair(burstsort_sampling_brodnik, "burstsort_sampling_brodnik");
 	algs[112] = make_pair(burstsort_sampling_bagwell, "burstsort_sampling_bagwell");
@@ -439,6 +438,23 @@ get_algorithms()
 	algs[115] = make_pair(burstsort_sampling_superalphabet_brodnik, "burstsort_sampling_superalphabet_brodnik");
 	algs[116] = make_pair(burstsort_sampling_superalphabet_bagwell, "burstsort_sampling_superalphabet_bagwell");
 	algs[117] = make_pair(burstsort_sampling_superalphabet_vector_block, "burstsort_sampling_superalphabet_vector_block");
+
+	algs[120] = make_pair(burstsort2_vector,  "burstsort2_vector");
+	algs[121] = make_pair(burstsort2_brodnik, "burstsort2_brodnik");
+	algs[122] = make_pair(burstsort2_bagwell, "burstsort2_bagwell");
+	algs[123] = make_pair(burstsort2_vector_block, "burstsort2_vector_block");
+	algs[124] = make_pair(burstsort2_superalphabet_vector,  "burstsort2_superalphabet_vector");
+	algs[125] = make_pair(burstsort2_superalphabet_brodnik, "burstsort2_superalphabet_brodnik");
+	algs[126] = make_pair(burstsort2_superalphabet_bagwell, "burstsort2_superalphabet_bagwell");
+	algs[127] = make_pair(burstsort2_superalphabet_vector_block, "burstsort2_superalphabet_vector_block");
+	algs[130] = make_pair(burstsort2_sampling_vector,  "burstsort2_sampling_vector");
+	algs[131] = make_pair(burstsort2_sampling_brodnik, "burstsort2_sampling_brodnik");
+	algs[132] = make_pair(burstsort2_sampling_bagwell, "burstsort2_sampling_bagwell");
+	algs[133] = make_pair(burstsort2_sampling_vector_block, "burstsort2_sampling_vector_block");
+	algs[134] = make_pair(burstsort2_sampling_superalphabet_vector,  "burstsort2_sampling_superalphabet_vector");
+	algs[135] = make_pair(burstsort2_sampling_superalphabet_brodnik, "burstsort2_sampling_superalphabet_brodnik");
+	algs[136] = make_pair(burstsort2_sampling_superalphabet_bagwell, "burstsort2_sampling_superalphabet_bagwell");
+	algs[137] = make_pair(burstsort2_sampling_superalphabet_vector_block, "burstsort2_sampling_superalphabet_vector_block");
 
 	return algs;
 }

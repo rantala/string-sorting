@@ -3,8 +3,12 @@
 #include "../src/vector_block.h"
 #include "../src/vector_realloc.h"
 #include "../src/vector_malloc.h"
+#include "../src/losertree.h"
 #include <cassert>
 #include <iostream>
+#include <boost/array.hpp>
+#include <vector>
+#include <utility>
 
 template <typename Container>
 void test_basics()
@@ -48,8 +52,106 @@ void test_basics()
 	}
 }
 
+static int cmp(int a, int b)
+{
+	if (a < b) return -1;
+	if (a > b) return 1;
+	return 0;
+}
+
+static void
+test_loser_tree()
+{
+	std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+	{
+		boost::array<int, 5> seq1 = { 2, 4, 6, 8, 10 };
+		boost::array<int, 5> seq2 = { 3, 5, 7, 9, 11 };
+		std::vector<std::pair<int*, size_t> > seqs;
+		seqs.push_back(std::make_pair(seq1.data(), 5));
+		seqs.push_back(std::make_pair(seq2.data(), 5));
+		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 2);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 3);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 4);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 5);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 6);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 7);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 8);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 9);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 10); assert(tree._nonempty_streams == 1);
+		assert(tree.min() == 11); assert(tree._nonempty_streams == 0);
+	}
+	{
+		boost::array<int, 3> seq1 = { 2, 5, 8  };
+		boost::array<int, 3> seq2 = { 3, 6, 9  };
+		boost::array<int, 3> seq3 = { 4, 7, 10 };
+		std::vector<std::pair<int*, size_t> > seqs;
+		seqs.push_back(std::make_pair(seq1.data(), 3));
+		seqs.push_back(std::make_pair(seq2.data(), 3));
+		seqs.push_back(std::make_pair(seq3.data(), 3));
+		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 2);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 3);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 4);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 5);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 6);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 7);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 8);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 9);  assert(tree._nonempty_streams == 1);
+		assert(tree.min() == 10); assert(tree._nonempty_streams == 0);
+	}
+	{
+		boost::array<int, 3> seq1 = { 2, 5, 8  };
+		boost::array<int, 3> seq2 = { 3, 6, 9  };
+		boost::array<int, 3> seq3 = { 4, 7, 10 };
+		std::vector<std::pair<int*, size_t> > seqs;
+		seqs.push_back(std::make_pair(seq3.data(), 3));
+		seqs.push_back(std::make_pair(seq2.data(), 3));
+		seqs.push_back(std::make_pair(seq1.data(), 3));
+		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 2);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 3);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 4);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 5);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 6);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 7);  assert(tree._nonempty_streams == 3);
+		assert(tree.min() == 8);  assert(tree._nonempty_streams == 2);
+		assert(tree.min() == 9);  assert(tree._nonempty_streams == 1);
+		assert(tree.min() == 10); assert(tree._nonempty_streams == 0);
+	}
+	{
+		const unsigned items = 32;
+		std::vector<std::vector<int> > data(25000);
+		for (unsigned i=0; i < data.size(); ++i) {
+			for (unsigned j=0; j < items; ++j) {
+				data[i].push_back(j);
+			}
+		}
+		std::vector<std::pair<int*, size_t> > seqs;
+		for (unsigned i=0; i < data.size(); ++i) {
+			seqs.push_back(std::make_pair(data[i].data(), items));
+		}
+		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		assert(tree._nonempty_streams == data.size());
+		for (unsigned i=0; i < items; ++i) {
+			for (unsigned j=0; j < data.size(); ++j) {
+				assert(tree.min() == i);
+			}
+		}
+		assert(tree._nonempty_streams == 0);
+	}
+}
+
+struct OK { ~OK() { std::cerr << "*** All OK ***\n"; } };
+
 int main()
 {
+	OK ok;
+	/*********************************************************/
+	test_loser_tree();
 	/*********************************************************/
 	test_basics<vector_brodnik<int> >();
 	test_basics<vector_bagwell<int> >();
@@ -69,5 +171,4 @@ int main()
 	test_basics<vector_realloc_counter_clear<uint64_t> >();
 	test_basics<vector_realloc_shrink_clear<uint64_t> >();
 	/*********************************************************/
-	std::cerr<<"All OK\n";
 }

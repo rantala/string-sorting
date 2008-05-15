@@ -26,9 +26,12 @@
 #include <iostream>
 
 #ifdef NDEBUG
+#define debug_indent
 #define debug() if (1) {} else std::cerr
 #else
-#define debug() std::cerr
+static std::string __debug_indent_str;
+#define debug_indent struct DI{std::string&i;DI(std::string&_i):i(_i){i+="    ";}~DI(){i=i.substr(0,i.size()-4);}}__d(__debug_indent_str);
+#define debug() std::cerr << __debug_indent_str
 #endif
 
 #endif //UTIL_DEBUG_H

@@ -62,7 +62,7 @@ struct vector_brodnik
 		InitialBlocksize  = 8,
 		InitialSuperBlocksize = 1 << (InitialSuperBlock/2),
 		SkippedElements       = (1 << InitialSuperBlock) - 1,
-		SkippedDatablocks     = 14,
+		SkippedDatablocks     = 14
 	};
 	typedef T value_type;
 	typedef std::vector<T*> index_block_type;

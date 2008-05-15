@@ -33,7 +33,7 @@ get_char(unsigned char* ptr, size_t depth);
 
 template <>
 inline unsigned char
-get_char(unsigned char* ptr, size_t depth)
+get_char<unsigned char>(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
 	return ptr[depth];
@@ -41,7 +41,7 @@ get_char(unsigned char* ptr, size_t depth)
 
 template <>
 inline uint16_t
-get_char(unsigned char* ptr, size_t depth)
+get_char<uint16_t>(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
 	if (ptr[depth] == 0) return 0;
@@ -50,7 +50,7 @@ get_char(unsigned char* ptr, size_t depth)
 
 template <>
 inline uint32_t
-get_char(unsigned char* ptr, size_t depth)
+get_char<uint32_t>(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
 	uint32_t c = 0;
@@ -66,7 +66,7 @@ get_char(unsigned char* ptr, size_t depth)
 
 template <>
 inline uint64_t
-get_char(unsigned char* ptr, size_t depth)
+get_char<uint64_t>(unsigned char* ptr, size_t depth)
 {
 	uint64_t c = 0;
 	if (ptr[depth] == 0) return c;

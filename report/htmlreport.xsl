@@ -121,33 +121,38 @@
 			}
 			]]>
 			</script>
-			<!-- source: http://www.vonloesch.de/node/23 -->
+			<!-- filtering the rows is somewhat slow, so dont filter after each keypress -->
 			<script type="text/javascript">
 			<![CDATA[
-			function filter2 (phrase, _id){
-				var words = phrase.toLowerCase().split(" ");
-				var table = document.getElementById(_id);
-				var ele;
-				for (var r = 1; r < table.rows.length; r++) {
-					ele = table.rows[r].innerHTML.replace(/<[^>]+>/g,"");
-					var displayStyle = 'none';
-					for (var i = 0; i < words.length; i++) {
-						if (ele.toLowerCase().indexOf(words[i])>=0) {
-							displayStyle = '';
-						} else {
-							displayStyle = 'none';
-							break;
+			var timeout;
+			var phrase;
+			var tables;
+			function rowfilter(_phrase, _tables) {
+				phrase = _phrase; tables = _tables;
+				if (timeout) clearTimeout(timeout);
+				timeout = setTimeout("rowfilter_()", 200);
+			}
+			function rowfilter_() {
+				try {
+					var re = new RegExp(phrase, "i");
+					for (var i=0; i < tables.length; ++i) {
+						var table = document.getElementById(tables[i]);
+						for (var r = 1; r < table.rows.length; ++r) {
+							var ele = table.rows[r].cells[1].textContent;
+							var displayStyle = 'none';
+							if (re.test(ele)) { displayStyle = ''; }
+							table.rows[r].style.display = displayStyle;
 						}
 					}
-					table.rows[r].style.display = displayStyle;
 				}
+				catch (e) {} // invalid phrases can cause the RegExp ctor to throw
 			}
 			]]>
 			</script>
 			<script type="text/javascript">
 			<![CDATA[
-			function hidetable (_id) {
-				var table = document.getElementById(_id);
+			function hidetable (tab) {
+				var table = document.getElementById(tab);
 				if (table.style.display.indexOf('none') >= 0) {
 					table.style.display = '';
 				} else {
@@ -174,10 +179,10 @@
 			</head>
 			<body onload="document.onkeydown=keyListener">
 				<!-- allows filtering algorithm names -->
-				<form onreset="filter2('', 'genome3');filter2('', 'nodup3');filter2('', 'url3');">
-					<xsl:text>Filter: </xsl:text>
+				<form onreset="rowfilter('', new Array('genome3', 'nodup3', 'url3'));">
+					<xsl:text>Filter (regexp): </xsl:text>
 					<input name="filter"
-						onkeyup="filter2(this.value, 'genome3');filter2(this.value, 'nodup3');filter2(this.value, 'url3');"
+						onkeyup="rowfilter(this.value, new Array('genome3', 'nodup3', 'url3'));"
 						type="text"/>
 					<input type="reset"/>
 				</form>

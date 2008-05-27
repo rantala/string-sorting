@@ -41,6 +41,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#include <boost/tuple/tuple.hpp>
+
 void system(const std::string& cmd)
 {
 	(void) system(cmd.c_str());
@@ -56,6 +58,8 @@ struct Options {
 	bool oprofile;
 	bool write;
 	bool xml_stats;
+	bool hugetlb_text;
+	bool hugetlb_pointers;
 	std::string write_filename;
 };
 
@@ -133,15 +137,59 @@ log_perf(const std::string& msg)
 	file << msg << std::endl;
 }
 
+void* hugetlb_alloc(size_t);
+void hugetlb_dealloc(void*, size_t);
+
+static unsigned char*
+alloc_text(size_t bytes)
+{
+	if (opts.hugetlb_text) {
+		return static_cast<unsigned char*>(hugetlb_alloc(bytes));
+	} else {
+		return static_cast<unsigned char*>(malloc(bytes));
+	}
+}
+
+static unsigned char**
+alloc_pointers(size_t num)
+{
+	if (opts.hugetlb_pointers) {
+		return static_cast<unsigned char**>(
+			hugetlb_alloc(num*sizeof(unsigned char*)));
+	} else {
+		return static_cast<unsigned char**>(
+			malloc(num*sizeof(unsigned char*)));
+	}
+}
+
 static void
-readbytes(const std::string& fname,
-          std::vector<unsigned char>& text)
+free_text(unsigned char* text, size_t text_len)
+{
+	if (opts.hugetlb_text) {
+		hugetlb_dealloc(text, text_len);
+	} else {
+		free(text);
+	}
+}
+
+static void
+free_pointers(unsigned char** strings, size_t strings_len)
+{
+	if (opts.hugetlb_pointers) {
+		hugetlb_dealloc(strings, strings_len);
+	} else {
+		free(strings);
+	}
+}
+
+static boost::tuple<unsigned char*, size_t>
+readbytes(const std::string& fname)
 {
 	// Use mmap and memcpy, because it's much much faster under callgrind
 	// compared to manual byte-by-byte copy.
 	off_t filesize = (off_t)0;
 	int   fd   = -1;
-	void* vp   = NULL;
+	void* raw  = NULL;
 	if ((fd = open(fname.c_str(), O_RDONLY)) == -1) {
 		std::cerr << "Could not open file!" << std::endl;
 		exit(1);
@@ -154,16 +202,14 @@ readbytes(const std::string& fname,
 		std::cerr << "Could not seek file!" << std::endl;
 		exit(1);
 	}
-	if ((vp = mmap(0, filesize, PROT_READ, MAP_SHARED, fd, 0))
+	if ((raw = mmap(0, filesize, PROT_READ, MAP_SHARED, fd, 0))
 			== MAP_FAILED) {
 		std::cerr << "Could not mmap file!" << std::endl;
 		exit(1);
 	}
-	unsigned char* data = (unsigned char*) vp;
-	text.reserve(filesize);
-	text.assign(filesize, 0);
-	memcpy(&text[0], data, filesize);
-	if (munmap(vp, filesize) == -1) {
+	unsigned char* text = alloc_text(filesize);
+	memcpy(text, raw, filesize);
+	if (munmap(raw, filesize) == -1) {
 		std::cerr << "Could not munmap file!" << std::endl;
 		exit(1);
 	}
@@ -171,36 +217,32 @@ readbytes(const std::string& fname,
 		std::cerr << "Could not close file!" << std::endl;
 		exit(1);
 	}
+	return boost::make_tuple(text, filesize);
 }
 
-static void
-create_strings(std::vector<unsigned char>& text,
-               std::vector<unsigned char*>& strings)
+static boost::tuple<unsigned char**, size_t>
+create_strings(unsigned char* text, size_t text_len)
 {
-	// Calculate how many strings we'll have to reserve correct amount of
-	// bytes for the strings vector. Makes it easier to calculate the heap
-	// peak memory taken by algorithms.
 	size_t strs = 0;
-	for (size_t i=0;i<text.size();++i) { if (text[i] == '\n') ++strs; }
-	strings.reserve(strs);
-	size_t pos = 0;
-	unsigned char* line_start = &text[0];
-	for (size_t pos=0; pos<text.size(); ++pos) {
-		if (text[pos] == '\n') {
-			strings.push_back(line_start);
-			line_start = &text[0] + pos + 1;
-			text[pos] = 0;
+	for (size_t i=0;i<text_len;++i) { if (text[i] == '\n') ++strs; }
+	unsigned char** strings = alloc_pointers(strs);
+	unsigned char* line_start = text;
+	for (size_t j=0, i=0; i<text_len; ++i) {
+		if (text[i] == '\n') {
+			strings[j++] = line_start;
+			line_start = text + i + 1;
+			text[i] = 0;
 		}
 	}
+	return boost::make_tuple(strings, strs);
 }
 
-static void
-create_suffixes(std::vector<unsigned char>& text,
-                std::vector<unsigned char*>& strings)
+static boost::tuple<unsigned char**, size_t>
+create_suffixes(unsigned char* text, size_t text_len)
 {
-	for (size_t i=0; i < text.size(); ++i) {
-		strings.push_back(&text[i]);
-	}
+	unsigned char** strings = alloc_pointers(text_len);
+	for (size_t i=0; i < text_len; ++i) { strings[i] = text+i; }
+	return boost::make_tuple(strings, text_len);
 }
 
 static int
@@ -246,11 +288,14 @@ check_result(unsigned char** strings, size_t n)
 	}
 	size_t wrong = 0;
 	size_t identical = 0;
+	size_t invalid = 0;
 	for (size_t i=0; i < n-1; ++i) {
 		if (strings[i] == strings[i+1]) {
 			++identical;
 		}
-		if (strcmp(strings[i], strings[i+1]) > 0) {
+		if (strings[i]==0 or strings[i+1]==0) {
+			++invalid;
+		} else if (strcmp(strings[i], strings[i+1]) > 0) {
 			++wrong;
 		}
 	}
@@ -260,7 +305,10 @@ check_result(unsigned char** strings, size_t n)
 	if (wrong) {
 		std::cerr << "WARNING: found " << wrong << " incorrect orderings!\n";
 	}
-	if (not identical and not wrong) {
+	if (invalid) {
+		std::cerr << "WARNING: found " << invalid << " invalid pointers!\n";
+	}
+	if (not identical and not wrong and not invalid) {
 		std::cerr << "Check: GOOD\n";
 	}
 }
@@ -343,6 +391,8 @@ get_algorithms()
 	using std::make_pair;
 	Algorithms algs;
 
+#define ALG(index, function) algs[index] = make_pair(function, #function);
+
 	algs[1]  = make_pair(quicksort,  "Quicksort (Bentley, McIlroy)");
 	algs[2]  = make_pair(multikey2,  "Multi-Key-Quicksort (Bentley, Sedgewick)");
 	algs[3]  = make_pair(mbmradix,   "MSD Radix Sort (McIlroy, Bostic, McIlroy)");
@@ -363,98 +413,102 @@ get_algorithms()
 	algs[25] = make_pair(msd_ci,          "msd_CI");
 	algs[26] = make_pair(msd_ci_adaptive, "msd_CI (Adaptive)");
 
-	algs[30] = make_pair(msd_DV,          "msd_DV (std::vector)");
-	algs[31] = make_pair(msd_DV_adaptive, "msd_DV (std::vector, Adaptive)");
-	algs[32] = make_pair(msd_DL,          "msd_DL (std::list)");
-	algs[33] = make_pair(msd_DL_adaptive, "msd_DL (std::list, Adaptive)");
-	algs[34] = make_pair(msd_DD,          "msd_DD (std::deque)");
-	algs[35] = make_pair(msd_DD_adaptive, "msd_DD (std::deque, Adaptive)");
+	ALG(30, msd_D_std_vector)
+	ALG(31, msd_D_std_vector_adaptive)
+	ALG(32, msd_D_std_list)
+	ALG(33, msd_D_std_list_adaptive)
+	ALG(34, msd_D_std_deque)
+	ALG(35, msd_D_std_deque_adaptive)
 
-	algs[40] = make_pair(msd_DV_REALLOC,          "msd_DV (realloc)");
-	algs[41] = make_pair(msd_DV_REALLOC_adaptive, "msd_DV (realloc, Adaptive)");
-	algs[42] = make_pair(msd_DV_MALLOC,                 "msd_DV (malloc, full clear)");
-	algs[43] = make_pair(msd_DV_MALLOC_adaptive,        "msd_DV (malloc, Adaptive, full clear)");
-	algs[44] = make_pair(msd_DV_CHEAT_REALLOC,          "msd_DV (realloc, counter clear)");
-	algs[45] = make_pair(msd_DV_CHEAT_REALLOC_adaptive, "msd_DV (realloc, Adaptive, counter clear)");
-	algs[46] = make_pair(msd_DV_CHEAT_MALLOC,           "msd_DV (malloc, counter clear)");
-	algs[47] = make_pair(msd_DV_CHEAT_MALLOC_adaptive,  "msd_DV (malloc, Adaptive, counter clear)");
-	algs[48] = make_pair(msd_D_vector_block,             "msd_D_vector_block");
-	algs[49] = make_pair(msd_D_vector_block_adaptive,    "msd_D_vector_block_adaptive");
-	algs[50] = make_pair(msd_D_vector_brodnik,           "msd_D_vector_brodnik");
-	algs[51] = make_pair(msd_D_vector_brodnik_adaptive,  "msd_D_vector_brodnik_adaptive");
-	algs[52] = make_pair(msd_D_vector_bagwell,           "msd_D_vector_bagwell");
-	algs[53] = make_pair(msd_D_vector_bagwell_adaptive,  "msd_D_vector_bagwell_adaptive");
+	ALG(38, msd_D_vector_realloc_shrink_clear)
+	ALG(39, msd_D_vector_realloc_shrink_clear_adaptive)
+	ALG(40, msd_D_vector_realloc)
+	ALG(41, msd_D_vector_realloc_adaptive)
+	ALG(42, msd_D_vector_malloc)
+	ALG(43, msd_D_vector_malloc_adaptive)
+	ALG(44, msd_D_vector_realloc_counter_clear)
+	ALG(45, msd_D_vector_realloc_counter_clear_adaptive)
+	ALG(46, msd_D_vector_malloc_counter_clear)
+	ALG(47, msd_D_vector_malloc_counter_clear_adaptive)
+	ALG(48, msd_D_vector_block)
+	ALG(49, msd_D_vector_block_adaptive)
+	ALG(50, msd_D_vector_brodnik)
+	ALG(51, msd_D_vector_brodnik_adaptive)
+	ALG(52, msd_D_vector_bagwell)
+	ALG(53, msd_D_vector_bagwell_adaptive)
 
-	algs[54] = make_pair(msd_DB,          "msd_DB");
-	algs[55] = make_pair(msd_A,           "msd_A");
-	algs[56] = make_pair(msd_A_adaptive,  "msd_A_adaptive");
-	algs[57] = make_pair(msd_A2,          "msd_A2");
-	algs[58] = make_pair(msd_A2_adaptive, "msd_A2_adaptive");
+	ALG(54, msd_DB)
+	ALG(55, msd_A)
+	ALG(56, msd_A_adaptive)
+	ALG(57, msd_A2)
+	ALG(58, msd_A2_adaptive)
 
-	algs[60] = make_pair(multikey_simd1, "multikey_simd1");
-	algs[61] = make_pair(multikey_simd2, "multikey_simd2");
-	algs[62] = make_pair(multikey_simd4, "multikey_simd4");
-	algs[63] = make_pair(multikey_dynamic_vector1, "multikey_dynamic_vector1");
-	algs[64] = make_pair(multikey_dynamic_vector2, "multikey_dynamic_vector2");
-	algs[65] = make_pair(multikey_dynamic_vector4, "multikey_dynamic_vector4");
-	algs[66] = make_pair(multikey_dynamic_brodnik1, "multikey_dynamic_brodnik1");
-	algs[67] = make_pair(multikey_dynamic_brodnik2, "multikey_dynamic_brodnik2");
-	algs[68] = make_pair(multikey_dynamic_brodnik4, "multikey_dynamic_brodnik4");
-	algs[69] = make_pair(multikey_dynamic_bagwell1, "multikey_dynamic_bagwell1");
-	algs[70] = make_pair(multikey_dynamic_bagwell2, "multikey_dynamic_bagwell2");
-	algs[71] = make_pair(multikey_dynamic_bagwell4, "multikey_dynamic_bagwell4");
-	algs[72] = make_pair(multikey_dynamic_vector_block1, "multikey_dynamic_vector_block1");
-	algs[73] = make_pair(multikey_dynamic_vector_block2, "multikey_dynamic_vector_block2");
-	algs[74] = make_pair(multikey_dynamic_vector_block4, "multikey_dynamic_vector_block4");
-	algs[75] = make_pair(multikey_block1, "multikey_block1");
-	algs[76] = make_pair(multikey_block2, "multikey_block2");
-	algs[77] = make_pair(multikey_block4, "multikey_block4");
-	algs[78] = make_pair(multikey_multipivot_brute_simd1, "multikey_multipivot_brute_simd1");
-	algs[79] = make_pair(multikey_multipivot_brute_simd2, "multikey_multipivot_brute_simd2");
-	algs[80] = make_pair(multikey_multipivot_brute_simd4, "multikey_multipivot_brute_simd4");
-	algs[81] = make_pair(multikey_cache4, "multikey_cache4");
-	algs[82] = make_pair(multikey_cache8, "multikey_cache8");
+	ALG(60, multikey_simd1)
+	ALG(61, multikey_simd2)
+	ALG(62, multikey_simd4)
+	ALG(63, multikey_dynamic_vector1)
+	ALG(64, multikey_dynamic_vector2)
+	ALG(65, multikey_dynamic_vector4)
+	ALG(66, multikey_dynamic_brodnik1)
+	ALG(67, multikey_dynamic_brodnik2)
+	ALG(68, multikey_dynamic_brodnik4)
+	ALG(69, multikey_dynamic_bagwell1)
+	ALG(70, multikey_dynamic_bagwell2)
+	ALG(71, multikey_dynamic_bagwell4)
+	ALG(72, multikey_dynamic_vector_block1)
+	ALG(73, multikey_dynamic_vector_block2)
+	ALG(74, multikey_dynamic_vector_block4)
+	ALG(75, multikey_block1)
+	ALG(76, multikey_block2)
+	ALG(77, multikey_block4)
+	ALG(78, multikey_multipivot_brute_simd1)
+	ALG(79, multikey_multipivot_brute_simd2)
+	ALG(80, multikey_multipivot_brute_simd4)
+	ALG(81, multikey_cache4)
+	ALG(82, multikey_cache8)
 
-	algs[90] = make_pair(burstsort_mkq_simpleburst_1,    "burstsort_mkq_simpleburst_1");
-	algs[91] = make_pair(burstsort_mkq_simpleburst_2,    "burstsort_mkq_simpleburst_2");
-	algs[92] = make_pair(burstsort_mkq_simpleburst_4,    "burstsort_mkq_simpleburst_4");
-	algs[95] = make_pair(burstsort_mkq_recursiveburst_1, "burstsort_mkq_recursiveburst_1");
-	algs[96] = make_pair(burstsort_mkq_recursiveburst_2, "burstsort_mkq_recursiveburst_2");
-	algs[97] = make_pair(burstsort_mkq_recursiveburst_4, "burstsort_mkq_recursiveburst_4");
+	ALG(90, burstsort_mkq_simpleburst_1)
+	ALG(91, burstsort_mkq_simpleburst_2)
+	ALG(92, burstsort_mkq_simpleburst_4)
+	ALG(95, burstsort_mkq_recursiveburst_1)
+	ALG(96, burstsort_mkq_recursiveburst_2)
+	ALG(97, burstsort_mkq_recursiveburst_4)
 
-	algs[100] = make_pair(burstsort_vector,  "burstsort_vector");
-	algs[101] = make_pair(burstsort_brodnik, "burstsort_brodnik");
-	algs[102] = make_pair(burstsort_bagwell, "burstsort_bagwell");
-	algs[103] = make_pair(burstsort_vector_block, "burstsort_vector_block");
-	algs[104] = make_pair(burstsort_superalphabet_vector,  "burstsort_superalphabet_vector");
-	algs[105] = make_pair(burstsort_superalphabet_brodnik, "burstsort_superalphabet_brodnik");
-	algs[106] = make_pair(burstsort_superalphabet_bagwell, "burstsort_superalphabet_bagwell");
-	algs[107] = make_pair(burstsort_superalphabet_vector_block, "burstsort_superalphabet_vector_block");
-	algs[110] = make_pair(burstsort_sampling_vector,  "burstsort_sampling_vector");
-	algs[111] = make_pair(burstsort_sampling_brodnik, "burstsort_sampling_brodnik");
-	algs[112] = make_pair(burstsort_sampling_bagwell, "burstsort_sampling_bagwell");
-	algs[113] = make_pair(burstsort_sampling_vector_block, "burstsort_sampling_vector_block");
-	algs[114] = make_pair(burstsort_sampling_superalphabet_vector,  "burstsort_sampling_superalphabet_vector");
-	algs[115] = make_pair(burstsort_sampling_superalphabet_brodnik, "burstsort_sampling_superalphabet_brodnik");
-	algs[116] = make_pair(burstsort_sampling_superalphabet_bagwell, "burstsort_sampling_superalphabet_bagwell");
-	algs[117] = make_pair(burstsort_sampling_superalphabet_vector_block, "burstsort_sampling_superalphabet_vector_block");
+	ALG(100, burstsort_vector)
+	ALG(101, burstsort_brodnik)
+	ALG(102, burstsort_bagwell)
+	ALG(103, burstsort_vector_block)
+	ALG(104, burstsort_superalphabet_vector)
+	ALG(105, burstsort_superalphabet_brodnik)
+	ALG(106, burstsort_superalphabet_bagwell)
+	ALG(107, burstsort_superalphabet_vector_block)
+	ALG(110, burstsort_sampling_vector)
+	ALG(111, burstsort_sampling_brodnik)
+	ALG(112, burstsort_sampling_bagwell)
+	ALG(113, burstsort_sampling_vector_block)
+	ALG(114, burstsort_sampling_superalphabet_vector)
+	ALG(115, burstsort_sampling_superalphabet_brodnik)
+	ALG(116, burstsort_sampling_superalphabet_bagwell)
+	ALG(117, burstsort_sampling_superalphabet_vector_block)
 
-	algs[120] = make_pair(burstsort2_vector,  "burstsort2_vector");
-	algs[121] = make_pair(burstsort2_brodnik, "burstsort2_brodnik");
-	algs[122] = make_pair(burstsort2_bagwell, "burstsort2_bagwell");
-	algs[123] = make_pair(burstsort2_vector_block, "burstsort2_vector_block");
-	algs[124] = make_pair(burstsort2_superalphabet_vector,  "burstsort2_superalphabet_vector");
-	algs[125] = make_pair(burstsort2_superalphabet_brodnik, "burstsort2_superalphabet_brodnik");
-	algs[126] = make_pair(burstsort2_superalphabet_bagwell, "burstsort2_superalphabet_bagwell");
-	algs[127] = make_pair(burstsort2_superalphabet_vector_block, "burstsort2_superalphabet_vector_block");
-	algs[130] = make_pair(burstsort2_sampling_vector,  "burstsort2_sampling_vector");
-	algs[131] = make_pair(burstsort2_sampling_brodnik, "burstsort2_sampling_brodnik");
-	algs[132] = make_pair(burstsort2_sampling_bagwell, "burstsort2_sampling_bagwell");
-	algs[133] = make_pair(burstsort2_sampling_vector_block, "burstsort2_sampling_vector_block");
-	algs[134] = make_pair(burstsort2_sampling_superalphabet_vector,  "burstsort2_sampling_superalphabet_vector");
-	algs[135] = make_pair(burstsort2_sampling_superalphabet_brodnik, "burstsort2_sampling_superalphabet_brodnik");
-	algs[136] = make_pair(burstsort2_sampling_superalphabet_bagwell, "burstsort2_sampling_superalphabet_bagwell");
-	algs[137] = make_pair(burstsort2_sampling_superalphabet_vector_block, "burstsort2_sampling_superalphabet_vector_block");
+	ALG(120, burstsort2_vector)
+	ALG(121, burstsort2_brodnik)
+	ALG(122, burstsort2_bagwell)
+	ALG(123, burstsort2_vector_block)
+	ALG(124, burstsort2_superalphabet_vector)
+	ALG(125, burstsort2_superalphabet_brodnik)
+	ALG(126, burstsort2_superalphabet_bagwell)
+	ALG(127, burstsort2_superalphabet_vector_block)
+	ALG(130, burstsort2_sampling_vector)
+	ALG(131, burstsort2_sampling_brodnik)
+	ALG(132, burstsort2_sampling_bagwell)
+	ALG(133, burstsort2_sampling_vector_block)
+	ALG(134, burstsort2_sampling_superalphabet_vector)
+	ALG(135, burstsort2_sampling_superalphabet_brodnik)
+	ALG(136, burstsort2_sampling_superalphabet_bagwell)
+	ALG(137, burstsort2_sampling_superalphabet_vector_block)
+
+#undef ALG
 
 	return algs;
 }
@@ -516,6 +570,10 @@ usage(const Algorithms& algs)
 	     "   --write          : Writes sorted output to `/tmp/$USERNAME/alg.out'\n"
 	     "   --write=outfile  : Writes sorted output to `outfile'\n"
 	     "   --xml-stats      : Outputs statistics in XML (default: human readable)\n"
+	     "   --hugetlb-text   : Place the input text into huge pages.\n"
+	     "   --hugetlb-ptrs   : Place the string pointer array into huge pages.\n"
+	     "                      HugeTLB requires kernel and hardware support, and\n"
+	     "                      the `hugetlbfs' file system must be mounted somewhere.\n"
 	     "\n"
 	     "Available algorithms:\n";
 
@@ -555,6 +613,8 @@ int main(int argc, char** argv)
 		{"alg-name",       1, 0, 1006},
 		{"oprofile",       0, 0, 1007},
 		{"xml-stats",      0, 0, 1008},
+		{"hugetlb-text",   0, 0, 1009},
+		{"hugetlb-ptrs",   0, 0, 1010},
 		{0,                0, 0, 0}
 	};
 	while (true) {
@@ -590,6 +650,12 @@ int main(int argc, char** argv)
 		case 1008:
 			opts.xml_stats = true;
 			break;
+		case 1009:
+			opts.hugetlb_text = true;
+			break;
+		case 1010:
+			opts.hugetlb_pointers = true;
+			break;
 		case '?':
 		default:
 			break;
@@ -609,15 +675,17 @@ int main(int argc, char** argv)
 	//seed = 0xdeadbeef;
 	srand48(seed);
 	log() << "seed: " << seed << std::endl;
-	std::vector<unsigned char> text;
-	std::vector<unsigned char*> strings;
-	readbytes(filename, text);
+	unsigned char* text;
+	unsigned char** strings;
+	size_t text_len, strings_len;
+	boost::tie(text, text_len) = readbytes(filename);
 	if (opts.suffixsorting) {
 		log() << "suffix sorting" << std::endl;
-		strings.reserve(text.size());
-		create_suffixes(text, strings);
+		boost::tie(strings,strings_len)=create_suffixes(text,text_len);
 	} else {
-		create_strings(text, strings);
+		boost::tie(strings,strings_len)=create_strings(text,text_len);
 	}
-	run(opts.algorithm, algs, &strings[0], strings.size(), filename);
+	run(opts.algorithm, algs, strings, strings_len, filename);
+	free_text(text, text_len);
+	free_pointers(strings, strings_len);
 }

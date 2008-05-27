@@ -76,7 +76,7 @@ function round() {
 	# Nuke old configuration file. Only (?) way to _really_ clean up old
 	# settings.
 	rm -f /root/.oprofile/daemonrc
-	opcontrol --session-dir=$OPSESSIONDIR --image=$BIN --no-vmlinux --event=$1 >>.op_log 2>&1 || die "Could not setup OProfile correctly"
+	opcontrol --session-dir=$OPSESSIONDIR --image=$BIN --separate=kernel --vmlinux=/usr/lib/debug/lib/modules/`uname -r`/vmlinux --event=$1 >>.op_log 2>&1 || die "Could not setup OProfile correctly"
 	$BIN --oprofile $2 "$3" >>.op_log 2>&1
 	if [[ $? -ne 0 ]] ; then echo "WARNING: failure was reported" ; fi
 	opcontrol --session-dir=$OPSESSIONDIR --shutdown >>.op_log 2>&1 || die "Could not shutdown OProfile correctly"

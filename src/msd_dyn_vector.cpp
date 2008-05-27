@@ -173,112 +173,28 @@ msd_D_adaptive(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 	free(bucketsize);
 }
 
-void msd_DV(unsigned char** strings, size_t n)
-{
-	std::vector<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DV_adaptive(unsigned char** strings, size_t n)
-{
-	std::vector<unsigned char*> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_DL(unsigned char** strings, size_t n)
-{
-	counting_list<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DL_adaptive(unsigned char** strings, size_t n)
-{
-	counting_list<unsigned char*> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
+#define MAKE_ALG2(name, vec)                                                   \
+void msd_D_##name(unsigned char** strings, size_t n)                           \
+{                                                                              \
+        vec<unsigned char*> buckets[256];                                      \
+        msd_D(strings, n, 0, buckets);                                         \
+}                                                                              \
+void msd_D_##name##_adaptive(unsigned char** strings, size_t n)                \
+{                                                                              \
+        vec<unsigned char*> buckets[0x10000];                                  \
+        msd_D_adaptive(strings, n, 0, buckets);                                \
 }
 
-void msd_DD(unsigned char** strings, size_t n)
-{
-	std::deque<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DD_adaptive(unsigned char** strings, size_t n)
-{
-	std::deque<unsigned char*> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
+#define MAKE_ALG1(vec) MAKE_ALG2(vec, vec)
 
-void msd_DV_REALLOC(unsigned char** strings, size_t n)
-{
-	vector_realloc<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DV_REALLOC_adaptive(unsigned char** strings, size_t n)
-{
-	vector_realloc<unsigned char*, 32> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_DV_MALLOC(unsigned char** strings, size_t n)
-{
-	vector_malloc<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DV_MALLOC_adaptive(unsigned char** strings, size_t n)
-{
-	vector_malloc<unsigned char*, 32> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_DV_CHEAT_REALLOC(unsigned char** strings, size_t n)
-{
-	vector_realloc_counter_clear<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DV_CHEAT_REALLOC_adaptive(unsigned char** strings, size_t n)
-{
-	vector_realloc_counter_clear<unsigned char*, 32> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_DV_CHEAT_MALLOC(unsigned char** strings, size_t n)
-{
-	vector_malloc_counter_clear<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_DV_CHEAT_MALLOC_adaptive(unsigned char** strings, size_t n)
-{
-	vector_malloc_counter_clear<unsigned char*, 32> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_D_vector_block(unsigned char** strings, size_t n)
-{
-	vector_block<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_D_vector_block_adaptive(unsigned char** strings, size_t n)
-{
-	vector_block<unsigned char*> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_D_vector_brodnik(unsigned char** strings, size_t n)
-{
-	vector_brodnik<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_D_vector_brodnik_adaptive(unsigned char** strings, size_t n)
-{
-	vector_brodnik<unsigned char*> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
-
-void msd_D_vector_bagwell(unsigned char** strings, size_t n)
-{
-	vector_bagwell<unsigned char*> buckets[256];
-	msd_D(strings, n, 0, buckets);
-}
-void msd_D_vector_bagwell_adaptive(unsigned char** strings, size_t n)
-{
-	vector_bagwell<unsigned char*> buckets[0x10000];
-	msd_D_adaptive(strings, n, 0, buckets);
-}
+MAKE_ALG2(std_vector, std::vector)
+MAKE_ALG2(std_deque, std::deque)
+MAKE_ALG2(std_list, counting_list)
+MAKE_ALG1(vector_realloc)
+MAKE_ALG1(vector_malloc)
+MAKE_ALG1(vector_realloc_counter_clear)
+MAKE_ALG1(vector_malloc_counter_clear)
+MAKE_ALG1(vector_realloc_shrink_clear)
+MAKE_ALG1(vector_block)
+MAKE_ALG1(vector_brodnik)
+MAKE_ALG1(vector_bagwell)

@@ -1,7 +1,10 @@
+cmake_minimum_required(VERSION 2.4)
+
 project(sortstring)
 find_package(Boost REQUIRED)
 
 set(INTERNAL_SRCS
+	src/util/hugetlb.cpp
 	src/clock.cpp
 	src/msd_a.cpp
 	src/msd_a2.cpp
@@ -10,6 +13,7 @@ set(INTERNAL_SRCS
 	src/msd_dyn_block.cpp
 	src/msd_dyn_vector.cpp
 	src/burstsort.cpp
+	src/burstsort2.cpp
 	src/burstsort_mkq.cpp
 	src/multikey_simd.cpp
 	src/multikey_dynamic.cpp
@@ -39,9 +43,8 @@ add_executable(sortstring
 
 option(USE_ICC "Use the Intel C/C++ compiler" OFF)
 
-add_definitions(-Drestrict=__restrict__)
-
 if(USE_ICC)
+	add_definitions(-restrict)
 	set(CMAKE_CXX_COMPILER "icpc")
 	set(CMAKE_C_COMPILER "icc")
 	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -ipo -xT -O2")
@@ -50,6 +53,7 @@ if(USE_ICC)
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-g -DNDEBUG -ipo -xT -O2")
 else(USE_ICC)
 	add_definitions(-msse2)
+	add_definitions(-Drestrict=__restrict__)
 	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=core2 ${CMAKE_CXX_FLAGS_RELEASE}")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=core2 ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG -march=core2 ${CMAKE_C_FLAGS_RELEASE}")

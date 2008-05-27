@@ -21,10 +21,10 @@
  */
 
 /*
- * Burstsort2 is otherwise identical to the regular burstsort, but the arrays in
- * each trie node is grown dynamically based on input, instead of having a fixed
- * size. The arrays are simply expanded to fit the largest alphabet value seen
- * so far. This can lead to some space savings especially with large alphabets.
+ * Burstsort2 is otherwise identical to the regular burstsort, but the pointer
+ * array in each trie node is grown dynamically based on input, instead of
+ * having a fixed size. The arrays are simply expanded to fit the largest
+ * character from the alphabet seen so far. This can lead to some space savings.
  */
 
 #include "util/get_char.h"
@@ -36,47 +36,60 @@
 #include "vector_brodnik.h"
 #include "vector_block.h"
 #include <boost/array.hpp>
-#include <boost/dynamic_bitset.hpp>
+#include <boost/static_assert.hpp>
 
 template <typename CharT, typename BucketT>
 struct TrieNode
 {
-	// One subtree per alphabet. Points to either a 'TrieNode' or a
-	// 'Bucket' node. Use the value from is_trie to know which one.
+	// One subtree per character in alphabet. Points to either a 'TrieNode'
+	// or a 'Bucket' node.
+	//
+	// We use the least significant bit from the pointer to know which
+	// one. malloc() must give pointers that are aligned to the size of the
+	// largest primitive, ie. something like 8 bytes, meaning that the
+	// least significant bit is always 0.
+	//
+	// We set the bit to 1 when pointer points to a 'TrieNode', otherwise
+	// it's either a null pointer or points to a 'Bucket'.
 	std::vector<void*> _buckets;
-	// is_trie[i] equals true if buckets[i] points to a TrieNode
-	// is_trie[i] equals false if buckets[i] points to a Bucket
-	boost::dynamic_bitset<> _is_trie;
 	TrieNode() {}
 	TrieNode* get_node(unsigned index) const
 	{
-		assert(index<_buckets.size());
-		assert(index<_is_trie.size());
-		assert(_buckets[index]);
-		assert(_is_trie[index]);
-		return static_cast<TrieNode*>(_buckets[index]);
+		assert(is_trie(index));
+		return reinterpret_cast<TrieNode*>(
+		       static_cast<char*>(_buckets[index])-1);
 	}
 	BucketT* get_bucket(unsigned index)
 	{
-		extend(index+1);
-		if (not _buckets[index]) {
-			_buckets[index] = new BucketT;
+		if (index < _buckets.size()) {
+			BucketT* b = static_cast<BucketT*>(_buckets[index]);
+			if (not b) { _buckets[index] = b = new BucketT; }
+			return b;
+		} else {
+			_buckets.resize(index+1);
+			BucketT* b = new BucketT;
+			_buckets[index] = b;
+			return b;
 		}
-		return static_cast<BucketT*>(_buckets[index]);
 	}
 	bool is_trie(unsigned index) const
 	{
-		if (index < _is_trie.size()) { return _is_trie[index]; }
+		BOOST_STATIC_ASSERT(sizeof(size_t)==sizeof(void*));
+		if (index < _buckets.size()) {return size_t(_buckets[index])&1;}
 		return false;
 	}
 	void extend(unsigned size)
 	{
-		if (size > _buckets.size()) {
-			_buckets.resize(size);
-			_is_trie.resize(size);
-		}
+		if (size > _buckets.size()) { _buckets.resize(size); }
 	}
 };
+
+static inline void make_trie(void*& ptr)
+{
+	BOOST_STATIC_ASSERT(sizeof(size_t)==sizeof(void*));
+	assert(ptr);
+	ptr = (void*)(size_t(ptr) | 1);
+}
 
 // The burst algorithm as described by Sinha, Zobel et al.
 template <typename CharT>
@@ -130,7 +143,6 @@ struct BurstRecursive
 			= BurstSimple<CharT>()(bucket, depth);
 		const size_t threshold = std::max(size_t(100), bucket.size()/2);
 		for (unsigned i=0; i < new_node->_buckets.size(); ++i) {
-			assert(new_node->_is_trie[i] == false);
 			BucketT* sub_bucket = static_cast<BucketT*>(
 					new_node->_buckets[i]);
 			if (not sub_bucket) continue;
@@ -139,7 +151,7 @@ struct BurstRecursive
 					BurstRecursive<CharT>()(*sub_bucket,
 							depth+sizeof(CharT));
 				delete sub_bucket;
-				new_node->_is_trie[i] = true;
+				make_trie(new_node->_buckets[i]);
 			}
 		}
 		return new_node;
@@ -165,8 +177,8 @@ random_sample(unsigned char** strings, size_t n)
 			depth += sizeof(CharT);
 			node->extend(c+1);
 			if (not node->is_trie(c)) {
-				node->_is_trie[c] = true;
 				node->_buckets[c] = new TrieNode<CharT, BucketT>;
+				make_trie(node->_buckets[c]);
 				if (--max_nodes==0) goto finish;
 			}
 			node = node->get_node(c);
@@ -195,8 +207,8 @@ pseudo_sample(unsigned char** strings, size_t n)
 			depth += sizeof(CharT);
 			node->extend(c+1);
 			if (not node->is_trie(c)) {
-				node->_is_trie[c] = true;
 				node->_buckets[c] = new TrieNode<CharT, BucketT>;
+				make_trie(node->_buckets[c]);
 				if (--max_nodes==0) goto finish;
 			}
 			node = node->get_node(c);
@@ -204,7 +216,6 @@ pseudo_sample(unsigned char** strings, size_t n)
 		}
 	}
 finish:
-	debug()<<"   Sampling done, created "<<4000-max_nodes<<" nodes.\n";
 	return root;
 }
 
@@ -231,7 +242,7 @@ insert(TrieNode<CharT, BucketT>* root, unsigned char** strings, size_t n)
 		if (bucket->size() > Threshold) {
 			node->_buckets[c] = BurstImpl()(*bucket,
 					depth+sizeof(CharT));
-			node->_is_trie[c] = true;
+			make_trie(node->_buckets[c]);
 			delete bucket;
 		}
 	}
@@ -256,10 +267,8 @@ traverse(TrieNode<CharT, BucketT>* node,
          SmallSort small_sort)
 {
 	for (unsigned i=0; i < node->_buckets.size(); ++i) {
-		if (node->_is_trie[i]) {
-			dst = traverse(
-				static_cast<TrieNode<CharT, BucketT>*>(
-					node->_buckets[i]),
+		if (node->is_trie(i)) {
+			dst = traverse(node->get_node(i),
 				dst, depth+sizeof(CharT), small_sort);
 		} else {
 			BucketT* bucket =

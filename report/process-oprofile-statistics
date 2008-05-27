@@ -55,10 +55,22 @@ done
 # Oprofile requires absolute path.
 OPSESSIONDIR=$PWD/$TOOLOUTDIR/oprofile-session-dir
 ################################################################################
+let ALGCOUNT=0; for A in $ALGS ; do let ++ALGCOUNT; done
+let FILECOUNT=0; for F in $INFILES ; do let ++FILECOUNT; done
+let EVENTCOUNT=0; for E in $EVENTS ; do let ++EVENTCOUNT; done
+################################################################################
 echo "ALGS=$ALGS"
 echo "EVENTS=$EVENTS"
 echo "INFILES=$INFILES"
 echo "Processing XML ..."
+KDIALOG=`which kdialog 2>/dev/null`
+if [[ -x "$KDIALOG" ]] ; then
+	# dont spawn kdialog in a subshell
+	kdialog --caption "Process OProfile data" --progressbar "-" $((2*$FILECOUNT*$ALGCOUNT*$EVENTCOUNT)) 2>/dev/null >.tmp
+	DCOPREF=`cat .tmp`
+	rm .tmp
+fi
+if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setAutoClose 1 ; fi
 for FILE in $INFILES ; do
 	echo "   Input file $FILE ..."
 	BFILE=`basename "$FILE"`
@@ -66,6 +78,7 @@ for FILE in $INFILES ; do
 		XMLOUT="$OUTDIR/oprofile_${BFILE}_${ALG}.xml"
 		echo "<simple>" > $XMLOUT || die "Could not create $XMLOUT"
 		for EVENT in $EVENTS ; do
+			if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setLabel "<pre>Generating XML ...</pre><pre>$FILE</pre><pre>`$BIN --alg-name=$ALG`</pre><pre>$EVENT</pre>" ; fi
 			NICE_EVENT="`echo $EVENT | sed 's/:/_/g'`"
 			SESSIONNAME="${BFILE}_${ALG}_${NICE_EVENT}"
 			opreport --session-dir=$OPSESSIONDIR --xml \
@@ -76,6 +89,8 @@ for FILE in $INFILES ; do
 				xsltproc oprofile-simplify.xsl .report >> $XMLOUT
 			fi
 			rm -f .report
+			if [[ -n "$DCOPREF" ]] ; then PROGRESS=`dcop $DCOPREF progress` ; fi
+			if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setProgress $((PROGRESS+1)) ; fi
 		done
 		echo "</simple>" >> $XMLOUT
 	done
@@ -86,6 +101,7 @@ for FILE in $INFILES ; do
 	BFILE=`basename "$FILE"`
 	for ALG in $ALGS ; do
 		for EVENT in $EVENTS ; do
+			if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setLabel "<pre>Generating HTML ...</pre><pre>$FILE</pre><pre>`$BIN --alg-name=$ALG`</pre><pre>$EVENT</pre>" ; fi
 			# convert : -> _
 			NICE_EVENT="`echo $EVENT | tr : _`"
 			SESSIONNAME="${BFILE}_${ALG}_${NICE_EVENT}"
@@ -95,8 +111,9 @@ for FILE in $INFILES ; do
 			HTML_EVENT="`echo $EVENT | awk -F: '{if (\$3) print \$1 "_" \$3; else print \$1;}'`"
 			HTMLOUT="$OUTDIR/opannotate_${BFILE}_${ALG}_${HTML_EVENT}.html"
 			opannotate --session-dir=$OPSESSIONDIR \
-				session:$SESSIONNAME --demangle smart --source \
-				--threshold 2 >> .report
+				session:$SESSIONNAME --demangle smart \
+				--image-path=/lib/modules/`uname -r`/kernel \
+				--source --threshold 2 >> .report
 			ST=$?
 			if [[ $ST -eq 0 ]] ; then
 				if [[ -x "./cpp2html" ]] ; then
@@ -108,6 +125,8 @@ for FILE in $INFILES ; do
 				fi
 			fi
 			rm -f .report
+			if [[ -n "$DCOPREF" ]] ; then PROGRESS=`dcop $DCOPREF progress` ; fi
+			if [[ -n "$DCOPREF" ]] ; then dcop $DCOPREF setProgress $((PROGRESS+1)) ; fi
 		done
 	done
 done

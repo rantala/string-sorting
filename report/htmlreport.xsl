@@ -287,6 +287,7 @@
 				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_CPU_CLK_UNHALTED.html')">
 					<xsl:value-of select="format-number($data/simple/event[@name='CPU_CLK_UNHALTED']/@value div 1e6,   '#')"/></a></td>
 				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_INST_RETIRED.html')">
+					<!-- the event name can have either . or _ depending on oprofile version -->
 					<xsl:value-of select="format-number($data/simple/event[@name='INST_RETIRED.ANY_P' or @name='INST_RETIRED_ANY_P']/@value div 1e6, '#')"/></a></td>
 				<td><xsl:value-of
 					select="format-number($data/simple/event[@name='CPU_CLK_UNHALTED']/@value div

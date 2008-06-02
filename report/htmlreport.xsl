@@ -227,10 +227,9 @@
 			<th>Instructions x10^6</th>
 			<th>CPI</th>
 			<th>DTLB misses x10^6</th>
-			<th>L1 cache line misses x10^6</th>
-			<th>L2 cache line misses x10^6</th>
+			<th>L1 misses x10^6</th>
+			<th>L2 misses x10^6</th>
 			<th>Load blocks x10^6</th>
-			<th>Store order blocks x10^6</th>
 			<th>Heap peak (megabytes)</th>
 			<th>{m,c,re}alloc calls</th>
 		</tr>
@@ -282,41 +281,52 @@
 	<xsl:template name="get-oprofile-data">
 		<xsl:param name="input"/>
 		<xsl:param name="algnum"/>
-		<xsl:for-each select="document(concat('data/oprofile_', $input, '_', $algnum, '.xml'))">
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_CPU_CLK_UNHALTED.html')">
-					<xsl:value-of select="format-number(simple/event[@name='CPU_CLK_UNHALTED']/@value div 1e6,   '#')"/></a></td>
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_INST_RETIRED.html')">
-					<xsl:value-of select="format-number(simple/event[@name='INST_RETIRED.ANY_P']/@value div 1e6, '#')"/></a></td>
-			<td><xsl:value-of
-					select="format-number(simple/event[@name='CPU_CLK_UNHALTED']/@value div
-					simple/event[@name='INST_RETIRED.ANY_P']/@value, '#.##')"/></td>
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_DTLB_MISSES.html')">
-					<xsl:value-of select="format-number(simple/event[@name='DTLB_MISSES']/@value div 1e6, '#')"/></a></td>
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_MEM_LOAD_RETIRED_0x02.html')">
-					<xsl:value-of select="format-number(simple/event[@name='MEM_LOAD_RETIRED' and @mask='2']/@value div 1e6, '#')"/></a></td>
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_MEM_LOAD_RETIRED_0x08.html')">
-					<xsl:value-of select="format-number(simple/event[@name='MEM_LOAD_RETIRED' and @mask='8']/@value div 1e6, '#')"/></a></td>
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x02.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x04.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x08.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x10.html data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x20.html')">
-					<xsl:value-of select="format-number(
-					(simple/event[@name='LOAD_BLOCK' and @mask='2']/@value +
-					 simple/event[@name='LOAD_BLOCK' and @mask='4']/@value +
-					  simple/event[@name='LOAD_BLOCK' and @mask='8']/@value +
-					  simple/event[@name='LOAD_BLOCK' and @mask='16']/@value +
-					  simple/event[@name='LOAD_BLOCK' and @mask='32']/@value) div 1e6,
-						'#')"/></a></td>
-			<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_STORE_BLOCK_0x02.html')">
-					<xsl:value-of select="format-number(simple/event[@name='STORE_BLOCK']/@value div 1e6, '#')"/></a></td>
-		</xsl:for-each>
+		<xsl:variable name="data" select="document(concat('data/oprofile_', $input, '_', $algnum, '.xml'))"/>
+		<xsl:choose>
+			<xsl:when test="count($data) &gt; 0">
+				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_CPU_CLK_UNHALTED.html')">
+					<xsl:value-of select="format-number($data/simple/event[@name='CPU_CLK_UNHALTED']/@value div 1e6,   '#')"/></a></td>
+				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_INST_RETIRED.html')">
+					<xsl:value-of select="format-number($data/simple/event[@name='INST_RETIRED.ANY_P' or @name='INST_RETIRED_ANY_P']/@value div 1e6, '#')"/></a></td>
+				<td><xsl:value-of
+					select="format-number($data/simple/event[@name='CPU_CLK_UNHALTED']/@value div
+					$data/simple/event[@name='INST_RETIRED.ANY_P' or @name='INST_RETIRED_ANY_P']/@value, '#.##')"/></td>
+				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_DTLB_MISSES.html')">
+					<xsl:value-of select="format-number($data/simple/event[@name='DTLB_MISSES']/@value div 1e6, '#')"/></a></td>
+				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_L1D_REPL.html')">
+					<xsl:value-of select="format-number($data/simple/event[@name='L1D_REPL']/@value div 1e6, '#')"/></a></td>
+				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_L2_LINES_IN.html')">
+					<xsl:value-of select="format-number($data/simple/event[@name='L2_LINES_IN']/@value div 1e6, '#')"/></a></td>
+				<td><a class="popup" onclick="createPopUp('data/opannotate_{$input}_{$algnum}_LOAD_BLOCK_0x02.html')">
+					<xsl:value-of select="format-number($data/simple/event[@name='LOAD_BLOCK' and @mask='2']/@value div 1e6, '#')"/></a></td>
+			</xsl:when>
+			<xsl:otherwise>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 	<!-- memusage data -->
 	<xsl:template name="get-memusage-data">
 		<xsl:param name="input"/>
 		<xsl:param name="algnum"/>
-		<xsl:for-each select="document(concat('data/memusage_', $input, '_', $algnum, '.xml'))">
-			<td><a class="popup" onclick="createPopUp('data/memusage_{$input}_{$algnum}.html')">
-					<xsl:value-of select="format-number(memusage/event/@heap-peak div 1048576, '#')"/></a></td>
-			<td><xsl:value-of select="format-number(memusage/event/@calls-malloc + memusage/event/@calls-realloc + memusage/event/@calls-calloc, '#')"/></td>
-		</xsl:for-each>
+		<xsl:variable name="data" select="document(concat('data/memusage_', $input, '_', $algnum, '.xml'))"/>
+		<xsl:choose>
+			<xsl:when test="count($data) &gt; 0">
+				<td><a class="popup" onclick="createPopUp('data/memusage_{$input}_{$algnum}.html')">
+						<xsl:value-of select="format-number($data/memusage/event/@heap-peak div 1048576, '#')"/></a></td>
+				<td><xsl:value-of select="format-number($data/memusage/event/@calls-malloc + $data/memusage/event/@calls-realloc + $data/memusage/event/@calls-calloc, '#')"/></td>
+			</xsl:when>
+			<xsl:otherwise>
+				<td></td>
+				<td></td>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 </xsl:stylesheet>
 <!-- vim:ts=2:sw=2:

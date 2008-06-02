@@ -27,19 +27,11 @@ function die() {
 ################################################################################
 if [[ -z $EVENTS ]] ; then
 	EVENTS="CPU_CLK_UNHALTED:100000
-		LOAD_BLOCK:10000:0x02
-		LOAD_BLOCK:10000:0x04
-		LOAD_BLOCK:10000:0x08
-		LOAD_BLOCK:10000:0x10
-		LOAD_BLOCK:10000:0x20
-		STORE_BLOCK:10000:0x02
 		INST_RETIRED:100000
 		DTLB_MISSES:10000
-		MEM_LOAD_RETIRED:10000:0x02
-		MEM_LOAD_RETIRED:10000:0x08
+		L1D_REPL:10000
 		L2_LINES_IN:10000
-		L1D_CACHE_LD:10000
-		SIMD_INST_RETIRED:100000"
+		LOAD_BLOCK:10000:0x02"
 fi
 ################################################################################
 if [[ -z $BIN  ]] ; then BIN=./sortstring ; fi

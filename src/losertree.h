@@ -67,7 +67,7 @@ static inline unsigned log2(unsigned n)
 { return 8*sizeof(unsigned)-1-__builtin_clz(n); }
 
 template <typename T>
-struct loser_tree_unstable
+struct loser_tree
 {
 	typedef struct { T* stream; size_t n; } Stream;
 	unsigned* restrict _nodes;
@@ -76,7 +76,7 @@ struct loser_tree_unstable
 	const unsigned _stream_offset;
 
 	template <typename Iterator>
-	loser_tree_unstable(Iterator begin, Iterator end)
+	loser_tree(Iterator begin, Iterator end)
 		: _nodes(0), _streams(0), _nonempty_streams(end-begin),
 		  _stream_offset(1 << (log2(_nonempty_streams-1)+1))
 	{
@@ -97,7 +97,7 @@ struct loser_tree_unstable
 		//debug()<<*this;
 	}
 
-	~loser_tree_unstable()
+	~loser_tree()
 	{
 		assert(_nodes); assert(_streams);
 		free(static_cast<void*>(_nodes));
@@ -134,6 +134,8 @@ struct loser_tree_unstable
 		return r;
 	}
 
+	bool empty() const { return _nonempty_streams == 0; }
+
 	void update()
 	{
 		//debug() << __PRETTY_FUNCTION__ << std::endl;
@@ -165,7 +167,7 @@ struct loser_tree_unstable
 #ifndef NDEBUG
 #include <ostream>
 template <typename T>
-std::ostream& operator<<(std::ostream& strm, const loser_tree_unstable<T>& tree)
+std::ostream& operator<<(std::ostream& strm, const loser_tree<T>& tree)
 {
 	strm<<"/-------------------\n";
 	for(unsigned i=0;i<tree._stream_offset;++i){

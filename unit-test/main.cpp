@@ -69,7 +69,7 @@ test_loser_tree()
 		std::vector<std::pair<int*, size_t> > seqs;
 		seqs.push_back(std::make_pair(seq1.data(), 5));
 		seqs.push_back(std::make_pair(seq2.data(), 5));
-		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		loser_tree<int> tree(seqs.begin(), seqs.end());
 		assert(tree._nonempty_streams == 2);
 		assert(tree.min() == 2);  assert(tree._nonempty_streams == 2);
 		assert(tree.min() == 3);  assert(tree._nonempty_streams == 2);
@@ -90,7 +90,7 @@ test_loser_tree()
 		seqs.push_back(std::make_pair(seq1.data(), 3));
 		seqs.push_back(std::make_pair(seq2.data(), 3));
 		seqs.push_back(std::make_pair(seq3.data(), 3));
-		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		loser_tree<int> tree(seqs.begin(), seqs.end());
 		assert(tree._nonempty_streams == 3);
 		assert(tree.min() == 2);  assert(tree._nonempty_streams == 3);
 		assert(tree.min() == 3);  assert(tree._nonempty_streams == 3);
@@ -110,7 +110,7 @@ test_loser_tree()
 		seqs.push_back(std::make_pair(seq3.data(), 3));
 		seqs.push_back(std::make_pair(seq2.data(), 3));
 		seqs.push_back(std::make_pair(seq1.data(), 3));
-		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		loser_tree<int> tree(seqs.begin(), seqs.end());
 		assert(tree._nonempty_streams == 3);
 		assert(tree.min() == 2);  assert(tree._nonempty_streams == 3);
 		assert(tree.min() == 3);  assert(tree._nonempty_streams == 3);
@@ -134,7 +134,7 @@ test_loser_tree()
 		for (unsigned i=0; i < data.size(); ++i) {
 			seqs.push_back(std::make_pair(data[i].data(), items));
 		}
-		loser_tree_unstable<int> tree(seqs.begin(), seqs.end());
+		loser_tree<int> tree(seqs.begin(), seqs.end());
 		assert(tree._nonempty_streams == data.size());
 		for (unsigned i=0; i < items; ++i) {
 			for (unsigned j=0; j < data.size(); ++j) {

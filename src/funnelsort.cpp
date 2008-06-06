@@ -297,13 +297,12 @@ template <unsigned K, unsigned I,
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_leaf(boost::array<Stream,K>&, Stream&, unsigned char**,
+void fill_leaf(boost::array<Stream,K>&, unsigned char**,
                boost::array<size_t,K>&, boost::false_type) {}
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
 void fill_leaf(boost::array<Stream,K>& restrict streams,
-               Stream& restrict result,
                unsigned char** restrict buffer,
                boost::array<size_t,K>& restrict buffer_count,
                boost::true_type)
@@ -393,13 +392,12 @@ finish2_right:
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_inner(boost::array<Stream,K>&, Stream&, unsigned char**,
+void fill_inner(boost::array<Stream,K>&, unsigned char**,
                 boost::array<size_t,K>&, boost::false_type) {}
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
 void fill_inner(boost::array<Stream,K>& restrict streams,
-                Stream& restrict result,
                 unsigned char** restrict buffer,
                 boost::array<size_t,K>& restrict buffer_count,
                 boost::true_type)
@@ -408,12 +406,11 @@ void fill_inner(boost::array<Stream,K>& restrict streams,
 	size_t need = buffer_size<K,I/2>::value;
 	while (true) {
 		if (buffer_count[2*I]==0) {
-			fill<K,2*I,BufferLayout>()(streams, result, buffer,
-			                           buffer_count);
+			fill<K,2*I,BufferLayout>()(streams,buffer,buffer_count);
 			if (buffer_count[2*I]==0) goto finish_left;
 		}
 		if (buffer_count[2*I+1]==0) {
-			fill<K,2*I+1,BufferLayout>()(streams, result, buffer,
+			fill<K,2*I+1,BufferLayout>()(streams, buffer,
 			                             buffer_count);
 			if (buffer_count[2*I+1]==0) goto finish_right;
 		}
@@ -448,7 +445,7 @@ finish_left:
 	debug()<<"left stream drained\n";
 	while (true) {
 		if (buffer_count[2*I+1]==0) {
-			fill<K,2*I+1,BufferLayout>()(streams, result, buffer,
+			fill<K,2*I+1,BufferLayout>()(streams, buffer,
 			                             buffer_count);
 			if (buffer_count[2*I+1]==0) {
 				debug()<<"both streams prematurely drained\n";
@@ -488,8 +485,7 @@ finish_right:
 	debug()<<"right stream drained\n";
 	while (true) {
 		if (buffer_count[2*I]==0) {
-			fill<K,2*I,BufferLayout>()(streams, result, buffer,
-			                           buffer_count);
+			fill<K,2*I,BufferLayout>()(streams,buffer,buffer_count);
 			if (buffer_count[2*I]==0) {
 				debug()<<"both streams prematurely drained\n";
 				unsigned char** begin = buffer +
@@ -533,27 +529,19 @@ finish_right:
 
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_root(boost::array<Stream,K>&, Stream&, unsigned char**,
-               boost::array<size_t,K>&, boost::false_type) {}
-
-template <unsigned K, template <unsigned, unsigned> class BufferLayout>
-static inline __attribute__((always_inline))
 void fill_root(boost::array<Stream,K>& restrict streams,
-               Stream& restrict result,
+               unsigned char** restrict result,
                unsigned char** restrict buffer,
-               boost::array<size_t,K>& restrict buffer_count,
-               boost::true_type)
+               boost::array<size_t,K>& restrict buffer_count)
 {
 	debug() << __func__ << ", root\n"; debug_indent;
 	while (true) {
 		if (buffer_count[2]==0) {
-			fill<K,2,BufferLayout>()(streams, result, buffer,
-			                         buffer_count);
+			fill<K,2,BufferLayout>()(streams, buffer, buffer_count);
 			if (buffer_count[2]==0) { goto finish_left; }
 		}
 		if (buffer_count[3]==0) {
-			fill<K,3,BufferLayout>()(streams, result, buffer,
-			                         buffer_count);
+			fill<K,3,BufferLayout>()(streams, buffer, buffer_count);
 			if (buffer_count[3]==0) { goto finish_right; }
 		}
 		const size_t lcount = buffer_count[2];
@@ -564,10 +552,10 @@ void fill_root(boost::array<Stream,K>& restrict streams,
 			(buffer_size<K,1>::value - rcount);
 		debug()<<"L:'"<<*l<<"', R:'"<<*r<<"'\n";
 		if (cmp(*l, *r) <= 0) {
-			*(result.stream++) = *l;
+			*(result++) = *l;
 			--buffer_count[2];
 		} else {
-			*(result.stream++) = *r;
+			*(result++) = *r;
 			--buffer_count[3];
 		}
 	}
@@ -580,10 +568,10 @@ finish_left:
 		if (num==0) { return; }
 		unsigned char** begin = buffer + BufferLayout<K,1>::rindex +
 			(buffer_size<K,1>::value - num);
-		std::copy(begin, begin+num, result.stream);
-		result.stream += num;
+		std::copy(begin, begin+num, result);
+		result += num;
 		buffer_count[3] = 0;
-		fill<K,3,BufferLayout>()(streams, result, buffer, buffer_count);
+		fill<K,3,BufferLayout>()(streams, buffer, buffer_count);
 	}
 	assert(0);
 finish_right:
@@ -594,10 +582,10 @@ finish_right:
 		const size_t num = buffer_count[2];
 		if (num==0) { return; }
 		unsigned char** begin = buffer + buffer_size<K,1>::value - num;
-		std::copy(begin, begin+num, result.stream);
-		result.stream += num;
+		std::copy(begin, begin+num, result);
+		result += num;
 		buffer_count[2] = 0;
-		fill<K,2,BufferLayout>()(streams, result, buffer, buffer_count);
+		fill<K,2,BufferLayout>()(streams, buffer, buffer_count);
 	}
 	assert(0);
 }
@@ -608,22 +596,54 @@ template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 struct fill
 {
 	void operator()(boost::array<Stream,K>& restrict streams,
-	                Stream& restrict result,
 	                unsigned char** restrict buffer,
 	                boost::array<size_t,K>& restrict buffer_count) const
 	{
-		fill_root<K,BufferLayout>(streams, result, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I==1)>());
-		fill_inner<K,I,BufferLayout>(streams,result,buffer,buffer_count,
+		fill_inner<K,I,BufferLayout>(streams, buffer, buffer_count,
 		    typename boost::integral_constant<bool, (I>1 && I<K/2)>());
-		fill_leaf<K,I,BufferLayout>(streams,result,buffer, buffer_count,
+		fill_leaf<K,I,BufferLayout>(streams, buffer, buffer_count,
+		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
+	}
+};
+
+// Fully inline K=8 and K=16 with ''__attribute__((always_inline))''. Increases
+// compilation times with GCC and ICC by 5-10 minutes even with a fast computer.
+// Adding the attribute to the generic 'fill' struct above effectively kills the
+// compiler.
+template <unsigned I,template <unsigned,unsigned> class BufferLayout>
+struct fill<8,I,BufferLayout>
+{
+	enum { K=8 };
+	void operator()(boost::array<Stream,K>& restrict streams,
+	                unsigned char** restrict buffer,
+	                boost::array<size_t,K>& restrict buffer_count) const
+	                __attribute__((always_inline))
+	{
+		fill_inner<K,I,BufferLayout>(streams, buffer, buffer_count,
+		    typename boost::integral_constant<bool, (I>1 && I<K/2)>());
+		fill_leaf<K,I,BufferLayout>(streams, buffer, buffer_count,
+		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
+	}
+};
+template <unsigned I,template <unsigned,unsigned> class BufferLayout>
+struct fill<16,I,BufferLayout>
+{
+	enum { K=16 };
+	void operator()(boost::array<Stream,K>& restrict streams,
+	                unsigned char** restrict buffer,
+	                boost::array<size_t,K>& restrict buffer_count) const
+	                __attribute__((always_inline))
+	{
+		fill_inner<K,I,BufferLayout>(streams, buffer, buffer_count,
+		    typename boost::integral_constant<bool, (I>1 && I<K/2)>());
+		fill_leaf<K,I,BufferLayout>(streams, buffer, buffer_count,
 		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
 	}
 };
 
 // Funnelsort recursion. Approximate the theoretical funnel size scheme by
 // splitting the input into K streams, and using a fixed size K-merger.
-// Then use K/2 on the next level of recursion.
+// Then use K/4 or K/2 on the next level of recursion.
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
 static void
 funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
@@ -643,38 +663,37 @@ funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 	}
 	streams[K-1].stream = streams[K-2].stream + splitter;
 	streams[K-1].n      = n - (K-1)*splitter;
-	Stream result = { tmp, n };
 	for (unsigned i=0; i < K; ++i) {
-		funnelsort<K/2,BufferLayout>(streams[i].stream,
-		                             streams[i].n, tmp);
+		funnelsort<(K>16?K/4:K/2),BufferLayout>(streams[i].stream,
+		                                        streams[i].n, tmp);
 		check_input(streams[i].stream, streams[i].n);
 	}
 	boost::array<unsigned char*, buffer_total_size<K>::value> buffers;
 	boost::array<size_t, K> buffer_count;
 	buffer_count.assign(0);
-	fill<K,1,BufferLayout>()(streams, result, buffers.data(), buffer_count);
+	fill_root<K,BufferLayout>(streams, tmp, buffers.data(), buffer_count);
 	(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
 	check_input(strings, n);
 }
 
 // Switch to 4-way mergesort on small inputs/lower levels of recursion.
 void mergesort_4way(unsigned char**, size_t, unsigned char**);
-template <> void
-funnelsort<4,buffer_layout_bfs>(unsigned char** strings, size_t n,
-                                unsigned char** tmp)
-{ mergesort_4way(strings, n, tmp); }
-template <> void
-funnelsort<4,buffer_layout_dfs>(unsigned char** strings, size_t n,
-                                unsigned char** tmp)
-{ mergesort_4way(strings, n, tmp); }
+template <> void funnelsort<2,buffer_layout_bfs>(unsigned char** strings,
+	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
+template <> void funnelsort<4,buffer_layout_bfs>(unsigned char** strings,
+	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
+template <> void funnelsort<2,buffer_layout_dfs>(unsigned char** strings,
+	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
+template <> void funnelsort<4,buffer_layout_dfs>(unsigned char** strings,
+	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
 
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
 void funnelsort_Kway(unsigned char** strings, size_t n)
 {
-        unsigned char** tmp = static_cast<unsigned char**>(
-                        malloc(n*sizeof(unsigned char*)));
-        funnelsort<K, BufferLayout>(strings, n, tmp);
-        free(tmp);
+	unsigned char** tmp = static_cast<unsigned char**>(
+			malloc(n*sizeof(unsigned char*)));
+	funnelsort<K, BufferLayout>(strings, n, tmp);
+	free(tmp);
 }
 
 void funnelsort_8way_bfs(unsigned char** strings, size_t n)

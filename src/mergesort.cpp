@@ -157,24 +157,24 @@ merge_3way(unsigned char** restrict from0, size_t n0,
 	goto state1lt2lt0;
 
 #define StrictCase(a,b,c)                                                      \
-	state##a##lt##b##lt##c:                                                \
-	{                                                                      \
-		*result++ = key##a;                                            \
-		if (--n##a == 0) goto finish##a;                               \
-		++from##a;                                                     \
-		key##a = *from##a;                                             \
-		const int cmpab = cmp(key##a, key##b);                         \
-		if (cmpab < 0)  goto state##a##lt##b##lt##c;                   \
-		if (cmpab == 0) goto state##a##eq##b##lt##c;                   \
-		const int cmpac = cmp(key##a, key##c);                         \
-		if (cmpac < 0)  goto state##b##lt##a##lt##c;                   \
-		if (cmpac == 0) goto state##b##lt##a##eq##c;                   \
-		goto state##b##lt##c##lt##a;                                   \
-	}
-	StrictCase(1, 0, 2)
-	StrictCase(1, 2, 0)
-	StrictCase(2, 0, 1)
-	StrictCase(2, 1, 0)
+        state##a##lt##b##lt##c:                                                \
+        {                                                                      \
+                *result++ = key##a;                                            \
+                if (--n##a == 0) goto finish##a;                               \
+                ++from##a;                                                     \
+                key##a = *from##a;                                             \
+                const int cmpab = cmp(key##a, key##b);                         \
+                if (cmpab < 0)  goto state##a##lt##b##lt##c;                   \
+                if (cmpab == 0) goto state##a##eq##b##lt##c;                   \
+                const int cmpac = cmp(key##a, key##c);                         \
+                if (cmpac < 0)  goto state##b##lt##a##lt##c;                   \
+                if (cmpac == 0) goto state##b##lt##a##eq##c;                   \
+                goto state##b##lt##c##lt##a;                                   \
+        }
+        StrictCase(1, 0, 2)
+        StrictCase(1, 2, 0)
+        StrictCase(2, 0, 1)
+        StrictCase(2, 1, 0)
 #undef StrictCase
 
 state0lt1lt2:
@@ -345,20 +345,20 @@ merge_4way(unsigned char** restrict from0, size_t n0,
 	if (cmp(*from3, *from0) < 0) goto state_2130;
 	goto state_2103;
 
-#define MAKE_STATE(a,b,c,d) \
-	state_ ## a ## b ## c ## d: \
-	assert(cmp(*from ## a, *from ## b) <= 0); \
-	assert(cmp(*from ## b, *from ## c) <= 0); \
-	assert(cmp(*from ## c, *from ## d) <= 0); \
-	*result++ = *from ## a ++; \
-	if (--n ## a == 0) goto finish ## a ; \
-	if (a < b) if (cmp(*from##a, *from##b) <= 0) goto state_##a##b##c##d; \
-	if (a > b) if (cmp(*from##a, *from##b) <  0) goto state_##a##b##c##d; \
-	if (a < c) if (cmp(*from##a, *from##c) <= 0) goto state_##b##a##c##d; \
-	if (a > c) if (cmp(*from##a, *from##c) <  0) goto state_##b##a##c##d; \
-	if (a < d) if (cmp(*from##a, *from##d) <= 0) goto state_##b##c##a##d; \
-	if (a > d) if (cmp(*from##a, *from##d) <  0) goto state_##b##c##a##d; \
-	goto state_ ## b ## c ## d ## a;
+#define MAKE_STATE(a,b,c,d)                                                    \
+        state_ ## a ## b ## c ## d:                                            \
+        assert(cmp(*from ## a, *from ## b) <= 0);                              \
+        assert(cmp(*from ## b, *from ## c) <= 0);                              \
+        assert(cmp(*from ## c, *from ## d) <= 0);                              \
+        *result++ = *from ## a ++;                                             \
+        if (--n ## a == 0) goto finish ## a ;                                  \
+        if (a < b) if (cmp(*from##a, *from##b) <= 0) goto state_##a##b##c##d;  \
+        if (a > b) if (cmp(*from##a, *from##b) <  0) goto state_##a##b##c##d;  \
+        if (a < c) if (cmp(*from##a, *from##c) <= 0) goto state_##b##a##c##d;  \
+        if (a > c) if (cmp(*from##a, *from##c) <  0) goto state_##b##a##c##d;  \
+        if (a < d) if (cmp(*from##a, *from##d) <= 0) goto state_##b##c##a##d;  \
+        if (a > d) if (cmp(*from##a, *from##d) <  0) goto state_##b##c##a##d;  \
+        goto state_ ## b ## c ## d ## a;
 
 	MAKE_STATE(0, 1, 2, 3); MAKE_STATE(0, 1, 3, 2); MAKE_STATE(0, 2, 1, 3);
 	MAKE_STATE(0, 2, 3, 1); MAKE_STATE(0, 3, 1, 2); MAKE_STATE(0, 3, 2, 1);

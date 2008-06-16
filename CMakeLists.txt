@@ -4,10 +4,9 @@ project(sortstring)
 find_package(Boost REQUIRED)
 
 set(INTERNAL_SRCS
-	src/util/hugetlb.cpp
-	src/clock.cpp
 	src/msd_a.cpp
 	src/msd_a2.cpp
+	src/msd_lsd.cpp
 	src/msd_ce.cpp
 	src/msd_ci.cpp
 	src/msd_dyn_block.cpp
@@ -20,7 +19,13 @@ set(INTERNAL_SRCS
 	src/multikey_block.cpp
 	src/multikey_multipivot.cpp
 	src/multikey_cache.cpp
-	src/sortstring.cpp)
+	src/mergesort.cpp
+	src/mergesort_unstable.cpp
+	src/mergesort_losertree.cpp
+	src/funnelsort.cpp
+	src/sortstring.cpp
+	src/util/clock.cpp
+	src/util/hugetlb.cpp)
 
 set(EXTERNAL_SRCS
 	external/mbmradix.c
@@ -42,6 +47,7 @@ add_executable(sortstring
 	${EXTERNAL_SRCS})
 
 option(USE_ICC "Use the Intel C/C++ compiler" OFF)
+option(USE_SUNCC "Use the Sun Studio C/C++ compiler" OFF)
 
 if(USE_ICC)
 	add_definitions(-restrict)
@@ -51,6 +57,15 @@ if(USE_ICC)
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS -ipo -xT -O2")
 	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG -ipo -xT -O2")
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-g -DNDEBUG -ipo -xT -O2")
+elseif(USE_SUNCC)
+	# Beware: SunCC is unable to compile this software.
+	add_definitions(-Drestrict="")
+	set(CMAKE_CXX_COMPILER "CC")
+	set(CMAKE_C_COMPILER "cc")
+	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS ${CMAKE_CXX_FLAGS_RELEASE}")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+	set(CMAKE_C_FLAGS_RELEASE          "-g -DNDEBUG ${CMAKE_C_FLAGS_RELEASE}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-g -DNDEBUG ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 else(USE_ICC)
 	add_definitions(-msse2)
 	add_definitions(-Drestrict=__restrict__)

@@ -82,6 +82,17 @@ void msd_A_adaptive(unsigned char**, size_t);
 void msd_A2(unsigned char**, size_t);
 void msd_A2_adaptive(unsigned char**, size_t);
 
+void msd_A_lsd4(unsigned char**, size_t);
+void msd_A_lsd6(unsigned char**, size_t);
+void msd_A_lsd8(unsigned char**, size_t);
+void msd_A_lsd10(unsigned char**, size_t);
+void msd_A_lsd12(unsigned char**, size_t);
+void msd_A_lsd_adaptive4(unsigned char**, size_t);
+void msd_A_lsd_adaptive6(unsigned char**, size_t);
+void msd_A_lsd_adaptive8(unsigned char**, size_t);
+void msd_A_lsd_adaptive10(unsigned char**, size_t);
+void msd_A_lsd_adaptive12(unsigned char**, size_t);
+
 void burstsort_vector(unsigned char**, size_t);
 void burstsort_brodnik(unsigned char**, size_t);
 void burstsort_bagwell(unsigned char**, size_t);
@@ -146,6 +157,31 @@ void multikey_multipivot_brute_simd2(unsigned char**, size_t);
 void multikey_multipivot_brute_simd4(unsigned char**, size_t);
 void multikey_cache4(unsigned char**, size_t);
 void multikey_cache8(unsigned char**, size_t);
+
+void mergesort_2way(unsigned char**, size_t);
+void mergesort_3way(unsigned char**, size_t);
+void mergesort_4way(unsigned char**, size_t);
+
+void mergesort_2way_unstable(unsigned char**, size_t);
+void mergesort_3way_unstable(unsigned char**, size_t);
+void mergesort_4way_unstable(unsigned char**, size_t);
+
+void mergesort_losertree_64way(unsigned char**, size_t);
+void mergesort_losertree_128way(unsigned char**, size_t);
+void mergesort_losertree_256way(unsigned char**, size_t);
+void mergesort_losertree_512way(unsigned char**, size_t);
+void mergesort_losertree_1024way(unsigned char**, size_t);
+
+void funnelsort_8way_bfs(unsigned char**, size_t);
+void funnelsort_16way_bfs(unsigned char**, size_t);
+void funnelsort_32way_bfs(unsigned char**, size_t);
+void funnelsort_64way_bfs(unsigned char**, size_t);
+void funnelsort_128way_bfs(unsigned char**, size_t);
+void funnelsort_8way_dfs(unsigned char**, size_t);
+void funnelsort_16way_dfs(unsigned char**, size_t);
+void funnelsort_32way_dfs(unsigned char**, size_t);
+void funnelsort_64way_dfs(unsigned char**, size_t);
+void funnelsort_128way_dfs(unsigned char**, size_t);
 
 void clockon();
 void clockoff();

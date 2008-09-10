@@ -172,6 +172,14 @@ void mergesort_losertree_256way(unsigned char**, size_t);
 void mergesort_losertree_512way(unsigned char**, size_t);
 void mergesort_losertree_1024way(unsigned char**, size_t);
 
+void mergesort_lcp_2way(unsigned char**, size_t);
+void mergesort_lcp_3way(unsigned char**, size_t);
+
+void mergesort_lcp_2way_unstable(unsigned char**, size_t);
+void mergesort_cache1_lcp_2way(unsigned char**, size_t);
+void mergesort_cache2_lcp_2way(unsigned char**, size_t);
+void mergesort_cache4_lcp_2way(unsigned char**, size_t);
+
 void funnelsort_8way_bfs(unsigned char**, size_t);
 void funnelsort_16way_bfs(unsigned char**, size_t);
 void funnelsort_32way_bfs(unsigned char**, size_t);

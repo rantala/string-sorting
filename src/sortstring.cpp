@@ -24,6 +24,7 @@
 #include <libgen.h>
 #include <getopt.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -542,6 +543,13 @@ get_algorithms()
 	ALG(172, mergesort_losertree_256way)
 	ALG(173, mergesort_losertree_512way)
 	ALG(174, mergesort_losertree_1024way)
+
+	ALG(180, mergesort_lcp_2way)
+	ALG(181, mergesort_lcp_3way)
+	ALG(182, mergesort_lcp_2way_unstable)
+	ALG(183, mergesort_cache1_lcp_2way)
+	ALG(184, mergesort_cache2_lcp_2way)
+	ALG(185, mergesort_cache4_lcp_2way)
 #undef ALG
 
 	return algs;

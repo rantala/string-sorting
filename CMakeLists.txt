@@ -61,6 +61,8 @@ if(USE_ICC)
 elseif(USE_SUNCC)
 	# Beware: SunCC is unable to compile this software.
 	add_definitions(-Drestrict="")
+	add_definitions(-D__PRETTY_FUNCTION__="' '")
+	add_definitions(-D__builtin_expect="")
 	set(CMAKE_CXX_COMPILER "CC")
 	set(CMAKE_C_COMPILER "cc")
 	set(CMAKE_CXX_FLAGS_RELEASE        "-g -DNDEBUG -DBOOST_DISABLE_ASSERTS ${CMAKE_CXX_FLAGS_RELEASE}")

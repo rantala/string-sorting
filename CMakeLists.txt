@@ -22,6 +22,7 @@ set(INTERNAL_SRCS
 	src/mergesort.cpp
 	src/mergesort_unstable.cpp
 	src/mergesort_losertree.cpp
+	src/mergesort_lcp.cpp
 	src/funnelsort.cpp
 	src/sortstring.cpp
 	src/util/clock.cpp

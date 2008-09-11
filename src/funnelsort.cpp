@@ -671,7 +671,7 @@ funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 	boost::array<unsigned char*, buffer_total_size<K>::value> buffers;
 	boost::array<size_t, K> buffer_count;
 	buffer_count.assign(0);
-	fill_root<K,BufferLayout>(streams, tmp, buffers.data(), buffer_count);
+	fill_root<K,BufferLayout>(streams,tmp,buffers.c_array(),buffer_count);
 	(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
 	check_input(strings, n);
 }

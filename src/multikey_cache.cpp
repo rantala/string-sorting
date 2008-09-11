@@ -34,7 +34,6 @@
 #include <algorithm>
 #include <boost/array.hpp>
 #include <boost/type_traits/is_signed.hpp>
-#include <boost/typeof/typeof.hpp>
 
 // We assume Cacheblock is POD type.
 template <unsigned CachedChars>
@@ -71,7 +70,6 @@ template <unsigned CachedChars>
 static inline void
 insertion_sort(Cacheblock<CachedChars>* cache, int n, size_t depth)
 {
-	BOOST_STATIC_ASSERT(boost::is_signed<BOOST_TYPEOF(n)>::value);
 	Cacheblock<CachedChars> *pi, *pj;
 	unsigned char *s, *t;
 	for (pi = cache + 1; --n > 0; ++pi) {
@@ -93,7 +91,6 @@ template <unsigned CachedChars>
 static inline void
 inssort_cache_block(Cacheblock<CachedChars>* cache, int n)
 {
-	BOOST_STATIC_ASSERT(boost::is_signed<BOOST_TYPEOF(n)>::value);
 	Cacheblock<CachedChars> *pi, *pj;
 	for (pi = cache + 1; --n > 0; ++pi) {
 		Cacheblock<CachedChars> tmp = *pi;

@@ -32,6 +32,7 @@ if [[ -z $INFILES ]] ; then INFILES="input/url3 input/nodup3 input/genome3" ; fi
 if [[ -z $OUTDIR ]] ; then OUTDIR="data" ; fi
 mkdir -p $OUTDIR
 if [[ -z $TOOLOUTDIR ]] ; then TOOLOUTDIR="tool-output"; fi
+mkdir -p $TOOLOUTDIR
 for I in $INFILES ; do
         if [[ ! -r $I ]] ; then die "Sorry, ''$I'' not readable" ; fi
 done

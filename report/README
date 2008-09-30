@@ -1,0 +1,34 @@
+In order to generate the HTML based comparison sheet, perform the following steps.
+
+0. Obtain input files, I've used the data sets Sinha&Zobel used in their
+   Burstsort experiments. You can find them via Google. They are about
+   300 megabytes each.
+
+1. Run the ''benchmark'' script, takes about 12 hours if you run all algorithms
+   and three input files, each about 300MB. This runs each algorithm seven
+   times for each input file.
+
+2. Run OProfile with the ''collect-oprofile-statistics'' script. Takes about 12
+   hours. Requires root priviledges.
+
+3. Run memusage with the ''collect-memusage-statistics'' script. Takes about 30
+   minutes.
+
+4. Process the OProfile results with ''process-oprofile-statistics'' script.
+   Takes about one hour.
+
+5. Process memusages results with ''process-memusage-statistics'' script.
+   Takes a minute or two.
+
+6. Finally, run ''make''. This will generate the HTML file based on the results
+   of the previous steps.
+
+
+NOTES:
+*) You can create results for smaller subsets of available algorithms using
+   environmental variables, for example:
+      export ALGS="1 2 3"
+   OR:
+      ALGS="1 2 3" ./collect-oprofile-statistics
+      ALGS="1 2 3" ./collect-memusage-statistics
+      etc.

@@ -1,5 +1,5 @@
 <!--
-  Copyright 2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
+  Copyright 2008 by Tommi Rantala <tt.rantala@gmail.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to

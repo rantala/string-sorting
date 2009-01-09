@@ -50,7 +50,7 @@
   original code
 */
 
-/* Copyright 2008 by Tommi Rantala <tommi.rantala@cs.helsinki.fi>
+/* Copyright 2008 by Tommi Rantala <tt.rantala@gmail.com>
  *  - replace original isort() with slightly different insertion_sort()
  *  - re-implement FillKeyBuffer() to reduce memory stalls
  *  - use caching in RDFK() to reduce memory stalls

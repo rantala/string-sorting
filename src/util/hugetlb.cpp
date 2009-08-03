@@ -51,6 +51,10 @@
 #include <cstdlib>
 #include "debug.h"
 
+#ifndef _PATH_MOUNTED
+#define _PATH_MOUNTED "/etc/mtab"
+#endif
+
 static std::string
 hugetlb_mountpoint()
 {

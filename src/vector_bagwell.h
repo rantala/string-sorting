@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2008-2009 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -70,11 +70,13 @@ struct vector_bagwell
 	{
 		assert(index < size());
 		BOOST_STATIC_ASSERT(Initial==16);
-		BOOST_STATIC_ASSERT(sizeof(size_t)==sizeof(unsigned));
-		const size_t fixed = index+16;
-		const unsigned msb_diff = 27 - __builtin_clz(fixed);
-		const unsigned msbit = 1 << (31 - __builtin_clz(fixed));
-		const size_t fixed2 = fixed & ~msbit;
+		BOOST_STATIC_ASSERT(sizeof(size_t) <= sizeof(unsigned long));
+		const unsigned long fixed = index+16;
+		const unsigned long msb_diff =
+			(sizeof(unsigned long)*8-4-1) - __builtin_clzl(fixed);
+		const unsigned long msbit = 1 <<
+			((sizeof(unsigned long)*8-1) - __builtin_clzl(fixed));
+		const unsigned long fixed2 = fixed & ~msbit;
 		return _index_block[msb_diff][fixed2];
 	}
 	void clear()

@@ -39,8 +39,8 @@
  * wasted space: O(n)
  */
 
-#ifndef VLIST_VECTOR_HPP
-#define VLIST_VECTOR_HPP
+#ifndef VECTOR_BAGWELL
+#define VECTOR_BAGWELL
 
 #include <cstdlib>
 #include <cstddef>
@@ -122,4 +122,4 @@ copy(const vector_bagwell<T, InitialSize>& v, OutputIterator dst)
 	std::copy(v._index_block.back(), v._insertpos, dst);
 }
 
-#endif
+#endif //VECTOR_BAGWELL

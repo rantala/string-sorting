@@ -34,6 +34,7 @@
 #include "util/get_char.h"
 #include <cstddef>
 #include <cstdlib>
+#include <sys/types.h>
 
 template <typename BucketType>
 struct distblock {

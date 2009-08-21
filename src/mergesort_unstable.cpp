@@ -45,6 +45,7 @@
 #include <vector>
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
 #include <boost/static_assert.hpp>
 
 static inline int

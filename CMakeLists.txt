@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.4)
 
 project(sortstring)
 find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 set(INTERNAL_SRCS
 	src/msd_a.cpp

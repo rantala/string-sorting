@@ -646,7 +646,7 @@ int main(int argc, char** argv)
 		usage(algs);
 		return 1;
 	}
-	static struct option long_options[] = {
+	static const struct option long_options[] = {
 		{"help",           0, 0, 1000},
 		{"alg-names",      0, 0, 1001},
 		{"alg-nums",       0, 0, 1002},

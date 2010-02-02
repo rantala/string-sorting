@@ -44,9 +44,10 @@
 
 #include <boost/tuple/tuple.hpp>
 
-void system(const std::string& cmd)
+static int
+system(const std::string& cmd)
 {
-	(void) system(cmd.c_str());
+	return system(cmd.c_str());
 }
 
 // int -> (function pointer, algorithm description)

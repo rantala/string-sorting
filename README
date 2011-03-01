@@ -2,18 +2,47 @@
 A collection of string sorting algorithm implementations
 ========================================================
 
-Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>.
+This collection features several string sorting algorithm implementations, that
+have been tuned to take better advantage of modern hardware. Classic
+implementations tend to optimize instruction counts, but when sorting large
+collections of strings, we also need to focus on memory issues. All algorithms
+are implemented using C and C++.
 
-For complete details, see the project page:
+Technical details:
+  * All of the implementations sort the strings by raw byte values. This
+    means that they are mainly intended for research use.
+  * Includes several variants of known and efficient (string) sorting
+    algorithms, such as MSD radix sort, burstsort and multi-key-quicksort.
+  * Emphasis on reducing cache misses and memory stalls.
+  * Includes the tools to create a HTML report, that can be
+    used to compare the provided implementations. The report includes details
+    such as TLB, L1 and L2 cache misses, run times and memory peak usage.
+  * Supports Linux huge pages. For more information, see below.
 
-    http://string-sorting.googlecode.com/
+
+License
+-------
+
+MIT.
+
+Exception: The directory `external' contains files, that are included for
+reference purposes, that may or may not be compatible with the MIT license.
+
+
+Copyright
+---------
+
+Copyright © 2007-2010 by Tommi Rantala <tt.rantala@gmail.com>.
+
+The directory `external' contains files, that are included for reference
+purposes, and are copyright by their respective authors.
 
 
 Requirements
 ------------
 
-    * Boost
-    * CMake
+  * Boost
+  * CMake
 
 
 Compilation
@@ -21,19 +50,19 @@ Compilation
 
 Default compilation with GCC:
 
-    $ svn checkout http://string-sorting.googlecode.com/svn/trunk/ string-sorting-read-only
-    $ mkdir string-sorting-read-only-build
-    $ cd string-sorting-read-only-build
-    $ cmake -DCMAKE_BUILD_TYPE=release ../string-sorting-read-only
+    $ git clone git://github.com/rantala/string-sorting.git
+    $ mkdir string-sorting-build
+    $ cd string-sorting-build
+    $ cmake -DCMAKE_BUILD_TYPE=release ../string-sorting
     $ make
     $ ./sortstring
 
 The Intel C/C++ compiler is also supported, set USE_ICC to true when running
 CMake. This sets the proper compiler and some ICC specific flags.
 
-    $ mkdir string-sorting-read-only-build-icc
+    $ mkdir string-sorting-build-icc
     $ cd string-sorting-read-only-build-icc
-    $ cmake -DCMAKE_BUILD_TYPE=release -DUSE_ICC=true ../string-sorting-read-only
+    $ cmake -DCMAKE_BUILD_TYPE=release -DUSE_ICC=true ../string-sorting
     $ make
     $ ./sortstring
 
@@ -41,4 +70,40 @@ Use a separate debug build for easier debugging:
 
     $ mkdir debug-build
     $ cd debug-build
-    $ cmake -DCMAKE_BUILD_TYPE=debug ../string-sorting-read-only
+    $ cmake -DCMAKE_BUILD_TYPE=debug ../string-sorting
+
+
+Huge pages
+----------
+
+The default page size on many computer architectures is 4 kilobytes. When
+working with large data sets, this means that the input is spread to thousands
+of memory pages. Unfortunately random access in thousands of pages can be slow
+(see e.g. http://en.wikipedia.org/wiki/Translation_lookaside_buffer).
+
+To alleviate this exact problem, many architectures have support for larger
+page size. For example modern x86 has support for 2/4 megabyte "huge pages".
+With such large pages, even large data sets fit into a much smaller amount of
+memory pages.
+
+In this program, support for huge pages is enabled using either --hugetlb-text
+or --hugetlb-ptrs, or both. The former option places the input data (i.e. the
+actual strings from the given file) into huge pages, and the latter option
+places the string pointer array into huge pages. Using huge pages in Linux
+requires CPU support, and properly adjusted kernel settings.
+
+The external library libhugetlbfs (http://libhugetlbfs.ozlabs.org/) can be used
+to replace all calls to malloc to use huge pages. If this library is used, the
+aforementioned options are not needed.
+
+
+HTML report creation
+--------------------
+
+Requirements:
+  * OProfile for most measurements, probably also requires root privileges.
+     - The default settings use Intel Core 2 specific events. When profiling on
+       other platforms, you will most likely need to modify the scripts in the
+       report/ directory.
+  * /usr/bin/memusage for measuring the memory peak usage. This is a GNU libc
+    utility.

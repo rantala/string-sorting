@@ -603,6 +603,7 @@ usage(const Algorithms& algs)
 	     "                      actual sorting algorithm, and `oprofile --stop' after\n"
 	     "                      returning from the call. Can be used to obtain more\n"
 	     "                      accurate statistics with OProfile.\n"
+	     "   --alg-names      : Prints available algorithms.\n"
 	     "   --alg-nums       : Prints available algorithm numbers, useful for scripts.\n"
 	     "                      Example:\n"
 	     "                         for i in `./sortstring --alg-nums` ; do\n"

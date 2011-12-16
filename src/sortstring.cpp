@@ -584,17 +584,13 @@ print_alg_name(const Algorithms& algs, int num)
 }
 
 static void
-usage(const Algorithms& algs)
+usage(void)
 {
-	std::cout <<
+	puts(
 	     "String sorting\n"
 	     "--------------\n"
 	     "\n"
 	     "Usage: ./sortstring [options] <algorithm> <filename>\n"
-	     "\n"
-	     "Examples:\n"
-	     "   ./sortstring 1 ~/testdata/testfile1\n"
-	     "   ./sortstring --check --suffix-sorting 1 ~/testdata/text\n"
 	     "\n"
 	     "Options:\n"
 	     "   --check          : Tries to check output for validity. Might not catch\n"
@@ -619,9 +615,16 @@ usage(const Algorithms& algs)
 	     "                      HugeTLB requires kernel and hardware support, and\n"
 	     "                      the `hugetlbfs' file system must be mounted somewhere.\n"
 	     "\n"
-	     "Available algorithms:\n";
-
-	print_alg_names(algs);
+	     "Examples:\n"
+	     "   # Get list of what is available:\n"
+	     "   ./sortstring -A\n"
+	     "\n"
+	     "   # Sort input file with algorithm 1 (Quicksort):\n"
+	     "   ./sortstring 1 ~/testdata/testfile1\n"
+	     "\n"
+	     "   # Sort all suffixes of of the given text file with Quicksort:\n"
+	     "   ./sortstring --check --suffix-sorting 1 ~/testdata/text\n"
+	     "\n");
 }
 
 static std::string
@@ -644,7 +647,7 @@ int main(int argc, char** argv)
 	log() << "Start, argv=" << cmdline(argc, argv) << std::endl;
 	Algorithms algs = get_algorithms();
 	if (argc < 2) {
-		usage(algs);
+		usage();
 		return 1;
 	}
 	static const struct option long_options[] = {
@@ -667,7 +670,7 @@ int main(int argc, char** argv)
 		switch (c) {
 		case 'h':
 		case 1000:
-			usage(algs);
+			usage();
 			return 0;
 		case 'A':
 			print_alg_names(algs);

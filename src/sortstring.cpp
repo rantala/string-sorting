@@ -603,7 +603,7 @@ usage(const Algorithms& algs)
 	     "                      actual sorting algorithm, and `oprofile --stop' after\n"
 	     "                      returning from the call. Can be used to obtain more\n"
 	     "                      accurate statistics with OProfile.\n"
-	     "   --alg-names      : Prints available algorithms.\n"
+	     "   -A,--alg-names   : Prints available algorithms.\n"
 	     "   --alg-nums       : Prints available algorithm numbers, useful for scripts.\n"
 	     "                      Example:\n"
 	     "                         for i in `./sortstring --alg-nums` ; do\n"
@@ -649,7 +649,7 @@ int main(int argc, char** argv)
 	}
 	static const struct option long_options[] = {
 		{"help",           0, 0, 1000},
-		{"alg-names",      0, 0, 1001},
+		{"alg-names",      0, 0, 'A' },
 		{"alg-nums",       0, 0, 1002},
 		{"check",          0, 0, 1003},
 		{"suffix-sorting", 0, 0, 1004},
@@ -662,14 +662,14 @@ int main(int argc, char** argv)
 		{0,                0, 0, 0}
 	};
 	while (true) {
-		int c = getopt_long(argc, argv, "h", long_options, 0);
+		int c = getopt_long(argc, argv, "hA", long_options, 0);
 		if (c == -1) break;
 		switch (c) {
 		case 'h':
 		case 1000:
 			usage(algs);
 			return 0;
-		case 1001: 
+		case 'A':
 			print_alg_names(algs);
 			return 0;
 		case 1002:

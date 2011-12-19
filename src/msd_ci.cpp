@@ -43,7 +43,7 @@ struct distblock {
 	BucketType bucket;
 };
 
-void
+static void
 msd_ci(unsigned char** strings, size_t n, size_t depth)
 {
 	if (n < 32) {
@@ -95,7 +95,7 @@ msd_ci(unsigned char** strings, size_t n, size_t depth)
 	}
 }
 
-void
+static void
 msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 {
 	if (n < 0x10000) {

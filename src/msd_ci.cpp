@@ -43,6 +43,7 @@ struct distblock {
 	BucketType bucket;
 };
 
+template <typename BucketsizeType>
 static void
 msd_ci(unsigned char** strings, size_t n, size_t depth)
 {
@@ -50,7 +51,7 @@ msd_ci(unsigned char** strings, size_t n, size_t depth)
 		insertion_sort(strings, n, depth);
 		return;
 	}
-	size_t bucketsize[256] = {0};
+	BucketsizeType bucketsize[256] = {0};
 	unsigned char* restrict oracle =
 		(unsigned char*) malloc(n);
 	for (size_t i=0; i < n; ++i)
@@ -59,7 +60,7 @@ msd_ci(unsigned char** strings, size_t n, size_t depth)
 		++bucketsize[oracle[i]];
 	static ssize_t bucketindex[256];
 	bucketindex[0] = bucketsize[0];
-	size_t last_bucket_size = bucketsize[0];
+	BucketsizeType last_bucket_size = bucketsize[0];
 	for (unsigned i=1; i < 256; ++i) {
 		bucketindex[i] = bucketindex[i-1] + bucketsize[i];
 		if (bucketsize[i]) last_bucket_size = bucketsize[i];
@@ -90,7 +91,7 @@ msd_ci(unsigned char** strings, size_t n, size_t depth)
 	size_t bsum = bucketsize[0];
 	for (size_t i=1; i < 256; ++i) {
 		if (bucketsize[i] == 0) continue;
-		msd_ci(strings+bsum, bucketsize[i], depth+1);
+		msd_ci<BucketsizeType>(strings+bsum, bucketsize[i], depth+1);
 		bsum += bucketsize[i];
 	}
 }
@@ -99,7 +100,7 @@ static void
 msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 {
 	if (n < 0x10000) {
-		msd_ci(strings, n, depth);
+		msd_ci<uint16_t>(strings, n, depth);
 		return;
 	}
 	uint16_t* restrict oracle =
@@ -151,7 +152,7 @@ msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 }
 
 void msd_ci(unsigned char** strings, size_t n)
-{ msd_ci(strings, n, 0); }
+{ msd_ci<size_t>(strings, n, 0); }
 void msd_ci_adaptive(unsigned char** strings, size_t n)
 { msd_ci_adaptive(strings, n, 0); }
 

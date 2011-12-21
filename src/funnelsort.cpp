@@ -608,6 +608,7 @@ struct fill
 	}
 };
 
+#ifdef FUNNELSORT_EXTRA_INLINING
 // Fully inline K=8 and K=16 with ''__attribute__((always_inline))''. Increases
 // compilation times with GCC and ICC by 5-10 minutes even with a fast computer.
 // Adding the attribute to the generic 'fill' struct above effectively kills the
@@ -642,6 +643,7 @@ struct fill<16,I,BufferLayout>
 		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
 	}
 };
+#endif
 
 // Funnelsort recursion. Approximate the theoretical funnel size scheme by
 // splitting the input into K streams, and using a fixed size K-merger.

@@ -26,8 +26,7 @@ set(INTERNAL_SRCS
 	src/mergesort_lcp.cpp
 	src/funnelsort.cpp
 	src/sortstring.cpp
-	src/util/clock.cpp
-	src/util/hugetlb.cpp)
+	src/util/clock.cpp)
 
 set(EXTERNAL_SRCS
 	external/mbmradix.c

@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <errno.h>
 
 #include <cassert>
 #include <fstream>
@@ -139,49 +140,48 @@ log_perf(const std::string& msg)
 	file << msg << std::endl;
 }
 
-void* hugetlb_alloc(size_t);
-void hugetlb_dealloc(void*, size_t);
+static void*
+alloc_bytes(size_t bytes)
+{
+	int map_flags;
+	void* p;
+	map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
+	if (opts.hugetlb_text)
+		map_flags |= MAP_HUGETLB;
+	p = mmap(NULL, bytes, PROT_READ | PROT_WRITE, map_flags, -1, 0);
+	if (p == MAP_FAILED) {
+		fprintf(stderr,
+			"ERROR: unable to mmap memory for input: %s.\n",
+			strerror(errno));
+		exit(1);
+	}
+	return p;
+}
 
 static unsigned char*
 alloc_text(size_t bytes)
 {
-	if (opts.hugetlb_text) {
-		return static_cast<unsigned char*>(hugetlb_alloc(bytes));
-	} else {
-		return static_cast<unsigned char*>(malloc(bytes));
-	}
+	void* p = alloc_bytes(bytes);
+	return (unsigned char*)p;
 }
 
 static unsigned char**
 alloc_pointers(size_t num)
 {
-	if (opts.hugetlb_pointers) {
-		return static_cast<unsigned char**>(
-			hugetlb_alloc(num*sizeof(unsigned char*)));
-	} else {
-		return static_cast<unsigned char**>(
-			malloc(num*sizeof(unsigned char*)));
-	}
+	void* p = alloc_bytes(num*sizeof(unsigned char*));
+	return (unsigned char**)p;
 }
 
 static void
 free_text(unsigned char* text, size_t text_len)
 {
-	if (opts.hugetlb_text) {
-		hugetlb_dealloc(text, text_len);
-	} else {
-		free(text);
-	}
+	munmap((void*)text, text_len);
 }
 
 static void
 free_pointers(unsigned char** strings, size_t strings_len)
 {
-	if (opts.hugetlb_pointers) {
-		hugetlb_dealloc(strings, strings_len);
-	} else {
-		free(strings);
-	}
+	munmap((void*)strings, strings_len);
 }
 
 static boost::tuple<unsigned char*, size_t>

@@ -187,11 +187,8 @@ free_pointers(unsigned char** strings, size_t strings_len)
 static boost::tuple<unsigned char*, size_t>
 readbytes(const std::string& fname)
 {
-	// Use mmap and memcpy, because it's much much faster under callgrind
-	// compared to manual byte-by-byte copy.
 	off_t filesize = (off_t)0;
 	int   fd   = -1;
-	void* raw  = NULL;
 	if ((fd = open(fname.c_str(), O_RDONLY)) == -1) {
 		std::cerr << "Could not open file!" << std::endl;
 		exit(1);
@@ -204,15 +201,15 @@ readbytes(const std::string& fname)
 		std::cerr << "Could not seek file!" << std::endl;
 		exit(1);
 	}
-	if ((raw = mmap(0, filesize, PROT_READ, MAP_SHARED, fd, 0))
-			== MAP_FAILED) {
-		std::cerr << "Could not mmap file!" << std::endl;
-		exit(1);
-	}
 	unsigned char* text = alloc_text(filesize);
-	memcpy(text, raw, filesize);
-	if (munmap(raw, filesize) == -1) {
-		std::cerr << "Could not munmap file!" << std::endl;
+	ssize_t ret = read(fd, text, filesize);
+	if (ret < filesize) {
+		/* Not strictly a failure... */
+		fprintf(stderr,
+			"ERROR: read() only %lld bytes out of %lld "
+			"from input file '%s': %s.\n",
+			(long long)ret, (long long)filesize,
+			fname.c_str(), strerror(errno));
 		exit(1);
 	}
 	if (close(fd) == -1) {

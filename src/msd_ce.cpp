@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -151,6 +151,39 @@ msd_CE2(unsigned char** strings, size_t n, size_t depth)
 
 void msd_CE2(unsigned char** strings, size_t n)
 { msd_CE2(strings, n, 0); }
+
+void
+msd_CE2_16bit(unsigned char** strings, size_t n, size_t depth)
+{
+	if (n < 32) {
+		insertion_sort(strings, n, depth);
+		return;
+	}
+	uint16_t bucketsize[256] = {0};
+	unsigned char* restrict oracle =
+		(unsigned char*) malloc(n);
+	for (size_t i=0; i < n; ++i)
+		oracle[i] = strings[i][depth];
+	for (size_t i=0; i < n; ++i)
+		++bucketsize[oracle[i]];
+	unsigned char** restrict sorted = (unsigned char**)
+		malloc(n*sizeof(unsigned char*));
+	uint16_t bucketindex[256];
+	bucketindex[0] = 0;
+	for (size_t i=1; i < 256; ++i)
+		bucketindex[i] = bucketindex[i-1]+bucketsize[i-1];
+	for (size_t i=0; i < n; ++i)
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	memcpy(strings, sorted, n*sizeof(unsigned char*));
+	free(sorted);
+	free(oracle);
+	size_t bsum = bucketsize[0];
+	for (size_t i=1; i < 256; ++i) {
+		if (bucketsize[i] == 0) continue;
+		msd_CE2_16bit(strings+bsum, bucketsize[i], depth+1);
+		bsum += bucketsize[i];
+	}
+}
 
 void
 msd_CE3(unsigned char** strings, size_t n, size_t depth)

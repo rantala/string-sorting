@@ -184,23 +184,37 @@ free_pointers(unsigned char** strings, size_t strings_len)
 	munmap((void*)strings, strings_len);
 }
 
-static boost::tuple<unsigned char*, size_t>
-readbytes(const std::string& fname)
+static off_t
+file_size(int fd)
 {
-	off_t filesize = (off_t)0;
-	int   fd   = -1;
-	if ((fd = open(fname.c_str(), O_RDONLY)) == -1) {
-		std::cerr << "Could not open file!" << std::endl;
-		exit(1);
-	}
-	if ((filesize = lseek(fd, 0, SEEK_END)) == -1) {
-		std::cerr << "Could not seek file!" << std::endl;
+	off_t size;
+	size = lseek(fd, 0, SEEK_END);
+	if (size == -1) {
+		fprintf(stderr,
+			"ERROR: unable to lseek() input file: %s.\n",
+			strerror(errno));
 		exit(1);
 	}
 	if (lseek(fd, 0, SEEK_SET) == -1) {
-		std::cerr << "Could not seek file!" << std::endl;
+		fprintf(stderr,
+			"ERROR: unable to lseek() input file: %s.\n",
+			strerror(errno));
 		exit(1);
 	}
+	return size;
+}
+
+static boost::tuple<unsigned char*, size_t>
+input_copy(const char* fname)
+{
+	int fd = open(fname, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr,
+			"ERROR: unable to open() input file '%s': %s.\n",
+			fname, strerror(errno));
+		exit(1);
+	}
+	off_t filesize = file_size(fd);
 	unsigned char* text = alloc_text(filesize);
 	ssize_t ret = read(fd, text, filesize);
 	if (ret < filesize) {
@@ -209,14 +223,22 @@ readbytes(const std::string& fname)
 			"ERROR: read() only %lld bytes out of %lld "
 			"from input file '%s': %s.\n",
 			(long long)ret, (long long)filesize,
-			fname.c_str(), strerror(errno));
+			fname, strerror(errno));
 		exit(1);
 	}
 	if (close(fd) == -1) {
-		std::cerr << "Could not close file!" << std::endl;
+		fprintf(stderr,
+			"ERROR: unable to close() input file '%s': %s.\n",
+			fname, strerror(errno));
 		exit(1);
 	}
 	return boost::make_tuple(text, filesize);
+}
+
+static boost::tuple<unsigned char*, size_t>
+readbytes(const std::string& fname)
+{
+	return input_copy(fname.c_str());
 }
 
 static boost::tuple<unsigned char**, size_t>

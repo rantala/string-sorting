@@ -63,6 +63,7 @@ struct Options {
 	bool xml_stats;
 	bool hugetlb_text;
 	bool hugetlb_pointers;
+	bool text_raw;
 	std::string write_filename;
 };
 
@@ -235,27 +236,71 @@ input_copy(const char* fname)
 	return boost::make_tuple(text, filesize);
 }
 
+/* mmap() input data that is in raw format (uses NULL bytes for delimiting
+ * strings). */
+static boost::tuple<unsigned char*, size_t>
+input_mmap(const char* fname)
+{
+	int fd = open(fname, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr,
+			"ERROR: unable to open() input file '%s': %s.\n",
+			fname, strerror(errno));
+		exit(1);
+	}
+	off_t filesize = file_size(fd);
+	void* raw = mmap(0, filesize, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (raw == MAP_FAILED) {
+		fprintf(stderr,
+			"ERROR: unable to mmap input file '%s': %s.\n",
+			fname, strerror(errno));
+		exit(1);
+	}
+	if (close(fd) == -1) {
+		fprintf(stderr,
+			"ERROR: unable to close() input file '%s': %s.\n",
+			fname, strerror(errno));
+		exit(1);
+	}
+	return boost::make_tuple((unsigned char*)raw, filesize);
+}
+
 static boost::tuple<unsigned char*, size_t>
 readbytes(const std::string& fname)
 {
-	return input_copy(fname.c_str());
+	/* mapping file with MAP_HUGETLB does not work. */
+	if (opts.text_raw && !opts.hugetlb_text)
+		return input_mmap(fname.c_str());
+	else
+		return input_copy(fname.c_str());
+}
+
+static boost::tuple<unsigned char**, size_t>
+create_strings(unsigned char* text, size_t text_len, int delim)
+{
+	size_t strs = 0;
+	for (size_t i=0; i < text_len; ++i)
+		if (text[i] == delim)
+			++strs;
+	unsigned char** strings = alloc_pointers(strs);
+	unsigned char* line_start = text;
+	for (size_t j=0, i=0; i < text_len; ++i)
+		if (text[i] == delim) {
+			strings[j++] = line_start;
+			line_start = text + i + 1;
+			if (delim != '\0')
+				text[i] = '\0';
+		}
+	return boost::make_tuple(strings, strs);
 }
 
 static boost::tuple<unsigned char**, size_t>
 create_strings(unsigned char* text, size_t text_len)
 {
-	size_t strs = 0;
-	for (size_t i=0;i<text_len;++i) { if (text[i] == '\n') ++strs; }
-	unsigned char** strings = alloc_pointers(strs);
-	unsigned char* line_start = text;
-	for (size_t j=0, i=0; i<text_len; ++i) {
-		if (text[i] == '\n') {
-			strings[j++] = line_start;
-			line_start = text + i + 1;
-			text[i] = 0;
-		}
-	}
-	return boost::make_tuple(strings, strs);
+	if (opts.text_raw)
+		return create_strings(text, text_len, '\0');
+	else
+		return create_strings(text, text_len, '\n');
 }
 
 static boost::tuple<unsigned char**, size_t>
@@ -633,6 +678,8 @@ usage(void)
 	     "   --hugetlb-ptrs   : Place the string pointer array into huge pages.\n"
 	     "                      HugeTLB requires kernel and hardware support, and\n"
 	     "                      the `hugetlbfs' file system must be mounted somewhere.\n"
+	     "   --raw            : The input file is in raw format: strings are delimited\n"
+	     "                      with NULL bytes instead of newlines.\n"
 	     "\n"
 	     "Examples:\n"
 	     "   # Get list of what is available:\n"
@@ -681,6 +728,7 @@ int main(int argc, char** argv)
 		{"xml-stats",      0, 0, 1008},
 		{"hugetlb-text",   0, 0, 1009},
 		{"hugetlb-ptrs",   0, 0, 1010},
+		{"raw",            0, 0, 1011},
 		{0,                0, 0, 0}
 	};
 	while (true) {
@@ -721,6 +769,9 @@ int main(int argc, char** argv)
 			break;
 		case 1010:
 			opts.hugetlb_pointers = true;
+			break;
+		case 1011:
+			opts.text_raw = true;
 			break;
 		case '?':
 		default:

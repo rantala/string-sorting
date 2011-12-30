@@ -105,8 +105,8 @@ opcontrol_stop()
 	}
 }
 
-static char*
-bazename(const char* fname)
+static char *
+bazename(const char *fname)
 {
 	static char buf[300];
 	strcpy(buf, fname);
@@ -117,7 +117,7 @@ static void *
 alloc_bytes(size_t bytes, int hugetlb)
 {
 	int map_flags;
-	void* p;
+	void *p;
 	map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
 	if (hugetlb)
 		map_flags |= MAP_HUGETLB;
@@ -131,14 +131,14 @@ alloc_bytes(size_t bytes, int hugetlb)
 	return p;
 }
 
-static unsigned char*
+static unsigned char *
 alloc_text(size_t bytes)
 {
 	void *p = alloc_bytes(bytes, opts.hugetlb_text);
 	return (unsigned char *)p;
 }
 
-static unsigned char**
+static unsigned char **
 alloc_pointers(size_t num)
 {
 	void *p = alloc_bytes(num*sizeof(unsigned char *),
@@ -147,15 +147,15 @@ alloc_pointers(size_t num)
 }
 
 static void
-free_text(unsigned char* text, size_t text_len)
+free_text(unsigned char *text, size_t text_len)
 {
-	munmap((void*)text, text_len);
+	munmap((void *)text, text_len);
 }
 
 static void
-free_pointers(unsigned char** strings, size_t strings_len)
+free_pointers(unsigned char **strings, size_t strings_len)
 {
-	munmap((void*)strings, strings_len);
+	munmap((void *)strings, strings_len);
 }
 
 static off_t
@@ -189,7 +189,7 @@ input_copy(const char *fname, unsigned char **text_, size_t *text_len_)
 		exit(1);
 	}
 	off_t filesize = file_size(fd);
-	unsigned char* text = alloc_text(filesize);
+	unsigned char *text = alloc_text(filesize);
 	ssize_t ret = read(fd, text, filesize);
 	if (ret < filesize) {
 		/* Not strictly a failure... */
@@ -334,7 +334,7 @@ write_result(unsigned char **strings, size_t n)
 }
 
 static void
-check_result(unsigned char** strings, size_t n)
+check_result(unsigned char **strings, size_t n)
 {
 	size_t wrong = 0;
 	size_t identical = 0;

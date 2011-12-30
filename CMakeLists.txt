@@ -46,7 +46,8 @@ set(EXTERNAL_SRCS
 	external/utils.c
 	external/adaptive.c
 	external/burstsortA.c
-	external/forward16.c)
+	external/forward16.c
+	external/parallel_string_radix_sort.cpp)
 
 add_executable(sortstring
 	${INTERNAL_SRCS}

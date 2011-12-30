@@ -18,6 +18,7 @@
    Stefan.Nilsson@hut.fi
 */
 
+#include "routine.h"
 #include "utils.h"
 
 enum { SIZE = 1024, THRESHOLD = 10 };
@@ -93,3 +94,6 @@ static void rsorta(string *a, int n, int b)
 
 void mbmradix(string a[], size_t n)
 { rsorta(a, n, 0); }
+
+ROUTINE_REGISTER_SINGLECORE(mbmradix,
+	"MSD Radix Sort by P. M. McIlroy, K. Bostic, and M. D. McIlroy")

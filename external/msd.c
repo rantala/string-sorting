@@ -16,6 +16,7 @@
    Stefan.Nilsson@hut.fi
 */
 
+#include "routine.h"
 #include "nilsson.h"
 #include <stdlib.h>
 
@@ -196,3 +197,9 @@ void MSDsort(string strings[], size_t scnt)
 
    return;
 }
+
+void msd_nilsson(unsigned char **strings, size_t n)
+{
+	return MSDsort(strings, n);
+}
+ROUTINE_REGISTER_SINGLECORE(msd_nilsson, "MSD Radix Sort by Stefan Nilsson")

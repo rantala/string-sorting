@@ -52,6 +52,7 @@
   original code
 */
 
+#include "routine.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -200,3 +201,10 @@ void CRadix(LPPSTR a, UINT n)
 	free((void*)ta);
 	free((void*)tj);
 }
+
+void cradix(unsigned char **strings, size_t n)
+{
+	return CRadix(strings, n);
+}
+ROUTINE_REGISTER_SINGLECORE(cradix,
+		"CRadix by Waihong Ng and Katsuhiko Kakehi")

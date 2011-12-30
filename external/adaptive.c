@@ -25,6 +25,7 @@
    Stefan.Nilsson@hut.fi
 */
 
+#include "routine.h"
 #include "nilsson.h"
 #include <stdlib.h>
 
@@ -349,3 +350,10 @@ void arssort(string strings[], size_t scnt)
 
    return;
 }
+
+void adaptive_msd_nilsson(unsigned char **strings, size_t n)
+{
+	return arssort(strings, n);
+}
+ROUTINE_REGISTER_SINGLECORE(adaptive_msd_nilsson,
+		"Adaptive MSD Radix Sort by Stefan Nilsson")

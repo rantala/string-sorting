@@ -30,6 +30,7 @@
 
 */
 
+#include "routine.h"
 #include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -349,3 +350,6 @@ burstsortA(string strings[], size_t scnt)
 
     return;
 }
+
+ROUTINE_REGISTER_SINGLECORE(burstsortA,
+		"Burstsort with Array buckets by R. Sinha and J. Zobel")

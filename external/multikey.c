@@ -20,6 +20,7 @@
    Stefan.Nilsson@hut.fi
 */
 
+#include "routine.h"
 #include "utils.h"
 #include <stdlib.h>
 
@@ -159,3 +160,10 @@ static void ssort2(string a[], int n, int depth)
 }
 
 void multikey2(string a[], size_t n) { ssort2(a, n, 0); }
+
+void mkqsort_bs(unsigned char **strings, size_t n)
+{
+	return multikey2(strings, n);
+}
+ROUTINE_REGISTER_SINGLECORE(mkqsort_bs,
+		"Multi-Key-Quicksort by J. Bentley and R. Sedgewick")

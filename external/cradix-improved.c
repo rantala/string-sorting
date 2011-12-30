@@ -56,6 +56,7 @@
  *  - use caching in RDFK() to reduce memory stalls
  */
 
+#include "routine.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -151,7 +152,7 @@ void RDFK(LPPSTR* GrpKP, LPPSTR a, UINT n, LPPSTR ta,
 	}
 }
 
-void cradix_improved(LPPSTR a, UINT n)
+void cradix_rantala(LPPSTR a, UINT n)
 {
 	UINT kbsd, kbsd1, i, j, stage, d, MEMSIZE;
 	UINT *cptr, gs, count[AS];
@@ -225,3 +226,6 @@ void cradix_improved(LPPSTR a, UINT n)
 	free((void*)ta);
 	free((void*)tj);
 }
+ROUTINE_REGISTER_SINGLECORE(cradix_rantala,
+		"CRadix by Waihong Ng and Katsuhiko Kakehi,"
+		" with modifications by Tommi Rantala")

@@ -29,6 +29,7 @@
        4. It is solely meant for academic use
 */
 
+#include "routine.h"
 #include "utils.h"
 #include <stdlib.h>
 
@@ -160,3 +161,5 @@ burstsortL(unsigned char *strings[], size_t scnt)
 
     return;
 }
+ROUTINE_REGISTER_SINGLECORE(burstsortL,
+		"Burstsort with List buckets by R. Sinha and J. Zobel")

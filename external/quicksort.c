@@ -17,6 +17,7 @@
    Stefan.Nilsson@hut.fi
 */
 
+#include "routine.h"
 #include <stddef.h>
 #include "utils.h"
 
@@ -83,3 +84,6 @@ void quicksort(string a[], size_t n)
    if ((s = pb-pa) > 1) quicksort(a,    s);
    if ((s = pd-pc) > 1) quicksort(&a[pn-s], s);
 }
+
+ROUTINE_REGISTER_SINGLECORE(quicksort,
+		"Quicksort by J. L. Bentley and M. D. McIlroy")

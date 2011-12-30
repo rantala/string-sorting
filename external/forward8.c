@@ -20,6 +20,7 @@
    Stefan.Nilsson@hut.fi
 */
 
+#include "routine.h"
 #include "nilsson.h"
 #include <stdlib.h>
 
@@ -245,3 +246,10 @@ void frssort1(string strings[], size_t scnt)
 
    return;
 }
+
+void forward8(unsigned char **strings, size_t n)
+{
+	return frssort1(strings, n);
+}
+ROUTINE_REGISTER_SINGLECORE(forward8,
+		"Forward Radix Sort 8-bit by Stefan Nilsson")

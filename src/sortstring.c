@@ -500,6 +500,20 @@ input_information(const char *fname,
 	else
 		printf("    size: %zu bytes\n", text_len);
 	printf("    strings: %zu\n", strings_len);
+	puts("");
+	char *vma_info_text = vma_info(text);
+	char *vma_info_strings = vma_info(strings);
+	if (strcmp(vma_info_text, vma_info_strings) == 0) {
+		puts("VMA information for text and string pointer arrays:");
+		puts(vma_info_text);
+	} else {
+		puts("VMA information for text array:");
+		puts(vma_info_text);
+		puts("VMA information for string pointer array:");
+		puts(vma_info_strings);
+	}
+	free(vma_info_text);
+	free(vma_info_strings);
 }
 
 static void

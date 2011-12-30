@@ -30,7 +30,8 @@ set(INTERNAL_SRCS
 	src/funnelsort.cpp
 	src/routines.c
 	src/sortstring.c
-	src/util/timing.c)
+	src/util/timing.c
+	src/util/vmainfo.c)
 
 set(EXTERNAL_SRCS
 	external/mbmradix.c

@@ -5,6 +5,8 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(src src/util)
 
+link_libraries(rt)
+
 set(INTERNAL_SRCS
 	src/msd_a.cpp
 	src/msd_a2.cpp
@@ -27,8 +29,8 @@ set(INTERNAL_SRCS
 	src/mergesort_lcp.cpp
 	src/funnelsort.cpp
 	src/routines.c
-	src/sortstring.cpp
-	src/util/clock.cpp)
+	src/sortstring.c
+	src/util/timing.c)
 
 set(EXTERNAL_SRCS
 	external/mbmradix.c

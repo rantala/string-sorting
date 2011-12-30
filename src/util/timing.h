@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2011 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -20,35 +20,16 @@
  * IN THE SOFTWARE.
  */
 
-/*
- * Very simple functions used for timing the algorithms. Calculates actual CPU
- * time, not wall clock time, because our algorithms use only one processor.
- */
+#ifndef TIMING_H
+#define TIMING_H
 
-#include <stdio.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/resource.h>
+void timing_start(void);
+void timing_stop(void);
 
-static struct rusage startclock, stopclock;
+double gettime_user(void);
+double gettime_sys(void);
+double gettime_user_sys(void);
+double gettime_process_cputime(void);
+double gettime_wall_clock(void);
 
-void clockon()
-{
-	getrusage(RUSAGE_SELF, &startclock);
-}
-
-void clockoff()
-{
-	getrusage(RUSAGE_SELF, &stopclock);
-}
-
-double gettime()
-{
-	struct timeval result_user;
-	struct timeval result_sys;
-	struct timeval result;
-	timersub(&stopclock.ru_utime, &startclock.ru_utime, &result_user);
-	timersub(&stopclock.ru_stime, &startclock.ru_stime, &result_sys);
-	timeradd(&result_user, &result_sys, &result);
-	return (double)(result.tv_sec)+(double)(result.tv_usec)/1e6;
-}
+#endif /* TIMING_H */

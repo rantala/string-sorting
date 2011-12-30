@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -44,8 +44,9 @@ inline uint16_t
 get_char<uint16_t>(unsigned char* ptr, size_t depth)
 {
 	assert(ptr);
-	if (ptr[depth] == 0) return 0;
-	else return (ptr[depth] << 8) | ptr[depth+1];
+	uint16_t ch = ptr[depth];
+	if (ch) ch = (ch << 8) | ptr[depth+1];
+	return ch;
 }
 
 template <>

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.4)
 project(sortstring)
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(src src/util)
 
 set(INTERNAL_SRCS
 	src/msd_a.cpp
@@ -25,6 +26,7 @@ set(INTERNAL_SRCS
 	src/mergesort_losertree.cpp
 	src/mergesort_lcp.cpp
 	src/funnelsort.cpp
+	src/routines.c
 	src/sortstring.cpp
 	src/util/clock.cpp)
 

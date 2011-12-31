@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -119,6 +119,36 @@ void mergesort_2way(unsigned char** strings, size_t n)
 	free(tmp);
 }
 ROUTINE_REGISTER_SINGLECORE(mergesort_2way, "mergesort_2way")
+
+static void
+mergesort_2way_parallel(unsigned char** strings, size_t n, unsigned char** tmp)
+{
+	if (n < 32) {
+		insertion_sort(strings, n, 0);
+		return;
+	}
+	const size_t split0 = n/2;
+#pragma omp parallel sections
+	{
+#pragma omp section
+		mergesort_2way_parallel(strings,        split0,   tmp);
+#pragma omp section
+		mergesort_2way_parallel(strings+split0, n-split0, tmp+split0);
+	}
+	merge_2way(strings, split0,
+	           strings+split0, n-split0,
+	           tmp);
+	(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
+}
+void mergesort_2way_parallel(unsigned char** strings, size_t n)
+{
+	unsigned char** tmp = static_cast<unsigned char**>(
+			malloc(n*sizeof(unsigned char*)));
+	mergesort_2way_parallel(strings, n, tmp);
+	free(tmp);
+}
+ROUTINE_REGISTER_MULTICORE(mergesort_2way_parallel,
+		"Parallel mergesort with 2way merger")
 
 /*******************************************************************************
  *
@@ -292,6 +322,40 @@ void mergesort_3way(unsigned char** strings, size_t n)
 }
 ROUTINE_REGISTER_SINGLECORE(mergesort_3way, "mergesort_3way")
 
+static void
+mergesort_3way_parallel(unsigned char** strings, size_t n, unsigned char** tmp)
+{
+	debug() << __func__ << "(), n="<<n<<"\n";
+	if (n < 32) {
+		insertion_sort(strings, n, 0);
+		return;
+	}
+	const size_t split0 = n/3, split1 = (2*n)/3;
+#pragma omp parallel sections
+	{
+#pragma omp section
+		mergesort_3way_parallel(strings,        split0,        tmp);
+#pragma omp section
+		mergesort_3way_parallel(strings+split0, split1-split0, tmp+split0);
+#pragma omp section
+		mergesort_3way_parallel(strings+split1, n-split1,      tmp+split1);
+	}
+	merge_3way(strings, split0,
+	           strings+split0, split1-split0,
+	           strings+split1, n-split1,
+	           tmp);
+	(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
+}
+void mergesort_3way_parallel(unsigned char** strings, size_t n)
+{
+	unsigned char** tmp = static_cast<unsigned char**>(
+			malloc(n*sizeof(unsigned char*)));
+	mergesort_3way_parallel(strings, n, tmp);
+	free(tmp);
+}
+ROUTINE_REGISTER_MULTICORE(mergesort_3way_parallel,
+		"Parallel mergesort with 3way merger")
+
 /*******************************************************************************
  *
  * mergesort_4way
@@ -420,3 +484,42 @@ void mergesort_4way(unsigned char** strings, size_t n)
 	free(tmp);
 }
 ROUTINE_REGISTER_SINGLECORE(mergesort_4way, "mergesort_4way")
+
+void
+mergesort_4way_parallel(unsigned char** strings, size_t n, unsigned char** tmp)
+{
+	debug() << __func__ << "(), n="<<n<<"\n";
+	if (n < 32) {
+		insertion_sort(strings, n, 0);
+		return;
+	}
+	const size_t split0 = n/4,
+	             split1 = n/2,
+	             split2 = split0+split1;
+#pragma omp parallel sections
+	{
+#pragma omp section
+		mergesort_4way_parallel(strings,        split0,        tmp);
+#pragma omp section
+		mergesort_4way_parallel(strings+split0, split1-split0, tmp+split0);
+#pragma omp section
+		mergesort_4way_parallel(strings+split1, split2-split1, tmp+split1);
+#pragma omp section
+		mergesort_4way_parallel(strings+split2, n-split2,      tmp+split2);
+	}
+	merge_4way(strings,        split0,
+	           strings+split0, split1-split0,
+	           strings+split1, split2-split1,
+	           strings+split2, n-split2,
+	           tmp);
+	(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
+}
+void mergesort_4way_parallel(unsigned char** strings, size_t n)
+{
+	unsigned char** tmp = static_cast<unsigned char**>(
+			malloc(n*sizeof(unsigned char*)));
+	mergesort_4way_parallel(strings, n, tmp);
+	free(tmp);
+}
+ROUTINE_REGISTER_MULTICORE(mergesort_4way_parallel,
+		"Parallel mergesort with 4way merger")

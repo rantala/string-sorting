@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -276,6 +276,82 @@ mergesort_lcp_2way(unsigned char** strings, size_t n)
 	free(tmp);
 }
 ROUTINE_REGISTER_SINGLECORE(mergesort_lcp_2way, "LCP mergesort with 2way merger")
+
+template <bool OutputLCP>
+MergeResult
+mergesort_lcp_2way_parallel(
+		unsigned char** restrict strings_input,
+		unsigned char** restrict strings_output,
+		lcp_t* restrict lcp_input, lcp_t* restrict lcp_output,
+		size_t n)
+{
+	assert(n > 0);
+	debug() << __func__ << "(): n=" << n << '\n';
+	if (n < 32) {
+		insertion_sort(strings_input, n, 0);
+		for (unsigned i=0; i < n-1; ++i)
+			lcp_input[i] = lcp(strings_input[i], strings_input[i+1]);
+		return SortedInPlace;
+	}
+	const size_t split0 = n/2;
+	MergeResult ml, mr;
+#pragma omp parallel sections
+	{
+#pragma omp section
+	ml = mergesort_lcp_2way_parallel<true>(
+			strings_input, strings_output,
+			lcp_input,     lcp_output,
+			split0);
+#pragma omp section
+	mr = mergesort_lcp_2way_parallel<true>(
+			strings_input+split0, strings_output+split0,
+			lcp_input+split0,     lcp_output+split0,
+			n-split0);
+	}
+	if (ml != mr) {
+		if (ml == SortedInPlace) {
+			std::copy(strings_output+split0, strings_output+n,
+					strings_input+split0);
+			std::copy(lcp_output+split0, lcp_output+n,
+					lcp_input+split0);
+			mr = SortedInPlace;
+		} else {
+			assert(0);
+			abort();
+		}
+	}
+	if (ml == SortedInPlace) {
+		merge_lcp_2way<OutputLCP>(
+		           strings_input,        lcp_input,        split0,
+		           strings_input+split0, lcp_input+split0, n-split0,
+		           strings_output, lcp_output);
+		return SortedInTemp;
+	} else {
+		merge_lcp_2way<OutputLCP>(
+		           strings_output,        lcp_output,        split0,
+		           strings_output+split0, lcp_output+split0, n-split0,
+		           strings_input, lcp_input);
+		return SortedInPlace;
+	}
+}
+void
+mergesort_lcp_2way_parallel(unsigned char** strings, size_t n)
+{
+	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	unsigned char** tmp = static_cast<unsigned char**>(
+			malloc(n*sizeof(unsigned char*)));
+	const MergeResult m = mergesort_lcp_2way_parallel<false>(strings, tmp,
+			lcp_input, lcp_output, n);
+	if (m == SortedInTemp) {
+		(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
+	}
+	free(lcp_input);
+	free(lcp_output);
+	free(tmp);
+}
+ROUTINE_REGISTER_MULTICORE(mergesort_lcp_2way_parallel,
+		"Parallel LCP mergesort with 2way merger")
 
 /*******************************************************************************
  *
@@ -755,6 +831,131 @@ mergesort_lcp_3way(unsigned char** strings, size_t n)
 }
 ROUTINE_REGISTER_SINGLECORE(mergesort_lcp_3way, "LCP mergesort with 3way merger")
 
+template <bool OutputLCP>
+MergeResult
+mergesort_lcp_3way_parallel(unsigned char** restrict strings_input,
+                   unsigned char** restrict strings_output,
+                   lcp_t* restrict lcp_input, lcp_t* restrict lcp_output,
+                   size_t n)
+{
+	debug() << __func__ << "(): n=" << n << '\n';
+	if (n < 32) {
+		insertion_sort(strings_input, n, 0);
+		for (unsigned i=0; i < n-1; ++i)
+			lcp_input[i] = lcp(strings_input[i], strings_input[i+1]);
+		return SortedInPlace;
+	}
+	const size_t split0 = n/3,
+	             split1 = size_t((2.0/3.0)*n);
+	MergeResult m0, m1, m2;
+#pragma omp parallel sections
+	{
+#pragma omp section
+	m0 = mergesort_lcp_3way_parallel<true>(
+			strings_input,        strings_output,
+			lcp_input,            lcp_output,
+			split0);
+#pragma omp section
+	m1 = mergesort_lcp_3way_parallel<true>(
+			strings_input+split0, strings_output+split0,
+			lcp_input+split0,     lcp_output+split0,
+			split1-split0);
+#pragma omp section
+	m2 = mergesort_lcp_3way_parallel<true>(
+			strings_input+split1, strings_output+split1,
+			lcp_input+split1,     lcp_output+split1,
+			n-split1);
+	}
+	debug() << __func__ << "(): m0="<<m0<<", m1="<<m1<<", m2="<<m2<<"\n";
+	if (m0 != m1) {
+		if (m1 != m2) {
+			// m0 == m2 != m1
+			if (m1 == SortedInPlace) {
+				std::copy(strings_input+split0, strings_input+split1,
+						strings_output+split0);
+				std::copy(lcp_input+split0, lcp_input+split1,
+						lcp_output+split0);
+				m1 = SortedInTemp;
+			} else {
+				std::copy(strings_output+split0, strings_output+split1,
+						strings_input+split0);
+				std::copy(lcp_output+split0, lcp_output+split1,
+						lcp_input+split0);
+				m1 = SortedInPlace;
+			}
+		} else {
+			// m0 != m1 == m2
+			if (m0 == SortedInPlace) {
+				std::copy(strings_input, strings_input+split0,
+						strings_output);
+				std::copy(lcp_input, lcp_input+split0,
+						lcp_output);
+				m0 = SortedInTemp;
+			} else {
+				std::copy(strings_output, strings_output+split0,
+						strings_input);
+				std::copy(lcp_output, lcp_output+split0,
+						lcp_input);
+				m0 = SortedInPlace;
+			}
+		}
+	}
+	if (m1 != m2) {
+		if (m2 == SortedInPlace) {
+			std::copy(strings_input+split1, strings_input+n,
+					strings_output+split1);
+			std::copy(lcp_input+split1, lcp_input+n,
+					lcp_output+split1);
+			m2 = SortedInTemp;
+		} else {
+			std::copy(strings_output+split1, strings_output+n,
+					strings_input+split1);
+			std::copy(lcp_output+split1, lcp_output+n,
+					lcp_input+split1);
+			m2 = SortedInPlace;
+		}
+	}
+	assert(m0 == m1); assert(m1 == m2);
+	if (m0 == SortedInPlace) {
+		merge_lcp_3way<OutputLCP>(
+			   strings_input,        lcp_input,        split0,
+			   strings_input+split0, lcp_input+split0, split1-split0,
+			   strings_input+split1, lcp_input+split1, n-split1,
+			   strings_output, lcp_output);
+		//debug() << __func__ << "(): checking merged result, in -> out\n";
+		if (OutputLCP) check_input(strings_output, lcp_output, n);
+		return SortedInTemp;
+	} else {
+		merge_lcp_3way<OutputLCP>(
+			   strings_output,        lcp_output,        split0,
+			   strings_output+split0, lcp_output+split0, split1-split0,
+			   strings_output+split1, lcp_output+split1, n-split1,
+			   strings_input, lcp_input);
+		//debug() << __func__ << "(): checking merged result, out -> in\n";
+		if (OutputLCP) check_input(strings_input, lcp_input, n);
+		return SortedInPlace;
+	}
+}
+void
+mergesort_lcp_3way_parallel(unsigned char** strings, size_t n)
+{
+	debug() << __func__ << '\n';
+	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
+	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
+	unsigned char** input_tmp = (unsigned char**)
+		malloc(n*sizeof(unsigned char*));
+	const MergeResult m = mergesort_lcp_3way_parallel<false>(strings, input_tmp,
+			lcp_input, lcp_tmp, n);
+	if (m == SortedInTemp) {
+		(void) memcpy(strings, input_tmp, n*sizeof(unsigned char*));
+	}
+	free(lcp_input);
+	free(lcp_tmp);
+	free(input_tmp);
+}
+ROUTINE_REGISTER_MULTICORE(mergesort_lcp_3way_parallel,
+		"Parallel LCP mergesort with 3way merger")
+
 /*******************************************************************************
  *
  * mergesort_cache_lcp_2way
@@ -1231,6 +1432,119 @@ ROUTINE_REGISTER_SINGLECORE(mergesort_cache2_lcp_2way,
 ROUTINE_REGISTER_SINGLECORE(mergesort_cache4_lcp_2way,
 		"LCP mergesort with 2way merger and 4byte cache")
 
+template <bool OutputLCP, typename CharT>
+MergeResult
+mergesort_cache_lcp_2way_parallel(
+              unsigned char** strings_input, unsigned char** strings_output,
+              lcp_t* restrict lcp_input, lcp_t* restrict lcp_output,
+              CharT* restrict cache_input, CharT* restrict cache_output,
+              size_t n)
+{
+	debug() << __func__ << "(): n=" << n << '\n';
+	if (n < 32) {
+		insertion_sort(strings_input, n, 0);
+		lcp_input[0] = lcp(strings_input[0], strings_input[1]);
+		cache_input[0] = get_char<CharT>(strings_input[0], 0);
+		for (unsigned i=1; i < n-1; ++i) {
+			lcp_input[i] = lcp(strings_input[i], strings_input[i+1]);
+			cache_input[i] = get_char<CharT>(strings_input[i], lcp_input[i-1]);
+		}
+		cache_input[n-1] = get_char<CharT>(strings_input[n-1], lcp_input[n-2]);
+		check_input(strings_input, lcp_input, cache_input, n);
+		return SortedInPlace;
+	}
+	const size_t split0 = n/2;
+	MergeResult m0, m1;
+	m0 = mergesort_cache_lcp_2way_parallel<true>(
+			strings_input, strings_output,
+			lcp_input, lcp_output,
+			cache_input, cache_output,
+			split0);
+
+	if (m0==SortedInPlace) check_input(strings_input, lcp_input, cache_input, split0);
+	else                   check_input(strings_output, lcp_output, cache_output, split0);
+
+	m1 = mergesort_cache_lcp_2way_parallel<true>(
+			strings_input+split0, strings_output+split0,
+			lcp_input+split0, lcp_output+split0,
+			cache_input+split0, cache_output+split0,
+			n-split0);
+
+	if (m0==SortedInPlace) check_input(strings_input+split0, lcp_input+split0, cache_input+split0, n-split0);
+	else                   check_input(strings_output+split0, lcp_output+split0, cache_output+split0, n-split0);
+
+	if (m0 != m1) {
+		debug() << "Warning: extra copying due to m0 != m1. n="<<n<<"\n";
+		if (m0 == SortedInPlace) {
+			std::copy(strings_input, strings_input+split0,
+					strings_output);
+			std::copy(cache_input, cache_input+split0,
+					cache_output);
+			std::copy(lcp_input, lcp_input+split0,
+					lcp_output);
+			m0 = SortedInTemp;
+		} else {
+			std::copy(strings_output, strings_output+split0,
+					strings_input);
+			std::copy(cache_output, cache_output+split0,
+					cache_input);
+			std::copy(lcp_output, lcp_output+split0,
+					lcp_input);
+			m1 = SortedInTemp;
+		}
+	}
+	assert(m0 == m1);
+	if (m0 == SortedInPlace) {
+		merge_cache_lcp_2way<OutputLCP>(
+			strings_input, lcp_input, cache_input, split0,
+			strings_input+split0, lcp_input+split0, cache_input+split0, n-split0,
+			strings_output, lcp_output, cache_output);
+		return SortedInTemp;
+	} else {
+		merge_cache_lcp_2way<OutputLCP>(
+			strings_output, lcp_output, cache_output, split0,
+			strings_output+split0, lcp_output+split0, cache_output+split0, n-split0,
+			strings_input, lcp_input, cache_input);
+		return SortedInPlace;
+	}
+}
+
+template <typename CharT>
+static void
+mergesort_cache_lcp_2way_parallel(unsigned char** strings, size_t n)
+{
+	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
+	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
+	unsigned char** input_tmp = (unsigned char**) malloc(n*sizeof(unsigned char*));
+	CharT* cache     = (CharT*) malloc(n*sizeof(CharT));
+	CharT* cache_tmp = (CharT*) malloc(n*sizeof(CharT));
+	MergeResult m = mergesort_cache_lcp_2way_parallel<false>(strings, input_tmp,
+			lcp_input, lcp_tmp, cache, cache_tmp, n);
+	if (m == SortedInTemp) {
+		memcpy(strings, input_tmp, n*sizeof(unsigned char*));
+	}
+	free(lcp_input);
+	free(lcp_tmp);
+	free(input_tmp);
+	free(cache);
+	free(cache_tmp);
+	stat_print();
+}
+
+void mergesort_cache1_lcp_2way_parallel(unsigned char** strings, size_t n)
+{ mergesort_cache_lcp_2way_parallel<unsigned char>(strings, n); }
+void mergesort_cache2_lcp_2way_parallel(unsigned char** strings, size_t n)
+{ mergesort_cache_lcp_2way_parallel<uint16_t>(strings, n); }
+void mergesort_cache4_lcp_2way_parallel(unsigned char** strings, size_t n)
+{ mergesort_cache_lcp_2way_parallel<uint32_t>(strings, n); }
+
+ROUTINE_REGISTER_MULTICORE(mergesort_cache1_lcp_2way_parallel,
+		"Parallel LCP mergesort with 2way merger and 1byte cache")
+ROUTINE_REGISTER_MULTICORE(mergesort_cache2_lcp_2way_parallel,
+		"Parallel LCP mergesort with 2way merger and 2byte cache")
+ROUTINE_REGISTER_MULTICORE(mergesort_cache4_lcp_2way_parallel,
+		"Parallel LCP mergesort with 2way merger and 4byte cache")
+
 /*******************************************************************************
  *
  * mergesort_lcp_2way_unstable
@@ -1425,3 +1739,78 @@ mergesort_lcp_2way_unstable(unsigned char** strings, size_t n)
 }
 ROUTINE_REGISTER_SINGLECORE(mergesort_lcp_2way_unstable,
 		"Unstable LCP mergesort with 2way merger")
+
+template <bool OutputLCP>
+MergeResult
+mergesort_lcp_2way_unstable_parallel(unsigned char** restrict strings_input,
+                            unsigned char** restrict strings_output,
+                            lcp_t* restrict lcp_input,
+                            lcp_t* restrict lcp_output,
+                            size_t n)
+{
+	debug() << __func__ << "(): n=" << n << '\n';
+	if (n < 32) {
+		insertion_sort(strings_input, n, 0);
+		for (unsigned i=0; i < n-1; ++i)
+			lcp_input[i] = lcp(strings_input[i], strings_input[i+1]);
+		return SortedInPlace;
+	}
+	const size_t split0 = n/2;
+	MergeResult ml, mr;
+#pragma omp parallel sections
+	{
+#pragma omp section
+	ml = mergesort_lcp_2way_unstable_parallel<true>(
+			strings_input, strings_output,
+			lcp_input,     lcp_output,
+			split0);
+#pragma omp section
+	mr = mergesort_lcp_2way_unstable_parallel<true>(
+			strings_input+split0, strings_output+split0,
+			lcp_input+split0,     lcp_output+split0,
+			n-split0);
+	}
+	if (ml != mr) {
+		if (ml == SortedInPlace) {
+			std::copy(strings_output+split0, strings_output+n,
+					strings_input+split0);
+			std::copy(lcp_output+split0, lcp_output+n,
+					lcp_input+split0);
+			mr = SortedInPlace;
+		} else {
+			assert(0);
+			abort();
+		}
+	}
+	if (ml == SortedInPlace) {
+		merge_lcp_2way_unstable<OutputLCP>(
+		           strings_input,        lcp_input,        split0,
+		           strings_input+split0, lcp_input+split0, n-split0,
+		           strings_output, lcp_output);
+		return SortedInTemp;
+	} else {
+		merge_lcp_2way_unstable<OutputLCP>(
+		           strings_output,        lcp_output,        split0,
+		           strings_output+split0, lcp_output+split0, n-split0,
+		           strings_input, lcp_input);
+		return SortedInPlace;
+	}
+}
+void
+mergesort_lcp_2way_unstable_parallel(unsigned char** strings, size_t n)
+{
+	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	unsigned char** tmp = static_cast<unsigned char**>(
+			malloc(n*sizeof(unsigned char*)));
+	const MergeResult m = mergesort_lcp_2way_unstable_parallel<false>(strings, tmp,
+			lcp_input, lcp_output, n);
+	if (m == SortedInTemp) {
+		(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
+	}
+	free(lcp_input);
+	free(lcp_output);
+	free(tmp);
+}
+ROUTINE_REGISTER_MULTICORE(mergesort_lcp_2way_unstable_parallel,
+		"Parallel unstable LCP mergesort with 2way merger")

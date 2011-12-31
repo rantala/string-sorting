@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -314,3 +314,78 @@ ROUTINE_REGISTER_SINGLECORE(multikey_simd2,
 		"multikey_simd with 2byte alphabet")
 ROUTINE_REGISTER_SINGLECORE(multikey_simd4,
 		"multikey_simd with 4byte alphabet")
+
+template <typename CharT>
+static void
+multikey_simd_parallel(unsigned char** strings, size_t N, size_t depth)
+{
+	if (N < 32) {
+		insertion_sort(strings, N, depth);
+		return;
+	}
+	CharT partval = pseudo_median<CharT>(strings, N, depth);
+	uint8_t* const restrict oracle =
+		static_cast<uint8_t*>(_mm_malloc(N, 16));
+	boost::array<size_t, 3> bucketsize;
+	bucketsize.assign(0);
+	size_t i=N-N%32;
+	if (N > 0x100000) {
+#pragma omp parallel sections
+		{
+#pragma omp section
+		calculate_bucketsizes_sse(strings, i/2, oracle,
+				partval, depth);
+#pragma omp section
+		calculate_bucketsizes_sse(strings+i/2, i/2, oracle+i/2,
+				partval, depth);
+		}
+	} else
+		calculate_bucketsizes_sse(strings, i, oracle, partval, depth);
+	for (; i < N; ++i)
+		oracle[i] = get_bucket(
+				get_char<CharT>(strings[i], depth),
+				partval);
+	for (i=0; i < N; ++i)
+		++bucketsize[oracle[i]];
+	assert(bucketsize[0] + bucketsize[1] + bucketsize[2] == N);
+	unsigned char** sorted =
+		static_cast<unsigned char**>(malloc(N*sizeof(unsigned char*)));
+	size_t bucketindex[3];
+	bucketindex[0] = 0;
+	bucketindex[1] = bucketsize[0];
+	bucketindex[2] = bucketsize[0] + bucketsize[1];
+	for (size_t i=0; i < N; ++i) {
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	}
+	std::copy(sorted, sorted+N, strings);
+	free(sorted);
+	_mm_free(oracle);
+#pragma omp parallel sections
+	{
+#pragma omp section
+	multikey_simd_parallel<CharT>(strings, bucketsize[0], depth);
+#pragma omp section
+	if (not is_end(partval))
+		multikey_simd_parallel<CharT>(strings+bucketsize[0],
+				bucketsize[1], depth+sizeof(CharT));
+#pragma omp section
+	multikey_simd_parallel<CharT>(strings+bucketsize[0]+bucketsize[1],
+			bucketsize[2], depth);
+	}
+}
+
+void multikey_simd_parallel1(unsigned char** strings, size_t n)
+{ multikey_simd_parallel<unsigned char>(strings, n, 0); }
+
+void multikey_simd_parallel2(unsigned char** strings, size_t n)
+{ multikey_simd_parallel<uint16_t>(strings, n, 0); }
+
+void multikey_simd_parallel4(unsigned char** strings, size_t n)
+{ multikey_simd_parallel<uint32_t>(strings, n, 0); }
+
+ROUTINE_REGISTER_MULTICORE(multikey_simd_parallel1,
+		"parallel multikey_simd with 1byte alphabet")
+ROUTINE_REGISTER_MULTICORE(multikey_simd_parallel2,
+		"parallel multikey_simd with 2byte alphabet")
+ROUTINE_REGISTER_MULTICORE(multikey_simd_parallel4,
+		"parallel multikey_simd with 4byte alphabet")

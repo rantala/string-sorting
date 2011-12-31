@@ -40,6 +40,7 @@
  * }
  */
 
+#include "routine.h"
 #include "util/debug.h"
 #include "util/insertion_sort.h"
 #include <vector>
@@ -152,6 +153,7 @@ void mergesort_2way_unstable(unsigned char** strings, size_t n)
 	mergesort_2way_unstable(strings, n, tmp);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_2way_unstable, "2way unstable mergesort")
 
 /*******************************************************************************
  *
@@ -332,6 +334,7 @@ void mergesort_3way_unstable(unsigned char** strings, size_t n)
 	mergesort_3way_unstable(strings, n, tmp);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_3way_unstable, "3way unstable mergesort")
 
 /*******************************************************************************
  *
@@ -1874,3 +1877,4 @@ void mergesort_4way_unstable(unsigned char** strings, size_t n)
 	mergesort_4way_unstable(strings, n, tmp);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_4way_unstable, "4way unstable mergesort")

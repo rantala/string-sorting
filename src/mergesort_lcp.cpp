@@ -58,6 +58,7 @@
  *     http://dx.doi.org/10.2197/ipsjdc.4.69
  */
 
+#include "routine.h"
 #include "util/debug.h"
 #include "util/insertion_sort.h"
 #include <algorithm>
@@ -274,6 +275,7 @@ mergesort_lcp_2way(unsigned char** strings, size_t n)
 	free(lcp_output);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_lcp_2way, "LCP mergesort with 2way merger")
 
 /*******************************************************************************
  *
@@ -751,6 +753,7 @@ mergesort_lcp_3way(unsigned char** strings, size_t n)
 	free(lcp_tmp);
 	free(input_tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_lcp_3way, "LCP mergesort with 3way merger")
 
 /*******************************************************************************
  *
@@ -1221,7 +1224,12 @@ void mergesort_cache2_lcp_2way(unsigned char** strings, size_t n)
 void mergesort_cache4_lcp_2way(unsigned char** strings, size_t n)
 { mergesort_cache_lcp_2way<uint32_t>(strings, n); }
 
-
+ROUTINE_REGISTER_SINGLECORE(mergesort_cache1_lcp_2way,
+		"LCP mergesort with 2way merger and 1byte cache")
+ROUTINE_REGISTER_SINGLECORE(mergesort_cache2_lcp_2way,
+		"LCP mergesort with 2way merger and 2byte cache")
+ROUTINE_REGISTER_SINGLECORE(mergesort_cache4_lcp_2way,
+		"LCP mergesort with 2way merger and 4byte cache")
 
 /*******************************************************************************
  *
@@ -1415,3 +1423,5 @@ mergesort_lcp_2way_unstable(unsigned char** strings, size_t n)
 	free(lcp_output);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_lcp_2way_unstable,
+		"Unstable LCP mergesort with 2way merger")

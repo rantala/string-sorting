@@ -37,6 +37,7 @@
  * }
  */
 
+#include "routine.h"
 #include "util/debug.h"
 #include "util/insertion_sort.h"
 #include <cstdlib>
@@ -117,6 +118,7 @@ void mergesort_2way(unsigned char** strings, size_t n)
 	mergesort_2way(strings, n, tmp);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_2way, "mergesort_2way")
 
 /*******************************************************************************
  *
@@ -288,6 +290,7 @@ void mergesort_3way(unsigned char** strings, size_t n)
 	mergesort_3way(strings, n, tmp);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_3way, "mergesort_3way")
 
 /*******************************************************************************
  *
@@ -416,3 +419,4 @@ void mergesort_4way(unsigned char** strings, size_t n)
 	mergesort_4way(strings, n, tmp);
 	free(tmp);
 }
+ROUTINE_REGISTER_SINGLECORE(mergesort_4way, "mergesort_4way")

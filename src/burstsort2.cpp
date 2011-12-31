@@ -27,6 +27,7 @@
  * character from the alphabet seen so far. This can lead to some space savings.
  */
 
+#include "routine.h"
 #include "util/get_char.h"
 #include "util/debug.h"
 #include <vector>
@@ -450,3 +451,39 @@ void burstsort2_sampling_superalphabet_vector_block(unsigned char** strings, siz
 	insert<32768, BucketT, BurstImpl>(root, strings, n);
 	traverse(root, strings, 0, SmallSort);
 }
+
+ROUTINE_REGISTER_SINGLECORE(burstsort2_vector,
+		"burstsort2 with std::vector bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_brodnik,
+		"burstsort2 with vector_brodnik bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_bagwell,
+		"burstsort2 with vector_bagwell bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_vector_block,
+		"burstsort2 with vector_block bucket type")
+
+ROUTINE_REGISTER_SINGLECORE(burstsort2_superalphabet_vector,
+		"superalphabet burstsort2 with std::vector bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_superalphabet_brodnik,
+		"superalphabet burstsort2 with vector_brodnik bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_superalphabet_bagwell,
+		"superalphabet burstsort2 with vector_bagwell bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_superalphabet_vector_block,
+		"superalphabet burstsort2 with vector_block bucket type")
+
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_vector,
+		"sampling burstsort2 with std::vector bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_brodnik,
+		"sampling burstsort2 with vector_brodnik bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_bagwell,
+		"sampling burstsort2 with vector_bagwell bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_vector_block,
+		"sampling burstsort2 with vector_block bucket type")
+
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_superalphabet_vector,
+		"sampling superalphabet burstsort2 with std::vector bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_superalphabet_brodnik,
+		"sampling superalphabet burstsort2 with vector_brodnik bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_superalphabet_bagwell,
+		"sampling superalphabet burstsort2 with vector_bagwell bucket type")
+ROUTINE_REGISTER_SINGLECORE(burstsort2_sampling_superalphabet_vector_block,
+		"sampling superalphabet burstsort2 with vector_block bucket type")

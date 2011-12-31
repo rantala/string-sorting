@@ -54,6 +54,7 @@
  * CE4 is the fastest implementation in most cases.
  */
 
+#include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
 #include <cstddef>
@@ -90,6 +91,7 @@ msd_CE0(unsigned char** strings, size_t n, size_t depth)
 
 void msd_CE0(unsigned char** strings, size_t n)
 { msd_CE0(strings, n, 0); }
+ROUTINE_REGISTER_SINGLECORE(msd_CE0, "CE0: baseline")
 
 void
 msd_CE1(unsigned char** strings, size_t n, size_t depth)
@@ -124,6 +126,7 @@ msd_CE1(unsigned char** strings, size_t n, size_t depth)
 
 void msd_CE1(unsigned char** strings, size_t n)
 { msd_CE1(strings, n, 0); }
+ROUTINE_REGISTER_SINGLECORE(msd_CE1, "CE1: oracle")
 
 void
 msd_CE2(unsigned char** strings, size_t n, size_t depth)
@@ -160,6 +163,7 @@ msd_CE2(unsigned char** strings, size_t n, size_t depth)
 
 void msd_CE2(unsigned char** strings, size_t n)
 { msd_CE2(strings, n, 0); }
+ROUTINE_REGISTER_SINGLECORE(msd_CE2, "CE2: oracle+loop fission")
 
 void
 msd_CE2_16bit(unsigned char** strings, size_t n, size_t depth)
@@ -232,6 +236,7 @@ msd_CE3(unsigned char** strings, size_t n, size_t depth)
 
 void msd_CE3(unsigned char** strings, size_t n)
 { msd_CE3(strings, n, 0); }
+ROUTINE_REGISTER_SINGLECORE(msd_CE3, "CE3: oracle+loop fission+adaptive")
 
 static void
 msd_CE4(unsigned char** strings, size_t n, size_t depth)
@@ -271,3 +276,4 @@ msd_CE4(unsigned char** strings, size_t n, size_t depth)
 
 void msd_CE4(unsigned char** strings, size_t n)
 { msd_CE4(strings, n, 0); }
+ROUTINE_REGISTER_SINGLECORE(msd_CE4, "CE4: oracle+loop fission+adaptive+16bit counter")

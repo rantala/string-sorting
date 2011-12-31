@@ -29,6 +29,7 @@
  *    http://dx.doi.org/10.1093/ietfec/e90-a.2.457
  */
 
+#include "routine.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -166,6 +167,7 @@ msd_A(unsigned char** strings, size_t N)
 	for (size_t i=0; i < N; ++i) strings[i] = cache[i].ptr;
 	free(cache);
 }
+ROUTINE_REGISTER_SINGLECORE(msd_A, "msd_A")
 
 void
 msd_A_adaptive(unsigned char** strings, size_t N)
@@ -177,3 +179,4 @@ msd_A_adaptive(unsigned char** strings, size_t N)
 	for (size_t i=0; i < N; ++i) strings[i] = cache[i].ptr;
 	free(cache);
 }
+ROUTINE_REGISTER_SINGLECORE(msd_A_adaptive, "msd_A_adaptive")

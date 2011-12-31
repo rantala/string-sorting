@@ -25,6 +25,7 @@
  * See also msd_DB.
  */
 
+#include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
 #include "util/median.h"
@@ -203,3 +204,10 @@ void multikey_block4(unsigned char** strings, size_t n)
 {
 	multikey_block<1024, uint32_t>(strings, n, 0);
 }
+
+ROUTINE_REGISTER_SINGLECORE(multikey_block1,
+		"multikey_block with 1byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_block2,
+		"multikey_block with 2byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_block4,
+		"multikey_block with 4byte alphabet")

@@ -45,6 +45,7 @@
  *    For small n, we switch to more efficient MSD radix sort variants.
  */
 
+#include "routine.h"
 #include <cstddef>
 #include <vector>
 #include <list>
@@ -207,3 +208,4 @@ msd_D(unsigned char** strings, size_t n, size_t depth)
 
 void msd_DB(unsigned char** strings, size_t n)
 { msd_D<1024>(strings, n, 0); }
+ROUTINE_REGISTER_SINGLECORE(msd_DB, "msd_DB")

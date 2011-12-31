@@ -30,6 +30,7 @@
  * subinput is large, as described by Andersson & Nilsson.
  */
 
+#include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
 #include <cstddef>
@@ -153,3 +154,6 @@ void msd_ci(unsigned char** strings, size_t n)
 { msd_ci(strings, n, 0); }
 void msd_ci_adaptive(unsigned char** strings, size_t n)
 { msd_ci_adaptive(strings, n, 0); }
+
+ROUTINE_REGISTER_SINGLECORE(msd_ci, "msd_CI")
+ROUTINE_REGISTER_SINGLECORE(msd_ci_adaptive, "msd_CI: adaptive")

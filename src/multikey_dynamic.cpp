@@ -25,6 +25,7 @@
  * buckets.
  */
 
+#include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
 #include "util/median.h"
@@ -179,3 +180,31 @@ void multikey_dynamic_vector_block4(unsigned char** strings, size_t n)
 	typedef uint32_t CharT;
 	multikey_dynamic<BucketT, CharT>(strings, n, 0);
 }
+
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_vector1,
+	"multikey_dynamic with std::vector bucket type and 1byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_vector2,
+	"multikey_dynamic with std::vector bucket type and 2byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_vector4,
+	"multikey_dynamic with std::vector bucket type and 4byte alphabet")
+
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_brodnik1,
+	"multikey_dynamic with vector_brodnik bucket type and 1byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_brodnik2,
+	"multikey_dynamic with vector_brodnik bucket type and 2byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_brodnik4,
+	"multikey_dynamic with vector_brodnik bucket type and 4byte alphabet")
+
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_bagwell1,
+	"multikey_dynamic with vector_bagwell bucket type and 1byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_bagwell2,
+	"multikey_dynamic with vector_bagwell bucket type and 2byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_bagwell4,
+	"multikey_dynamic with vector_bagwell bucket type and 4byte alphabet")
+
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_vector_block1,
+	"multikey_dynamic with vector_block bucket type and 1byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_vector_block2,
+	"multikey_dynamic with vector_block bucket type and 2byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_dynamic_vector_block4,
+	"multikey_dynamic with vector_block bucket type and 4byte alphabet")

@@ -26,6 +26,7 @@
  * external array distribution method.
  */
 
+#include "routine.h"
 #include "util/debug.h"
 #include <cassert>
 #include <cstdlib>
@@ -234,6 +235,7 @@ msd_A2(unsigned char** strings, size_t N)
 	for (size_t i=0; i < N; ++i) strings[i] = cache[i].ptr;
 	free(cache);
 }
+ROUTINE_REGISTER_SINGLECORE(msd_A2, "msd_A2")
 
 void
 msd_A2_adaptive(unsigned char** strings, size_t N)
@@ -247,3 +249,4 @@ msd_A2_adaptive(unsigned char** strings, size_t N)
 	for (size_t i=0; i < N; ++i) strings[i] = cache[i].ptr;
 	free(cache);
 }
+ROUTINE_REGISTER_SINGLECORE(msd_A2_adaptive, "msd_A2_adaptive")

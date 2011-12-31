@@ -34,6 +34,7 @@
  *   Link - http://www.springerlink.com/content/aqjvtlhtx9g8ncdx
  */
 
+#include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
 #include "util/median.h"
@@ -306,3 +307,10 @@ void multikey_simd2(unsigned char** strings, size_t n)
 
 void multikey_simd4(unsigned char** strings, size_t n)
 { multikey_simd<uint32_t>(strings, n, 0); }
+
+ROUTINE_REGISTER_SINGLECORE(multikey_simd1,
+		"multikey_simd with 1byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_simd2,
+		"multikey_simd with 2byte alphabet")
+ROUTINE_REGISTER_SINGLECORE(multikey_simd4,
+		"multikey_simd with 4byte alphabet")

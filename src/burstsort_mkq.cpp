@@ -26,6 +26,7 @@
  * based on subinputs.
  */
 
+#include "routine.h"
 #include "util/get_char.h"
 #include "util/median.h"
 #include <iostream>
@@ -261,6 +262,12 @@ void burstsort_mkq_simpleburst_2(unsigned char** strings, size_t N)
 void burstsort_mkq_simpleburst_4(unsigned char** strings, size_t N)
 { burstsort_mkq_simpleburst<uint32_t>(strings, N); }
 
+ROUTINE_REGISTER_SINGLECORE(burstsort_mkq_simpleburst_1,
+		"burstsort_mkq 1byte alphabet with simpleburst")
+ROUTINE_REGISTER_SINGLECORE(burstsort_mkq_simpleburst_2,
+		"burstsort_mkq 2byte alphabet with simpleburst")
+ROUTINE_REGISTER_SINGLECORE(burstsort_mkq_simpleburst_4,
+		"burstsort_mkq 4byte alphabet with simpleburst")
 
 template <typename CharT>
 static inline void
@@ -282,3 +289,10 @@ void burstsort_mkq_recursiveburst_2(unsigned char** strings, size_t N)
 
 void burstsort_mkq_recursiveburst_4(unsigned char** strings, size_t N)
 { burstsort_mkq_recursiveburst<uint32_t>(strings, N); }
+
+ROUTINE_REGISTER_SINGLECORE(burstsort_mkq_recursiveburst_1,
+		"burstsort_mkq 1byte alphabet with recursiveburst")
+ROUTINE_REGISTER_SINGLECORE(burstsort_mkq_recursiveburst_2,
+		"burstsort_mkq 2byte alphabet with recursiveburst")
+ROUTINE_REGISTER_SINGLECORE(burstsort_mkq_recursiveburst_4,
+		"burstsort_mkq 4byte alphabet with recursiveburst")

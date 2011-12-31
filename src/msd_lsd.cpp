@@ -24,6 +24,7 @@
  * the buffer. This variant can be seen as a hybrid of MSD and LSD radix sorts.
  */
 
+#include "routine.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -216,3 +217,25 @@ void msd_A_lsd_adaptive10(unsigned char** strings, size_t N)
 { msd_A_lsd_adaptive<10>(strings, N); }
 void msd_A_lsd_adaptive12(unsigned char** strings, size_t N)
 { msd_A_lsd_adaptive<12>(strings, N); }
+
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd4,
+		"msd_A_lsd with 4byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd6,
+		"msd_A_lsd with 6byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd8,
+		"msd_A_lsd with 8byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd10,
+		"msd_A_lsd with 10byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd12,
+		"msd_A_lsd with 12byte cache")
+
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd_adaptive4,
+		"msd_A_lsd_adaptive with 4byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd_adaptive6,
+		"msd_A_lsd_adaptive with 6byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd_adaptive8,
+		"msd_A_lsd_adaptive with 8byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd_adaptive10,
+		"msd_A_lsd_adaptive with 10byte cache")
+ROUTINE_REGISTER_SINGLECORE(msd_A_lsd_adaptive12,
+		"msd_A_lsd_adaptive with 12byte cache")

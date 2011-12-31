@@ -29,6 +29,7 @@
  * paper, but they mainly focus on the radix sort variant.
  */
 
+#include "routine.h"
 #include "util/median.h"
 #include <cassert>
 #include <algorithm>
@@ -235,3 +236,6 @@ void multikey_cache4(unsigned char** strings, size_t n)
 
 void multikey_cache8(unsigned char** strings, size_t n)
 { multikey_cache<8>(strings, n, 0); }
+
+ROUTINE_REGISTER_SINGLECORE(multikey_cache4, "multikey_cache with 4byte cache")
+ROUTINE_REGISTER_SINGLECORE(multikey_cache8, "multikey_cache with 8byte cache")

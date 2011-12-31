@@ -77,6 +77,7 @@
  *     }
  */
 
+#include "routine.h"
 #include "util/debug.h"
 #include "util/insertion_sort.h"
 #include <algorithm>
@@ -721,3 +722,25 @@ void funnelsort_64way_dfs(unsigned char** strings, size_t n)
 { funnelsort_Kway<64, buffer_layout_dfs>(strings, n); }
 void funnelsort_128way_dfs(unsigned char** strings, size_t n)
 { funnelsort_Kway<128, buffer_layout_dfs>(strings, n); }
+
+ROUTINE_REGISTER_SINGLECORE(funnelsort_8way_bfs,
+		"funnelsort_8way_bfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_16way_bfs,
+		"funnelsort_16way_bfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_32way_bfs,
+		"funnelsort_32way_bfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_64way_bfs,
+		"funnelsort_64way_bfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_128way_bfs,
+		"funnelsort_128way_bfs")
+
+ROUTINE_REGISTER_SINGLECORE(funnelsort_8way_dfs,
+		"funnelsort_8way_dfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_16way_dfs,
+		"funnelsort_16way_dfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_32way_dfs,
+		"funnelsort_32way_dfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_64way_dfs,
+		"funnelsort_64way_dfs")
+ROUTINE_REGISTER_SINGLECORE(funnelsort_128way_dfs,
+		"funnelsort_128way_dfs")

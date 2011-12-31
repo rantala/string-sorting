@@ -34,6 +34,7 @@
  * large, and normal alphabet otherwise.
  */
 
+#include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
 #include <cstring>
@@ -179,11 +180,13 @@ void msd_D_##name(unsigned char** strings, size_t n)                           \
         vec<unsigned char*> buckets[256];                                      \
         msd_D(strings, n, 0, buckets);                                         \
 }                                                                              \
+ROUTINE_REGISTER_SINGLECORE(msd_D_##name, "msd_D_"#name)                       \
 void msd_D_##name##_adaptive(unsigned char** strings, size_t n)                \
 {                                                                              \
         vec<unsigned char*> buckets[0x10000];                                  \
         msd_D_adaptive(strings, n, 0, buckets);                                \
-}
+}                                                                              \
+ROUTINE_REGISTER_SINGLECORE(msd_D_##name##_adaptive, "msd_D_"#name"_adaptive")
 
 #define MAKE_ALG1(vec) MAKE_ALG2(vec, vec)
 

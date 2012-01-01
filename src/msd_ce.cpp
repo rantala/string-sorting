@@ -57,6 +57,10 @@
  *
  * msd_CE6:
  *   - Manually unrolls the loop that populates the `oracle' array.
+ *
+ * msd_CE7:
+ *   - Check for sorted (sub)inputs to avoid the distribution step when not
+ *     required.
  */
 
 #include "routine.h"
@@ -410,3 +414,76 @@ void msd_CE6(unsigned char** strings, size_t n)
 }
 ROUTINE_REGISTER_SINGLECORE(msd_CE6,
 	"CE6: oracle+loop fission+adaptive+16bit counter+prealloc+unroll")
+
+static void
+msd_CE7_(unsigned char** strings, size_t n, size_t depth,
+		uint16_t* oracle, unsigned char** sorted)
+{
+	if (n < 0x10000) {
+		msd_CE2_16bit_5(strings, n, depth, (unsigned char*)oracle, sorted);
+		return;
+	}
+	{
+		size_t i;
+		for (i=0; i < n-n%2; i+=2) {
+			unsigned char* str1 = strings[i];
+			unsigned char* str2 = strings[i+1];
+			uint16_t ch1 = get_char<uint16_t>(str1, depth);
+			uint16_t ch2 = get_char<uint16_t>(str2, depth);
+			oracle[i  ] = ch1;
+			oracle[i+1] = ch2;
+		}
+		for (; i < n; ++i)
+			oracle[i] = get_char<uint16_t>(strings[i], depth);
+	}
+	size_t* restrict bucketsize = (size_t*)
+		calloc(0x10000, sizeof(size_t));
+	int is_sorted = 1;
+	{
+		size_t i;
+		uint16_t prev_ch = oracle[0];
+		++bucketsize[prev_ch];
+		for (i=1; i < n; ++i) {
+			uint16_t ch = oracle[i];
+			++bucketsize[ch];
+			if (ch > prev_ch) {
+				is_sorted = 0;
+				++i;
+				break;
+			}
+			prev_ch = ch;
+		}
+		for (; i < n; ++i)
+			++bucketsize[oracle[i]];
+	}
+	if (is_sorted)
+		goto in_order;
+	static size_t bucketindex[0x10000];
+	bucketindex[0] = 0;
+	for (size_t i=1; i < 0x10000; ++i)
+		bucketindex[i] = bucketindex[i-1]+bucketsize[i-1];
+	for (size_t i=0; i < n; ++i)
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	memcpy(strings, sorted, n*sizeof(unsigned char*));
+in_order:
+	size_t bsum = bucketsize[0];
+	for (size_t i=1; i < 0x10000; ++i) {
+		if (bucketsize[i] == 0) continue;
+		if (i & 0xFF) msd_CE7_(strings+bsum, bucketsize[i],
+				depth+2, oracle, sorted);
+		bsum += bucketsize[i];
+	}
+	free(bucketsize);
+}
+void msd_CE7(unsigned char** strings, size_t n)
+{
+	uint16_t* restrict oracle = (uint16_t*)
+		malloc(n*sizeof(uint16_t));
+	unsigned char** sorted = (unsigned char**)
+		malloc(n*sizeof(unsigned char*));
+	msd_CE7_(strings, n, 0, oracle, sorted);
+	free(oracle);
+	free(sorted);
+}
+ROUTINE_REGISTER_SINGLECORE(msd_CE7,
+	"CE7: oracle+loop fission+adaptive+16bit counter+prealloc+unroll+sortedness")

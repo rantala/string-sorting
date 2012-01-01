@@ -85,7 +85,7 @@ copy(const BucketT& bucket, OutputIterator dst)
 	std::copy(bucket.begin(), bucket.end(), dst);
 }
 
-template <typename Bucket>
+template <typename Bucket, typename BucketsizeType>
 static void
 msd_D(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 {
@@ -107,7 +107,7 @@ msd_D(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 	for (; i < n; ++i) {
 		buckets[strings[i][depth]].push_back(strings[i]);
 	}
-	boost::array<size_t, 256> bucketsize;
+	boost::array<BucketsizeType, 256> bucketsize;
 	for (unsigned i=0; i < 256; ++i) {
 		bucketsize[i] = buckets[i].size();
 	}
@@ -123,7 +123,7 @@ msd_D(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 	pos = bucketsize[0];
 	for (unsigned i=1; i < 256; ++i) {
 		if (bucketsize[i] == 0) continue;
-		msd_D(strings+pos, bucketsize[i], depth+1, buckets);
+		msd_D<Bucket, BucketsizeType>(strings+pos, bucketsize[i], depth+1, buckets);
 		pos += bucketsize[i];
 	}
 }
@@ -133,7 +133,7 @@ static void
 msd_D_adaptive(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 {
 	if (n < 0x10000) {
-		msd_D(strings, n, depth, buckets);
+		msd_D<Bucket, uint16_t>(strings, n, depth, buckets);
 		return;
 	}
 	size_t* bucketsize = (size_t*) malloc(0x10000 * sizeof(size_t));
@@ -178,7 +178,7 @@ msd_D_adaptive(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 void msd_D_##name(unsigned char** strings, size_t n)                           \
 {                                                                              \
         vec<unsigned char*> buckets[256];                                      \
-        msd_D(strings, n, 0, buckets);                                         \
+        msd_D<vec<unsigned char*>, size_t>(strings, n, 0, buckets);            \
 }                                                                              \
 ROUTINE_REGISTER_SINGLECORE(msd_D_##name, "msd_D_"#name)                       \
 void msd_D_##name##_adaptive(unsigned char** strings, size_t n)                \

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2012 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -55,7 +55,7 @@
 #include <cassert>
 #include <cstring>
 
-void msd_CE2(unsigned char** strings, size_t n, size_t depth);
+void msd_CE2_16bit(unsigned char** strings, size_t n, size_t depth);
 
 typedef unsigned char** Block;
 //typedef std::deque<Block> FreeBlocks;
@@ -78,7 +78,7 @@ static void
 msd_D(unsigned char** strings, size_t n, size_t depth)
 {
 	if (n < 0x10000) {
-		msd_CE2(strings, n, depth);
+		msd_CE2_16bit(strings, n, depth);
 		return;
 	}
 	assert(n > B);

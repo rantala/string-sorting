@@ -51,7 +51,9 @@
  *   - uses 16-bit bucket counter type in msd_CE2 that is used for inputs
  *     smaller than 0x10000
  *
- * CE4 is the fastest implementation in most cases.
+ * msd_CE5:
+ *   - Allocates the `oracle' and `sorted' arrays just one time before sorting
+ *     to reduce the amount of malloc() and free() calls.
  */
 
 #include "routine.h"
@@ -277,3 +279,77 @@ msd_CE4(unsigned char** strings, size_t n, size_t depth)
 void msd_CE4(unsigned char** strings, size_t n)
 { msd_CE4(strings, n, 0); }
 ROUTINE_REGISTER_SINGLECORE(msd_CE4, "CE4: oracle+loop fission+adaptive+16bit counter")
+
+static void
+msd_CE2_16bit_5(unsigned char** strings, size_t n, size_t depth,
+		unsigned char* oracle, unsigned char** sorted)
+{
+	if (n < 32) {
+		insertion_sort(strings, n, depth);
+		return;
+	}
+	uint16_t bucketsize[256] = {0};
+	for (size_t i=0; i < n; ++i)
+		oracle[i] = strings[i][depth];
+	for (size_t i=0; i < n; ++i)
+		++bucketsize[oracle[i]];
+	uint16_t bucketindex[256];
+	bucketindex[0] = 0;
+	for (size_t i=1; i < 256; ++i)
+		bucketindex[i] = bucketindex[i-1]+bucketsize[i-1];
+	for (size_t i=0; i < n; ++i)
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	memcpy(strings, sorted, n*sizeof(unsigned char*));
+	size_t bsum = bucketsize[0];
+	for (size_t i=1; i < 256; ++i) {
+		if (bucketsize[i] == 0) continue;
+		msd_CE2_16bit_5(strings+bsum, bucketsize[i], depth+1,
+				oracle, sorted);
+		bsum += bucketsize[i];
+	}
+}
+
+static void
+msd_CE5(unsigned char** strings, size_t n, size_t depth,
+		uint16_t* oracle, unsigned char** sorted)
+{
+	if (n < 0x10000) {
+		msd_CE2_16bit_5(strings, n, depth,
+			(unsigned char*)oracle, sorted);
+		return;
+	}
+	for (size_t i=0; i < n; ++i)
+		oracle[i] = get_char<uint16_t>(strings[i], depth);
+	size_t* restrict bucketsize = (size_t*)
+		calloc(0x10000, sizeof(size_t));
+	for (size_t i=0; i < n; ++i)
+		++bucketsize[oracle[i]];
+	static size_t bucketindex[0x10000];
+	bucketindex[0] = 0;
+	for (size_t i=1; i < 0x10000; ++i)
+		bucketindex[i] = bucketindex[i-1]+bucketsize[i-1];
+	for (size_t i=0; i < n; ++i)
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	memcpy(strings, sorted, n*sizeof(unsigned char*));
+	size_t bsum = bucketsize[0];
+	for (size_t i=1; i < 0x10000; ++i) {
+		if (bucketsize[i] == 0) continue;
+		if (i & 0xFF) msd_CE5(strings+bsum, bucketsize[i],
+				depth+2, oracle, sorted);
+		bsum += bucketsize[i];
+	}
+	free(bucketsize);
+}
+
+void msd_CE5(unsigned char** strings, size_t n)
+{
+	uint16_t* restrict oracle = (uint16_t*)
+		malloc(n*sizeof(uint16_t));
+	unsigned char** sorted = (unsigned char**)
+		malloc(n*sizeof(unsigned char*));
+	msd_CE5(strings, n, 0, oracle, sorted);
+	free(oracle);
+	free(sorted);
+}
+ROUTINE_REGISTER_SINGLECORE(msd_CE5,
+	"CE5: oracle+loop fission+adaptive+16bit counter+prealloc")

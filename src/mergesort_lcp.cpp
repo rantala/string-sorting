@@ -301,6 +301,9 @@ check_lcps(unsigned char* latest,
 static void
 check_input(unsigned char** from0, lcp_t* lcp_input0, size_t n0)
 {
+	(void) from0;
+	(void) lcp_input0;
+	(void) n0;
 #ifndef NDEBUG
 	for(size_t i=1;i<n0;++i)if(cmp(from0[i-1],from0[i])>0){
 		debug()<<"Oops: ''"<<from0[i-1]<<"'' > ''"<<from0[i]<<"''\n";}
@@ -826,6 +829,9 @@ check_lcp_and_cache(unsigned char* latest,
                     unsigned char* from0, lcp_t lcp0, CharT cache0,
                     unsigned char* from1, lcp_t lcp1, CharT cache1)
 {
+	(void) latest;
+	(void) from0; (void) lcp0; (void) cache0;
+	(void) from1; (void) lcp1; (void) cache1;
 	/*debug()<<"******** CHECK ********\n"
 	       <<"Latest: '"<<latest<<"'\n"
 	       <<"     0: '"<<from0<<"', lcp="<<lcp0<<", cache="<<to_str(cache0)<<"\n"
@@ -841,6 +847,10 @@ template <typename CharT>
 static void
 check_input(unsigned char** from0, lcp_t* lcp_input0, CharT* cache_input0, size_t n0)
 {
+	(void) from0;
+	(void) lcp_input0;
+	(void) cache_input0;
+	(void) n0;
 #ifndef NDEBUG
 	for(size_t i=1;i<n0;++i)if(cmp(from0[i-1],from0[i])>0){
 		debug()<<"Oops: ''"<<from0[i-1]<<"'' > ''"<<from0[i]<<"''\n";}

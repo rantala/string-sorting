@@ -179,6 +179,7 @@ std::ostream& operator<<(std::ostream& strm, const loser_tree<T>& tree)
 		strm<<i<<": "<<tree._streams[i].stream
 		    <<", n="<<tree._streams[i].n<<"\n";
 	strm<<"-------------------/\n";
+	return strm;
 }
 #endif //NDEBUG
 #endif //LOSERTREE_H

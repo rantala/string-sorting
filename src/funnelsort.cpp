@@ -160,32 +160,32 @@ template <unsigned K, unsigned I> struct buffer_size
 { enum { value=buffer_size<K,I-1>::value }; };
 template <unsigned K> struct buffer_size<K,0> { enum { value=0 }; };
 
-// DFS layout for buffers.
-//
-// First places the buffer for the left subnode, then recursively for the left
-// subtree, then the buffer for the right subnode, and finally recursively for
-// the right subtree.
-//
-// Example with K=8.
-//
-//             (output)
-//
-//                (o)
-//                / \
-//               /   \
-//            1 /     \ 4
-//             /       \
-//            /         \
-//          (o)         (o)
-//          / \         / \
-//       2 /   \ 3   5 /   \ 6
-//        /     \     /     \
-//      (o)     (o) (o)     (o)
-//      ^ ^     ^ ^ ^ ^     ^ ^
-//      | |     | | | |     | |
-//
-//          (input streams)
-//
+/* DFS layout for buffers.
+ *
+ * First places the buffer for the left subnode, then recursively for the left
+ * subtree, then the buffer for the right subnode, and finally recursively for
+ * the right subtree.
+ *
+ * Example with K=8.
+ *
+ *             (output)
+ *
+ *                (o)
+ *                / \
+ *               /   \
+ *            1 /     \ 4
+ *             /       \
+ *            /         \
+ *          (o)         (o)
+ *          / \         / \
+ *       2 /   \ 3   5 /   \ 6
+ *        /     \     /     \
+ *      (o)     (o) (o)     (o)
+ *      ^ ^     ^ ^ ^ ^     ^ ^
+ *      | |     | | | |     | |
+ *
+ *          (input streams)
+ */
 template <unsigned K, unsigned I> struct buffer_layout_dfs
 { enum { lindex=(I%2==0?buffer_layout_dfs<K,I/2>::lindex
                        :buffer_layout_dfs<K,I/2>::rindex)
@@ -194,28 +194,28 @@ template <unsigned K, unsigned I> struct buffer_layout_dfs
 template <unsigned K> struct buffer_layout_dfs<K,0>
 { enum { lindex=0, rindex=0 }; };
 
-// BFS layout for buffers.
-//
-// Example with K=8.
-//
-//             (output)
-//
-//                (o)
-//                / \
-//               /   \
-//            1 /     \ 2
-//             /       \
-//            /         \
-//          (o)         (o)
-//          / \         / \
-//       3 /   \ 4   5 /   \ 6
-//        /     \     /     \
-//      (o)     (o) (o)     (o)
-//      ^ ^     ^ ^ ^ ^     ^ ^
-//      | |     | | | |     | |
-//
-//          (input streams)
-//
+/* BFS layout for buffers.
+ *
+ * Example with K=8.
+ *
+ *             (output)
+ *
+ *                (o)
+ *                / \
+ *               /   \
+ *            1 /     \ 2
+ *             /       \
+ *            /         \
+ *          (o)         (o)
+ *          / \         / \
+ *       3 /   \ 4   5 /   \ 6
+ *        /     \     /     \
+ *      (o)     (o) (o)     (o)
+ *      ^ ^     ^ ^ ^ ^     ^ ^
+ *      | |     | | | |     | |
+ *
+ *          (input streams)
+ */
 template <unsigned K, unsigned I> struct buffer_layout_bfs
 { enum { lindex=buffer_layout_bfs<K,I-1>::rindex+buffer_size<K,I-1>::value,
          rindex=lindex+buffer_size<K,I>::value }; };

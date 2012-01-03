@@ -100,6 +100,8 @@ struct Stream { unsigned char** restrict stream; size_t n; };
 static void
 check_input(unsigned char** from0, size_t n0)
 {
+	(void) from0;
+	(void) n0;
 #ifndef NDEBUG
 	for(size_t i=1;i<n0;++i)if(cmp(from0[i-1],from0[i])>0){
 		debug()<<"Oops: ''"<<from0[i-1]<<"'' > ''"<<from0[i]<<"''\n";}

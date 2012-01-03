@@ -76,6 +76,8 @@
 static inline unsigned lcp(unsigned char a, unsigned char b)
 {
 	assert(a != b);
+	(void)a;
+	(void)b;
 	return 0;
 }
 static inline unsigned lcp(uint16_t a, uint16_t b)

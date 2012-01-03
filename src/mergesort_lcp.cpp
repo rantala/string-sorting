@@ -789,7 +789,12 @@ static std::string to_str(uint32_t c)
 
 // Calculates the LCP between two string caches.
 static inline unsigned lcp(unsigned char a, unsigned char b)
-{ assert(0); return 0; }
+{
+	assert(0);
+	(void) a;
+	(void) b;
+	return 0;
+}
 static inline unsigned lcp(uint16_t a, uint16_t b)
 {
 	assert(a != b or a==0);

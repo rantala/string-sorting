@@ -74,7 +74,8 @@ multikey_block(unsigned char** strings, size_t n, size_t depth)
 	static FreeBlocks freeblocks;
 	const CharT partval = pseudo_median<CharT>(strings, n, depth);
 	BackLinks backlinks(n/B+1);
-	boost::array<size_t, 3> bucketsize = {0,0,0};
+	boost::array<size_t, 3> bucketsize;
+	bucketsize.assign(0);
 	buckets[0].clear();
 	buckets[1].clear();
 	buckets[2].clear();

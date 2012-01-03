@@ -86,23 +86,22 @@ multikey_dynamic(unsigned char** strings, size_t N, size_t depth)
 		const unsigned b = get_bucket(c, partval);
 		buckets[b].push_back(strings[i]);
 	}
-	boost::array<size_t, 3> bucketsize = {
-		buckets[0].size(),
-		buckets[1].size(),
-		buckets[2].size()};
-	assert(bucketsize[0] + bucketsize[1] + bucketsize[2] == N);
-	if (bucketsize[0]) copy(buckets[0], strings);
-	if (bucketsize[1]) copy(buckets[1], strings+bucketsize[0]);
-	if (bucketsize[2]) copy(buckets[2], strings+bucketsize[0]+bucketsize[1]);
+	const size_t bucketsize0 = buckets[0].size();
+	const size_t bucketsize1 = buckets[1].size();
+	const size_t bucketsize2 = buckets[2].size();
+	assert(bucketsize0 + bucketsize1 + bucketsize2 == N);
+	if (bucketsize0) copy(buckets[0], strings);
+	if (bucketsize1) copy(buckets[1], strings+bucketsize0);
+	if (bucketsize2) copy(buckets[2], strings+bucketsize0+bucketsize1);
 	clear_bucket(buckets[0]);
 	clear_bucket(buckets[1]);
 	clear_bucket(buckets[2]);
-	multikey_dynamic<BucketT, CharT>(strings, bucketsize[0], depth);
+	multikey_dynamic<BucketT, CharT>(strings, bucketsize0, depth);
 	if (not is_end(partval))
-		multikey_dynamic<BucketT, CharT>(strings+bucketsize[0],
-				bucketsize[1], depth+sizeof(CharT));
-	multikey_dynamic<BucketT, CharT>(strings+bucketsize[0]+bucketsize[1],
-			bucketsize[2], depth);
+		multikey_dynamic<BucketT, CharT>(strings+bucketsize0,
+				bucketsize1, depth+sizeof(CharT));
+	multikey_dynamic<BucketT, CharT>(strings+bucketsize0+bucketsize1,
+			bucketsize2, depth);
 }
 
 void multikey_dynamic_vector1(unsigned char** strings, size_t n)

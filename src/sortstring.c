@@ -189,6 +189,12 @@ input_copy(const char *fname, unsigned char **text_, size_t *text_len_)
 		exit(1);
 	}
 	off_t filesize = file_size(fd);
+	if (filesize <= 0) {
+		fprintf(stderr,
+			"ERROR: input file '%s' empty.\n",
+			fname);
+		exit(1);
+	}
 	unsigned char *text = alloc_text(filesize);
 	ssize_t ret = read(fd, text, filesize);
 	if (ret < filesize) {
@@ -223,6 +229,12 @@ input_mmap(const char *fname, unsigned char **text, size_t *text_len)
 		exit(1);
 	}
 	off_t filesize = file_size(fd);
+	if (filesize <= 0) {
+		fprintf(stderr,
+			"ERROR: input file '%s' empty.\n",
+			fname);
+		exit(1);
+	}
 	void *raw = mmap(0, filesize, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (raw == MAP_FAILED) {
 		fprintf(stderr,
@@ -258,6 +270,12 @@ create_strings_delim(unsigned char *text, size_t text_len, int delim,
 	for (size_t i=0; i < text_len; ++i)
 		if (text[i] == delim)
 			++strs_cnt;
+	if (strs_cnt == 0) {
+		fprintf(stderr,
+			"ERROR: unable to read any lines from the input "
+			"file.\n");
+		exit(1);
+	}
 	unsigned char **strs = alloc_pointers(strs_cnt);
 	unsigned char *line_start = text;
 	for (size_t j=0, i=0; i < text_len; ++i)

@@ -75,7 +75,7 @@ open_log_file(void)
 }
 
 static void
-opcontrol_start()
+opcontrol_start(void)
 {
 	int ret = system("opcontrol --start");
 	if (ret == -1 || WIFEXITED(ret) == 0 || WEXITSTATUS(ret) != 0) {
@@ -90,7 +90,7 @@ opcontrol_start()
 }
 
 static void
-opcontrol_stop()
+opcontrol_stop(void)
 {
 	int ret = system("opcontrol --stop");
 	if (ret == -1 || WIFEXITED(ret) == 0 || WEXITSTATUS(ret) != 0) {

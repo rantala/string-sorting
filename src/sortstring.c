@@ -395,7 +395,6 @@ print_timing_results_xml(void)
 static void
 print_timing_results_human(void)
 {
-	puts("Time:");
 	printf("%10.2f ms : wall-clock\n", gettime_wall_clock());
 	printf("%10.2f ms : user\n", gettime_user());
 	printf("%10.2f ms : sys\n", gettime_sys());
@@ -415,6 +414,7 @@ print_timing_results(void)
 void
 run(const struct routine *r, unsigned char **strings, size_t n)
 {
+	puts("Timing ...");
 	if (opts.oprofile)
 		opcontrol_start();
 	timing_start();
@@ -498,16 +498,11 @@ routine_information(const struct routine *r)
 }
 
 static void
-input_information(const char *fname,
-		unsigned char *text, size_t text_len,
+input_information(unsigned char *text, size_t text_len,
 		unsigned char **strings, size_t strings_len)
 {
 	size_t input_mb = text_len / (1024*1024);
 	size_t input_kb = text_len / 1024;
-	if (opts.text_raw)
-		printf("Input: %s (RAW)\n", bazename(fname));
-	else
-		printf("Input: %s\n", bazename(fname));
 	if (input_mb)
 		printf("    size: %zu MB (%zu kB, %zu bytes)\n",
 				input_mb, input_kb, text_len);
@@ -686,6 +681,9 @@ int main(int argc, char **argv)
 	srand48(seed);
 	if (log_file)
 		fprintf(log_file, "Random seed: %lu.\n", seed);
+	printf("Input (%s): %s ...\n",
+			opts.text_raw ? "RAW" : "plain",
+			bazename(filename));
 	unsigned char *text;
 	unsigned char **strings;
 	size_t text_len, strings_len;
@@ -697,7 +695,7 @@ int main(int argc, char **argv)
 	} else {
 		create_strings(text, text_len, &strings, &strings_len);
 	}
-	input_information(filename, text, text_len, strings, strings_len);
+	input_information(text, text_len, strings, strings_len);
 	run(opts.r, strings, strings_len);
 	free_text(text, text_len);
 	free_pointers(strings, strings_len);

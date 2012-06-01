@@ -31,6 +31,7 @@ set(INTERNAL_SRCS
 	src/routines.c
 	src/sortstring.c
 	src/util/timing.c
+	src/util/cpus_allowed.c
 	src/util/vmainfo.c)
 
 set(EXTERNAL_SRCS

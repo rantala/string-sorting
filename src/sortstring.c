@@ -25,6 +25,7 @@
 #include "timing.h"
 #include "vmainfo.h"
 #include "routines.h"
+#include "cpus_allowed.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -529,6 +530,36 @@ input_information(unsigned char *text, size_t text_len,
 }
 
 static void
+cpu_information(void)
+{
+	int i;
+	int maxcpu = -1;
+	size_t cpus_setsize = 0;
+	char *cpus_al = cpus_allowed_list();
+	cpu_set_t *cpus = cpus_allowed(&cpus_setsize, &maxcpu);
+	if (!cpus_al && !cpus)
+		return;
+	printf("CPU information:\n");
+	if (cpus_al)
+		printf("    CPUs allowed: %s\n", cpus_al);
+	for (i=0; i < maxcpu; ++i) {
+		if (CPU_ISSET_S(i, cpus_setsize, cpus)) {
+			int min_freq, max_freq;
+			printf("    CPU%d", i);
+			min_freq = cpu_scaling_min_freq(i);
+			max_freq = cpu_scaling_max_freq(i);
+			if (min_freq != -1 && max_freq != -1)
+				printf(", scaling frequencies: [%dMHz .. %dMHz]",
+						max_freq/1000, min_freq/1000);
+			puts("");
+		}
+	}
+	putchar('\n');
+	free(cpus_al);
+	free(cpus);
+}
+
+static void
 usage(void)
 {
 	puts(
@@ -676,6 +707,7 @@ int main(int argc, char **argv)
 		fprintf(log_file, "===START===\n");
 	print_cmdline(argc, argv, log_file);
 	routine_information(opts.r);
+	cpu_information();
 	unsigned long seed = getpid()*time(0);
 	//seed = 0xdeadbeef;
 	srand48(seed);

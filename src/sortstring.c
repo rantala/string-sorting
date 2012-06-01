@@ -40,7 +40,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-struct Options {
+static struct {
 	const struct routine *r;
 	char *write_filename;
 	unsigned suffixsorting    : 1;
@@ -51,9 +51,8 @@ struct Options {
 	unsigned hugetlb_text     : 1;
 	unsigned hugetlb_pointers : 1;
 	unsigned text_raw         : 1;
-};
+} opts;
 
-static struct Options opts;
 static FILE *log_file;
 
 static void

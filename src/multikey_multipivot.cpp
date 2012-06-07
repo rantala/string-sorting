@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2012 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -449,7 +449,8 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 		bsum += b;
 	}
 	if ((b = bucketsize[middle_bucket(Pivots-1)])) {
-		multikey_multipivot<CharT, Pivots>(strings+bsum,
+		if (not is_end(pivots[Pivots-1]))
+			multikey_multipivot<CharT, Pivots>(strings+bsum,
 				b, depth+sizeof(CharT));
 		bsum += b;
 	}

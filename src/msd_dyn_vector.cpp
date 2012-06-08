@@ -183,8 +183,9 @@ void msd_D_##name(unsigned char** strings, size_t n)                           \
 ROUTINE_REGISTER_SINGLECORE(msd_D_##name, "msd_D_"#name)                       \
 void msd_D_##name##_adaptive(unsigned char** strings, size_t n)                \
 {                                                                              \
-        vec<unsigned char*> buckets[0x10000];                                  \
+        vec<unsigned char*>* buckets = new vec<unsigned char*>[0x10000];       \
         msd_D_adaptive(strings, n, 0, buckets);                                \
+        delete [] buckets;                                                     \
 }                                                                              \
 ROUTINE_REGISTER_SINGLECORE(msd_D_##name##_adaptive, "msd_D_"#name"_adaptive")
 

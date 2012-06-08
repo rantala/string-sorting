@@ -112,8 +112,10 @@ vma_info(void *ptr)
 					pairs[pairs_cnt++] = line;
 					line = NULL;
 					line_n = 0;
-				} else
+				} else {
+					free(line);
 					goto done;
+				}
 			}
 		}
 	}

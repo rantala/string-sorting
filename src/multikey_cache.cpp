@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2012 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -31,37 +31,37 @@
 
 #include "routine.h"
 #include "util/median.h"
-#include <cassert>
 #include <algorithm>
-#include <boost/array.hpp>
-#include <boost/type_traits/is_signed.hpp>
 
-// We assume Cacheblock is POD type.
 template <unsigned CachedChars>
-struct Cacheblock
+struct Cacheblock;
+
+template <>
+struct Cacheblock<4>
 {
-	boost::array<unsigned char, CachedChars> chars;
+	typedef uint32_t CacheType;
+
+	uint32_t cached_bytes;
+	unsigned char* ptr;
+};
+
+template <>
+struct Cacheblock<8>
+{
+	typedef uint64_t CacheType;
+
+	uint64_t cached_bytes;
 	unsigned char* ptr;
 };
 
 struct Cmp
 {
-	int operator()(const Cacheblock<4>& lhs,
-	               const Cacheblock<4>& rhs) const
+	template <unsigned CachedChars>
+	int operator()(const Cacheblock<CachedChars>& lhs,
+	               const Cacheblock<CachedChars>& rhs) const
 	{
-		uint32_t* A = (uint32_t*) lhs.chars.data();
-		uint32_t* B = (uint32_t*) rhs.chars.data();
-		if (*A > *B) return 1;
-		if (*A < *B) return -1;
-		return 0;
-	}
-	int operator()(const Cacheblock<8>& lhs,
-	               const Cacheblock<8>& rhs) const
-	{
-		uint64_t* A = (uint64_t*) lhs.chars.data();
-		uint64_t* B = (uint64_t*) rhs.chars.data();
-		if (*A > *B) return 1;
-		if (*A < *B) return -1;
+		if (lhs.cached_bytes > rhs.cached_bytes) return 1;
+		if (lhs.cached_bytes < rhs.cached_bytes) return -1;
 		return 0;
 	}
 };
@@ -112,16 +112,15 @@ fill_cache(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 {
 	for (size_t i=0; i < N; ++i) {
 		unsigned si=0, ci=CachedChars-1; //string index, cache index
+		typename Cacheblock<CachedChars>::CacheType ch = 0;
 		while (ci < CachedChars) {
-			const unsigned char c = cache[i].ptr[depth+si];
-			cache[i].chars[ci] = c;
+			const typename Cacheblock<CachedChars>::CacheType c =
+				cache[i].ptr[depth+si];
+			ch |= (c << (ci*8));
 			--ci; ++si;
 			if (is_end(c)) break;
 		}
-		while (ci < CachedChars) {
-			cache[i].chars[ci] = 0;
-			--ci;
-		}
+		cache[i].cached_bytes = ch;
 	}
 }
 
@@ -142,16 +141,14 @@ multikey_cache(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 				++cnt;
 				continue;
 			}
-			if (cnt > 1 and cache[start].chars.front()) {
+			if (cnt > 1 and cache[start].cached_bytes & 0xFF)
 				insertion_sort(cache+start, cnt,
 						depth+CachedChars);
-			}
 			cnt = 1;
 			start = i+1;
 		}
-		if (cnt > 1 and cache[start].chars.front()) {
+		if (cnt > 1 and cache[start].cached_bytes & 0xFF)
 			insertion_sort(cache+start, cnt, depth+CachedChars);
-		}
 		return;
 	}
 	if (CacheDirty) {
@@ -209,7 +206,7 @@ multikey_cache(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 	// Now recurse.
 	multikey_cache<CachedChars, false>(cache, num_lt, depth);
 	multikey_cache<CachedChars, false>(cache+num_lt+num_eq, num_gt, depth);
-	if (partval.chars.front())
+	if (partval.cached_bytes & 0xFF)
 		multikey_cache<CachedChars, true>(
 			cache+num_lt, num_eq, depth+CachedChars);
 }

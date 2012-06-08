@@ -731,6 +731,8 @@ int main(int argc, char **argv)
 	run(opts.r, strings, strings_len);
 	free_text(text, text_len);
 	free_pointers(strings, strings_len);
-	if (log_file)
+	if (log_file) {
 		fprintf(log_file, "===DONE===\n");
+		fclose(log_file);
+	}
 }

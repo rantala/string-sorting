@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2008,2012 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -33,7 +33,7 @@ class vector_malloc
 {
 public:
 	vector_malloc() : _data(0), _size(0), _capacity(0) {}
-	~vector_malloc() { if (_data) free(_data); }
+	~vector_malloc() { free(_data); }
 	void push_back(const T& t)
 	{
 		if (_size == _capacity) { grow(); }
@@ -42,7 +42,7 @@ public:
 	}
 	void clear()
 	{
-		if (_data) free(_data);
+		free(_data);
 		_data = 0;
 		_size = 0;
 		_capacity = 0;
@@ -80,7 +80,7 @@ class vector_malloc_counter_clear
 {
 public:
 	vector_malloc_counter_clear() : _data(0), _size(0), _capacity(0) {}
-	~vector_malloc_counter_clear() { if (_data) free(_data); }
+	~vector_malloc_counter_clear() { free(_data); }
 	void push_back(const T& t)
 	{
 		if (_size == _capacity) { grow(); }

@@ -119,7 +119,7 @@ struct TempSpace
 						sizeof(cacheblock_t)));
 		}
 	}
-	void free()
+	void deallocate()
 	{
 		if (allocated) {
 			::free(allocated);
@@ -168,7 +168,7 @@ msd_A2(cacheblock_t* cache,
 	for (size_t i=0; i < N; ++i)
 		tmp[bucketindex[cache[i].bytes[cache_depth]]++] = cache[i];
 	copy(tmp, cache, N);
-	tmp.free();
+	tmp.deallocate();
 	size_t bsum = bucketsize[0];
 	for (unsigned i=1; i < 256; ++i) {
 		if (bucketsize[i] == 0) continue;
@@ -212,7 +212,7 @@ msd_A2_adaptive(cacheblock_t* cache,
 		tmp[bucketindex[bucket]++] = cache[i];
 	}
 	copy(tmp, cache, N);
-	tmp.free();
+	tmp.deallocate();
 	size_t bsum = bucketsize[0];
 	for (unsigned i=1; i < 0x10000; ++i) {
 		if (bucketsize[i] == 0) continue;

@@ -35,6 +35,7 @@ set(INTERNAL_SRCS
 	src/util/vmainfo.c)
 
 set(EXTERNAL_SRCS
+	external/lcp-quicksort.cpp
 	external/mbmradix.c
 	external/quicksort.c
 	external/mkqsort.c

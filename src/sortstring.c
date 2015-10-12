@@ -25,7 +25,7 @@
 #include "timing.h"
 #include "vmainfo.h"
 #include "routines.h"
-#include "cpus_allowed.h"
+//#include "cpus_allowed.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,9 +118,9 @@ alloc_bytes(size_t bytes, int hugetlb)
 {
 	int map_flags;
 	void *p;
-	map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
-	if (hugetlb)
-		map_flags |= MAP_HUGETLB;
+	map_flags = MAP_ANON | MAP_PRIVATE;
+        //	if (hugetlb)
+	//	map_flags |= MAP_HUGETLB;
 	p = mmap(NULL, bytes, PROT_READ | PROT_WRITE, map_flags, -1, 0);
 	if (p == MAP_FAILED) {
 		fprintf(stderr,
@@ -532,7 +532,7 @@ input_information(unsigned char *text, size_t text_len,
 static void
 cpu_information(void)
 {
-	int i;
+  /*	int i;
 	int maxcpu = -1;
 	size_t cpus_setsize = 0;
 	char *cpus_al = cpus_allowed_list();
@@ -557,6 +557,7 @@ cpu_information(void)
 	putchar('\n');
 	free(cpus_al);
 	free(cpus);
+  */
 }
 
 static void

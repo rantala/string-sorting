@@ -5,7 +5,7 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(src src/util)
 
-link_libraries(rt)
+#link_libraries(rt)
 
 set(INTERNAL_SRCS
 	src/msd_a.cpp
@@ -31,7 +31,7 @@ set(INTERNAL_SRCS
 	src/routines.c
 	src/sortstring.c
 	src/util/timing.c
-	src/util/cpus_allowed.c
+#	src/util/cpus_allowed.c
 	src/util/vmainfo.c)
 
 set(EXTERNAL_SRCS
@@ -68,12 +68,12 @@ if(USE_ICC)
 else(USE_ICC)
 	add_definitions(-msse2)
 	add_definitions(-Drestrict=__restrict__)
-	set(CMAKE_CXX_FLAGS_RELEASE        "-fopenmp -g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=native ${CMAKE_CXX_FLAGS_RELEASE}")
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-fopenmp -g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=native ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-	set(CMAKE_C_FLAGS_RELEASE          "-fopenmp -g -DNDEBUG -march=native ${CMAKE_C_FLAGS_RELEASE}")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-fopenmp -g -DNDEBUG -march=native ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-	set(CMAKE_CXX_FLAGS                "-Wall -Wextra ${CMAKE_CXX_FLAGS}")
-	set(CMAKE_C_FLAGS                  "-Wall -Wextra -std=c99 ${CMAKE_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS_RELEASE        " -g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=native ${CMAKE_CXX_FLAGS_RELEASE} -O3" )
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=native ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
+	set(CMAKE_C_FLAGS_RELEASE          " -g -DNDEBUG -march=native ${CMAKE_C_FLAGS_RELEASE} -O3")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO   " -g -DNDEBUG -march=native ${CMAKE_C_FLAGS_RELWITHDEBINFO} -O3")
+	set(CMAKE_CXX_FLAGS                "-Wall -Wextra ${CMAKE_CXX_FLAGS} -O3")
+	set(CMAKE_C_FLAGS                  "-Wall -Wextra -std=c99 ${CMAKE_C_FLAGS} -O3")
 endif(USE_ICC)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2")

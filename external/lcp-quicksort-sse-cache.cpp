@@ -31,7 +31,7 @@ class Metadata<void>{
 public:
   Lcp lcp;
 
-  void loadcache(unsigned char *s, Lcp l) {};
+  void loadcache(unsigned char *s, Lcp l) { lcp = l; };
   bool nonterminal() { return true; };
   bool cache_gt( Metadata<void> x ) { return false; }
 };
@@ -72,7 +72,7 @@ void exch( unsigned char *strings[], Metadata<CacheType> meta[], int I, int J) {
 }
 
 template<bool SSE, class CacheType>
-void strsort(unsigned char * strings[], Metadata<CacheType> meta[], int lo, int hi );
+void strsort(unsigned char * strings[], Metadata<CacheType> meta[], int lo, int hi, Lcp lcp );
 
 template <bool ascending, bool SSE, class CacheType>
 void lcpsort( unsigned char * strings[], Metadata<CacheType> meta[], int lo, int hi ) {
@@ -91,7 +91,7 @@ void lcpsort( unsigned char * strings[], Metadata<CacheType> meta[], int lo, int
   lcpsort<ascending, SSE>( strings, meta, lo, lt-1 );
   lcpsort<ascending, SSE>( strings, meta, gt+1, hi );
   if( pivot.nonterminal() )
-    strsort<SSE, CacheType>( strings, meta, lt, gt );
+    strsort<SSE, CacheType>( strings, meta, lt, gt, pivot.lcp );
 
 };
 
@@ -104,12 +104,11 @@ static void qexch( unsigned char **s, Metadata<CacheType> *l, int i, int dst, un
 }
 
 template < bool SSE, class CacheType >
-void strsort(unsigned char * strings[], Metadata<CacheType> meta[], int lo, int hi ) {
+void strsort(unsigned char * strings[], Metadata<CacheType> meta[], int lo, int hi, Lcp lcp ) {
   if ( hi <= lo ) return;
   int lt = lo, gt = hi;
 
   unsigned char * pivotStr = strings[lo];
-  long lcp = meta[lo].lcp;
 
   for( int i = lo + 1; i <= gt; ) {
       unsigned char *s = strings[i];
@@ -126,64 +125,22 @@ void strsort(unsigned char * strings[], Metadata<CacheType> meta[], int lo, int 
   lcpsort<true,  SSE, CacheType>( strings, meta, lo, lt-1 );
 };
 
-#define CTYPE uint8_t
-extern "C" void lcpquicksort_simd_cache1( unsigned char  * strings[], size_t n ) {
-  Metadata<CTYPE> *lcps = (Metadata<CTYPE> *) calloc( n, sizeof(Metadata<CTYPE>)); 
-  int i;
-  strsort<true, CTYPE>( strings, lcps, 0, n-1 );
-  free(lcps);
+
+template<bool SSE, class CacheType>
+void lcpquicksort( unsigned char  * strings[], size_t n ) {
+  Metadata<CacheType>* meta = new Metadata<CacheType>[n];
+  strsort<SSE, CacheType>( strings, meta, 0, n-1, 0 );
+  delete meta;
 }
 
+
+extern "C" void lcpquicksort_simd_cache1( unsigned char  * strings[], size_t n ) {
+  lcpquicksort<true, uint8_t>( strings, n );
+}
 ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache1,
 			     "LCP Quicksort SIMD with 1 byte cache")
-#define CTYPE uint32_t
-extern "C" void lcpquicksort_simd_cache4( unsigned char  * strings[], size_t n ) {
-  Metadata<CTYPE> *lcps = (Metadata<CTYPE> *) calloc( n, sizeof(Metadata<CTYPE>)); 
-  int i;
-  strsort<true, CTYPE>( strings, lcps, 0, n-1 );
-  free(lcps);
-}
-
-ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache4,
-			     "LCP Quicksort SIMD with 4 byte cache")
-#define CTYPE uint64_t
-extern "C" void lcpquicksort_simd_cache8( unsigned char  * strings[], size_t n ) {
-  Metadata<CTYPE> *lcps = (Metadata<CTYPE> *) calloc( n, sizeof(Metadata<CTYPE>)); 
-  int i;
-  strsort<true, CTYPE>( strings, lcps, 0, n-1 );
-  free(lcps);
-}
-
-ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache8,
-			     "LCP Quicksort SIMD with 8 byte cache")
-#define CTYPE void
 extern "C" void lcpquicksort_simd( unsigned char  * strings[], size_t n ) {
-  Metadata<CTYPE> *lcps = (Metadata<CTYPE> *) calloc( n, sizeof(Metadata<CTYPE>)); 
-  int i;
-  strsort<true, CTYPE>( strings, lcps, 0, n-1 );
-  free(lcps);
+  lcpquicksort<true, void>( strings, n );
 }
-
 ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd,
-			     "LCP Quicksort SIMD string compare")
-#define CTYPE uint8_t
-extern "C" void lcpquicksort_cache1( unsigned char  * strings[], size_t n ) {
-  Metadata<CTYPE> *lcps = (Metadata<CTYPE> *) calloc( n, sizeof(Metadata<CTYPE>)); 
-  int i;
-  strsort<false, CTYPE>( strings, lcps, 0, n-1 );
-  free(lcps);
-}
-
-ROUTINE_REGISTER_SINGLECORE( lcpquicksort_cache1,
-			     "LCP Quicksort Template version")
-
-#define CTYPE void
-extern "C" void lcpquicksort_base( unsigned char  * strings[], size_t n ) {
-  Metadata<CTYPE> *lcps = (Metadata<CTYPE> *) calloc( n, sizeof(Metadata<CTYPE>)); 
-  int i;
-  strsort<false, CTYPE>( strings, lcps, 0, n-1 );
-  free(lcps);
-}
-
-ROUTINE_REGISTER_SINGLECORE( lcpquicksort_base,
-			     "LCP Quicksort Template version no SIMD no Cache")
+			     "LCP Quicksort SIMD without cache")

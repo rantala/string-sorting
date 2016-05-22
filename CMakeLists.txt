@@ -4,6 +4,7 @@ project(sortstring)
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(src src/util)
+include_directories(/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/usr/include/)
 
 #link_libraries(rt)
 
@@ -36,6 +37,8 @@ set(INTERNAL_SRCS
 
 set(EXTERNAL_SRCS
 	external/lcp-quicksort.cpp
+	external/lcp-quicksort-sse.cpp
+	external/lcp-quicksort-sse-cache.cpp
 	external/mbmradix.c
 	external/quicksort.c
 	external/mkqsort.c

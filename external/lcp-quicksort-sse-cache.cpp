@@ -11,7 +11,8 @@ public:
   Lcp lcp;
   CacheType cache;
 
-  void loadcache( unsigned char *s, Lcp l)
+  Metadata() {};
+  Metadata( unsigned char *s, Lcp l)
   {
     cache = ((CacheType) s[l])<< ((sizeof(CacheType)-1)*8) ;
     size_t b;
@@ -30,8 +31,8 @@ template<>
 class Metadata<void>{
 public:
   Lcp lcp;
-
-  void loadcache(unsigned char *s, Lcp l) { lcp = l; };
+  Metadata() {};
+  Metadata(unsigned char *s, Lcp l) { lcp = l; };
   bool nonterminal() { return true; };
   bool cache_gt( Metadata<void> x ) { return false; }
 };
@@ -58,11 +59,10 @@ Lcp strlcp<true>(  unsigned char *s, unsigned char *t, Lcp rlcp ) {
 }
 
 template<>
-Lcp strlcp<false>( unsigned char *s, unsigned char *t, Lcp rlcp ) {
-  int i;
-  for( i = rlcp; s[i]==t[i] && s[i]; i++ )
-    ;
-  return (Lcp) i;
+Lcp strlcp<false>( unsigned char *s, unsigned char *t, Lcp i ) {
+  while( s[i]==t[i] && s[i] )
+    i++;
+  return i;
 }
 
 template<class CacheType>
@@ -112,9 +112,9 @@ void strsort(unsigned char * strings[], Metadata<CacheType> meta[], int lo, int 
 
   for( int i = lo + 1; i <= gt; ) {
       unsigned char *s = strings[i];
-      Metadata<CacheType> j;
+      
       Lcp l = strlcp<SSE>( pivotStr, s, lcp );
-      j.loadcache(s, l);
+      Metadata<CacheType> j(s, l);
 
       if      ( s[l] < pivotStr[l] ) qexch<CacheType>( strings, meta, i++, lt++, s, j);
       else if ( s[l] > pivotStr[l] ) qexch<CacheType>( strings, meta, i,   gt--, s, j);
@@ -133,14 +133,28 @@ void lcpquicksort( unsigned char  * strings[], size_t n ) {
   delete meta;
 }
 
+extern "C" void lcpquicksort_base( unsigned char  * strings[], size_t n ) { lcpquicksort<false, void>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_base,	       "LCP Quicksort without cache")
 
-extern "C" void lcpquicksort_simd_cache1( unsigned char  * strings[], size_t n ) {
-  lcpquicksort<true, uint8_t>( strings, n );
-}
-ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache1,
-			     "LCP Quicksort SIMD with 1 byte cache")
-extern "C" void lcpquicksort_simd( unsigned char  * strings[], size_t n ) {
-  lcpquicksort<true, void>( strings, n );
-}
-ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd,
-			     "LCP Quicksort SIMD without cache")
+extern "C" void lcpquicksort_cache1( unsigned char  * strings[], size_t n ) { lcpquicksort<false, uint8_t>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_cache1, "LCP Quicksort with 1 byte cache")
+
+extern "C" void lcpquicksort_cache4( unsigned char  * strings[], size_t n ) { lcpquicksort<false, uint32_t>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_cache4, "LCP Quicksort with 4 byte cache")
+
+extern "C" void lcpquicksort_cache8( unsigned char  * strings[], size_t n ) { lcpquicksort<false, uint64_t>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_cache8, "LCP Quicksort with 8 byte cache")
+
+
+extern "C" void lcpquicksort_simd( unsigned char  * strings[], size_t n ) { lcpquicksort<true, void>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd,	       "LCP Quicksort SIMD without cache")
+
+extern "C" void lcpquicksort_simd_cache1( unsigned char  * strings[], size_t n ) { lcpquicksort<true, uint8_t>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache1, "LCP Quicksort SIMD with 1 byte cache")
+
+extern "C" void lcpquicksort_simd_cache4( unsigned char  * strings[], size_t n ) { lcpquicksort<true, uint32_t>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache4, "LCP Quicksort SIMD with 4 byte cache")
+
+extern "C" void lcpquicksort_simd_cache8( unsigned char  * strings[], size_t n ) { lcpquicksort<true, uint64_t>( strings, n ); }
+ROUTINE_REGISTER_SINGLECORE( lcpquicksort_simd_cache8, "LCP Quicksort SIMD with 8 byte cache")
+

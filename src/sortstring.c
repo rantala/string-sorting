@@ -25,7 +25,7 @@
 #include "timing.h"
 #include "vmainfo.h"
 #include "routines.h"
-#include "cpus_allowed.h"
+//#include "cpus_allowed.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +52,7 @@ static struct {
 	unsigned hugetlb_text     : 1;
 	unsigned hugetlb_pointers : 1;
 	unsigned text_raw         : 1;
+        unsigned shuffle          : 1;
 } opts;
 
 static FILE *log_file;
@@ -118,9 +119,9 @@ alloc_bytes(size_t bytes, int hugetlb)
 {
 	int map_flags;
 	void *p;
-	map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
-	if (hugetlb)
-		map_flags |= MAP_HUGETLB;
+	map_flags = MAP_ANON | MAP_PRIVATE;
+        //	if (hugetlb)
+	//	map_flags |= MAP_HUGETLB;
 	p = mmap(NULL, bytes, PROT_READ | PROT_WRITE, map_flags, -1, 0);
 	if (p == MAP_FAILED) {
 		fprintf(stderr,
@@ -532,7 +533,7 @@ input_information(unsigned char *text, size_t text_len,
 static void
 cpu_information(void)
 {
-	int i;
+  /*	int i;
 	int maxcpu = -1;
 	size_t cpus_setsize = 0;
 	char *cpus_al = cpus_allowed_list();
@@ -557,6 +558,18 @@ cpu_information(void)
 	putchar('\n');
 	free(cpus_al);
 	free(cpus);
+  */
+}
+
+void shuffle(unsigned char **s, size_t n ) {
+  size_t i;
+  for( i =0; i < n-1; i++ ) {
+    size_t j = i + (lrand48() % (n-i));
+    unsigned char *t = s[i];
+    s[i]=s[j];
+    s[j]=t;
+  }
+    
 }
 
 static void
@@ -590,6 +603,7 @@ usage(void)
 	     "                      HugeTLB requires kernel and hardware support.\n"
 	     "   --raw            : The input file is in raw format: strings are delimited\n"
 	     "                      with NULL bytes instead of newlines.\n"
+	     "   --shuffle        : Shuffle strings after input\n"
 	     "\n"
 	     "Examples:\n"
 	     "   # Get list of what is available:\n"
@@ -631,6 +645,7 @@ int main(int argc, char **argv)
 		{"hugetlb-text",   0, 0, 1009},
 		{"hugetlb-ptrs",   0, 0, 1010},
 		{"raw",            0, 0, 1011},
+		{"shuffle",        0, 0, 1012},
 		{0,                0, 0, 0}
 	};
 	while (1) {
@@ -673,6 +688,9 @@ int main(int argc, char **argv)
 		case 1011:
 			opts.text_raw = 1;
 			break;
+		case 1012:
+   		  opts.shuffle = 1;
+		  break;
 		case '?':
 		default:
 			break;
@@ -726,6 +744,9 @@ int main(int argc, char **argv)
 		create_suffixes(text, text_len, &strings, &strings_len);
 	} else {
 		create_strings(text, text_len, &strings, &strings_len);
+	}
+	if(opts.shuffle) {
+	  shuffle( strings, strings_len );
 	}
 	input_information(text, text_len, strings, strings_len);
 	run(opts.r, strings, strings_len);

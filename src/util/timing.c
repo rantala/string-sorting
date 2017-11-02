@@ -32,26 +32,31 @@ static struct timespec monotonic_start;
 static struct timespec monotonic_stop;
 static struct rusage startclock;
 static struct rusage stopclock;
+static clock_t clock_start;
+static clock_t clock_stop;
 
 void timing_start(void)
 {
 	getrusage(RUSAGE_SELF, &startclock);
-	clock_gettime(CLOCK_MONOTONIC, &monotonic_start);
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &process_cputime_start);
+        clock_start=clock();
+	//clock_gettime(CLOCK_MONOTONIC, &monotonic_start);
+	//clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &process_cputime_start);
 }
 
 void timing_stop(void)
 {
 	getrusage(RUSAGE_SELF, &stopclock);
-	clock_gettime(CLOCK_MONOTONIC, &monotonic_stop);
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &process_cputime_stop);
+        clock_stop=clock();
+        //	clock_gettime(CLOCK_MONOTONIC, &monotonic_stop);
+	//clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &process_cputime_stop);
 }
 
 double gettime_wall_clock(void)
 {
-	double msecs_1 = monotonic_start.tv_nsec/1000000 + 1000*monotonic_start.tv_sec;
-	double msecs_2 = monotonic_stop.tv_nsec/1000000 + 1000*monotonic_stop.tv_sec;
-	return msecs_2 - msecs_1;
+  //	double msecs_1 = monotonic_start.tv_nsec/1000000 + 1000*monotonic_start.tv_sec;
+  //	double msecs_2 = monotonic_stop.tv_nsec/1000000 + 1000*monotonic_stop.tv_sec;
+  //	return msecs_2 - msecs_1;
+  return (clock_stop-clock_start)*1.0/CLOCKS_PER_SEC;
 }
 
 double gettime_user(void)
@@ -81,7 +86,8 @@ double gettime_user_sys(void)
 
 double gettime_process_cputime(void)
 {
-	double msecs_1 = process_cputime_start.tv_nsec/1000000 + 1000*process_cputime_start.tv_sec;
-	double msecs_2 = process_cputime_stop.tv_nsec/1000000 + 1000*process_cputime_stop.tv_sec;
-	return msecs_2 - msecs_1;
+  //	double msecs_1 = process_cputime_start.tv_nsec/1000000 + 1000*process_cputime_start.tv_sec;
+  //	double msecs_2 = process_cputime_stop.tv_nsec/1000000 + 1000*process_cputime_stop.tv_sec;
+  //	return msecs_2 - msecs_1;
+  return 0;
 }

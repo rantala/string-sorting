@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.4)
 
 project(sortstring)
-find_package(Boost REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(src src/util)
 
 link_libraries(rt)
@@ -57,8 +55,8 @@ add_executable(sortstring
 
 add_definitions(-msse2)
 add_definitions(-Drestrict=__restrict__)
-set(CMAKE_CXX_FLAGS_RELEASE        "-fopenmp -g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=native ${CMAKE_CXX_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-fopenmp -g -DNDEBUG -DBOOST_DISABLE_ASSERTS -march=native ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CXX_FLAGS_RELEASE        "-fopenmp -g -DNDEBUG -march=native ${CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-fopenmp -g -DNDEBUG -march=native ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 set(CMAKE_C_FLAGS_RELEASE          "-fopenmp -g -DNDEBUG -march=native ${CMAKE_C_FLAGS_RELEASE}")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-fopenmp -g -DNDEBUG -march=native ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 set(CMAKE_CXX_FLAGS                "-Wall -Wextra ${CMAKE_CXX_FLAGS}")

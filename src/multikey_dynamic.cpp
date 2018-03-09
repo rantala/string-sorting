@@ -31,7 +31,7 @@
 #include "util/median.h"
 #include <inttypes.h>
 #include <cassert>
-#include <boost/array.hpp>
+#include <array>
 #include "vector_bagwell.h"
 #include "vector_brodnik.h"
 #include "vector_block.h"
@@ -68,12 +68,12 @@ multikey_dynamic(unsigned char** strings, size_t N, size_t depth)
 		mkqsort(strings, N, depth);
 		return;
 	}
-	boost::array<BucketT, 3> buckets;
+	std::array<BucketT, 3> buckets;
 	CharT partval = pseudo_median<CharT>(strings, N, depth);
 	// Use a small cache to reduce memory stalls.
 	size_t i=0;
 	for (; i < N-N%32; i+=32) {
-		boost::array<CharT, 32> cache;
+		std::array<CharT, 32> cache;
 		for (unsigned j=0; j<32; ++j) {
 			cache[j] = get_char<CharT>(strings[i+j], depth);
 		}

@@ -47,7 +47,6 @@
 #include <cassert>
 #include <cstring>
 #include <cstdlib>
-#include <boost/static_assert.hpp>
 
 static inline int
 cmp(const unsigned char* a, const unsigned char* b)
@@ -217,7 +216,7 @@ initial:
 #undef StrictCase
 
 #define EqLt(a,b,c)                                                            \
-	BOOST_STATIC_ASSERT(a < b);                                            \
+	static_assert(a < b, "a < b");                                         \
 	state##a##eq##b##lt##c:                                                \
 	{                                                                      \
 		*result++ = *from ##a ++;                                      \
@@ -237,7 +236,7 @@ state2eq1lt0: goto state1eq2lt0;
 #undef EqLt
 
 #define LtEq(a,b,c)                                                            \
-	BOOST_STATIC_ASSERT(b < c);                                            \
+	static_assert(b < c, "b < c");                                         \
 	state##a##lt##b##eq##c:                                                \
 	{                                                                      \
 		*result++ = *from##a++;                                        \

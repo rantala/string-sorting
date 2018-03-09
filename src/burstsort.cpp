@@ -46,9 +46,9 @@
 #include "vector_bagwell.h"
 #include "vector_brodnik.h"
 #include "vector_block.h"
-#include <boost/array.hpp>
+#include <array>
 
-using boost::array;
+using std::array;
 
 // Unfortunately std::numeric_limits<T>::max() cannot be used as constant
 // values in template parameters.
@@ -65,7 +65,7 @@ struct TrieNode
 	// is_trie[i] equals true if buckets[i] points to a TrieNode
 	// is_trie[i] equals false if buckets[i] points to a Bucket
 	std::bitset<max<CharT>::value>  is_trie;
-	TrieNode() { buckets.assign(0); }
+	TrieNode() { buckets.fill(0); }
 };
 
 // The burst algorithm as described by Sinha, Zobel et al.

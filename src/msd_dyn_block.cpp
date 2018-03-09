@@ -52,7 +52,7 @@
 #include <algorithm>
 #include <iostream>
 //#include <deque>
-#include <boost/array.hpp>
+#include <array>
 #include <cassert>
 #include <cstring>
 
@@ -62,7 +62,7 @@ typedef unsigned char** Block;
 //typedef std::deque<Block> FreeBlocks;
 typedef std::list<Block> FreeBlocks;
 typedef std::list<Block> Bucket;
-typedef boost::array<Bucket, 256> Buckets;
+typedef std::array<Bucket, 256> Buckets;
 typedef std::vector<Block*> BackLinks;
 
 static inline Block
@@ -84,10 +84,10 @@ msd_D(unsigned char** strings, size_t n, size_t depth)
 	}
 	assert(n > B);
 	static Buckets buckets;
-	static boost::array<unsigned char*, (256+6)*B> temp_space;
+	static std::array<unsigned char*, (256+6)*B> temp_space;
 	static FreeBlocks freeblocks;
 	BackLinks backlinks(n/B+1);
-	boost::array<size_t, 256> bucketsize;
+	std::array<size_t, 256> bucketsize;
 
 	for (unsigned i=0; i < 256; ++i) {
 		bucketsize[i] = 0;

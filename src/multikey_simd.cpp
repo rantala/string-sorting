@@ -41,7 +41,7 @@
 #include <inttypes.h>
 #include <iostream>
 #include <cassert>
-#include <boost/array.hpp>
+#include <array>
 #include <xmmintrin.h>
 
 static void
@@ -268,8 +268,8 @@ multikey_simd(unsigned char** strings, size_t N, size_t depth)
 	CharT partval = pseudo_median<CharT>(strings, N, depth);
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(N, 16));
-	boost::array<size_t, 3> bucketsize;
-	bucketsize.assign(0);
+	std::array<size_t, 3> bucketsize;
+	bucketsize.fill(0);
 	size_t i=N-N%16;
 	calculate_bucketsizes_sse(strings, i, oracle, partval, depth);
 	for (; i < N; ++i)
@@ -326,8 +326,8 @@ multikey_simd_parallel(unsigned char** strings, size_t N, size_t depth)
 	CharT partval = pseudo_median<CharT>(strings, N, depth);
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(N, 16));
-	boost::array<size_t, 3> bucketsize;
-	bucketsize.assign(0);
+	std::array<size_t, 3> bucketsize;
+	bucketsize.fill(0);
 	size_t i=N-N%32;
 	if (N > 0x100000) {
 #pragma omp parallel sections

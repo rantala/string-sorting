@@ -32,8 +32,7 @@
 #include <iostream>
 #include <vector>
 #include <bitset>
-#include <boost/static_assert.hpp>
-#include <boost/array.hpp>
+#include <array>
 
 // Ternary search tree:
 //    0 : left, smaller than pivot
@@ -46,10 +45,10 @@
 template <typename CharT>
 struct TSTNode
 {
-	boost::array<void*, 3> buckets;
+	std::array<void*, 3> buckets;
 	std::bitset<3> is_tst;
 	CharT pivot;
-	TSTNode() { buckets.assign(0); }
+	TSTNode() { buckets.fill(0); }
 };
 
 #define is_middle_bucket(x) ((x)==1)
@@ -203,7 +202,7 @@ handle_bucket(TSTNode<CharT>* node,
               size_t pos,
               size_t depth)
 {
-	BOOST_STATIC_ASSERT(BucketNum < 3);
+	static_assert(BucketNum < 3, "BucketNum < 3");
 	if (node->is_tst[BucketNum]) {
 		pos = burst_traverse<BucketT>(
 			static_cast<TSTNode<CharT>*>(node->buckets[BucketNum]),

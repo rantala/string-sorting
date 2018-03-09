@@ -65,8 +65,7 @@
 #include <iostream>
 #include <iterator>
 #include <cassert>
-#include <boost/tuple/tuple.hpp>
-#include <boost/static_assert.hpp>
+#include <tuple>
 #include <cstring>
 #include <cstdlib>
 #include <sstream>
@@ -98,7 +97,7 @@ lcp(unsigned char* a, unsigned char* b)
 	return lcp_t(-1);
 }
 
-boost::tuple<int, lcp_t>
+std::tuple<int, lcp_t>
 compare(unsigned char* a, unsigned char* b, size_t depth=0)
 {
 	assert(a); assert(b);
@@ -106,11 +105,11 @@ compare(unsigned char* a, unsigned char* b, size_t depth=0)
 		const unsigned char A = a[i];
 		const unsigned char B = b[i];
 		if (A == 0 or A != B) {
-			return boost::make_tuple(int(A)-int(B), i);
+			return std::make_tuple(int(A)-int(B), i);
 		}
 	}
 	assert(0);
-	return boost::make_tuple(int(-1), lcp_t(-1));
+	return std::make_tuple(int(-1), lcp_t(-1));
 }
 
 enum MergeResult {
@@ -139,7 +138,7 @@ merge_lcp_2way(unsigned char** from0,  lcp_t* restrict lcp_input0, size_t n0,
 	lcp_t lcp0=0, lcp1=0;
 	{
 		int cmp01; lcp_t lcp01;
-		boost::tie(cmp01, lcp01) = compare(*from0, *from1);
+		std::tie(cmp01, lcp01) = compare(*from0, *from1);
 		if (cmp01 <= 0) {
 			*result++ = *from0++;
 			lcp0 = *lcp_input0++;
@@ -176,7 +175,7 @@ merge_lcp_2way(unsigned char** from0,  lcp_t* restrict lcp_input0, size_t n0,
 			if (--n1 == 0) goto finish1;
 		} else {
 			int cmp01; lcp_t lcp01;
-			boost::tie(cmp01,lcp01) = compare(*from0, *from1, lcp0);
+			std::tie(cmp01,lcp01) = compare(*from0, *from1, lcp0);
 			if (OutputLCP) *lcp_result++ = lcp0;
 			if (cmp01 <= 0) {
 				*result++ = *from0++;
@@ -416,13 +415,13 @@ merge_lcp_3way(unsigned char** from0, lcp_t* lcp_input0, size_t n0,
 {                                                                              \
 	assert(lcp0 == lcp1); assert(lcp1 == lcp2);                            \
 	int cmp01; lcp_t lcp01;                                                \
-	boost::tie(cmp01, lcp01) = compare(*from0, *from1, lcp0);              \
+	std::tie(cmp01, lcp01) = compare(*from0, *from1, lcp0);                \
 	if (cmp01 == 0) {                                                      \
 		int cmp02; lcp_t lcp02;                                        \
-		boost::tie(cmp02, lcp02) = compare(*from0, *from2, lcp0);      \
+		std::tie(cmp02, lcp02) = compare(*from0, *from2, lcp0);        \
 		if (cmp02 < 0) {                                               \
 			debug()<<"\t0 = 1 < 2\n";                              \
-			assert(lcp01 >= lcp02);                                 \
+			assert(lcp01 >= lcp02);                                \
 			*result++ = *from0++;                                  \
 			if (output_lcps && OutputLCP) *lcp_result++ = lcp0;    \
 			lcp0 = *lcp_input0++;                                  \
@@ -460,7 +459,7 @@ merge_lcp_3way(unsigned char** from0, lcp_t* lcp_input0, size_t n0,
 		}                                                              \
 	} else if (cmp01 < 0) {                                                \
 		int cmp12; lcp_t lcp12;                                        \
-		boost::tie(cmp12, lcp12) = compare(*from1, *from2, lcp0);      \
+		std::tie(cmp12, lcp12) = compare(*from1, *from2, lcp0);        \
 		if (cmp12 == 0) {                                              \
 			debug()<<"\t0 < 1 = 2\n";                              \
 			*result++ = *from0++;                                  \
@@ -497,7 +496,7 @@ merge_lcp_3way(unsigned char** from0, lcp_t* lcp_input0, size_t n0,
                                                                                \
 			/* 0 < 1 && 2 < 1*/                                    \
 			int cmp02; lcp_t lcp02;                                \
-			boost::tie(cmp02, lcp02)=compare(*from0, *from2, lcp0);\
+			std::tie(cmp02, lcp02)=compare(*from0, *from2, lcp0);  \
 			if (cmp02 <= 0) {                                      \
 				debug()<<"\t0 <= 2 < 1\n";                     \
 				*result++ = *from0++;                          \
@@ -531,7 +530,7 @@ merge_lcp_3way(unsigned char** from0, lcp_t* lcp_input0, size_t n0,
 	} else {                                                               \
 		/* 1 < 0*/                                                     \
 		int cmp12; lcp_t lcp12;                                        \
-		boost::tie(cmp12, lcp12) = compare(*from1, *from2, lcp0);      \
+		std::tie(cmp12, lcp12) = compare(*from1, *from2, lcp0);        \
 		if (cmp12 <= 0) {                                              \
 			debug()<<"\t1 < 0 and 1 <= 2\n";                       \
 			*result++ = *from1++;                                  \
@@ -614,7 +613,7 @@ branch_by_lcp:
 #undef StrictCase
 
 #define GtEq(a, b, c)                                                          \
-        BOOST_STATIC_ASSERT(b < c);                                            \
+        static_assert(b < c, "b < c");                                         \
         lcp_##a##gt##b##eq##c:                                                 \
         debug()<<"\tlcp_"<<a<<"gt"<<b<<"eq"<<c<<"\n";                          \
         assert(lcp##a >  lcp##b);                                              \
@@ -639,7 +638,7 @@ lcp_1gt2eq0: goto lcp_1gt0eq2;
 #undef GtEq
 
 #define EqGt(a, b, c)                                                          \
-        BOOST_STATIC_ASSERT(a < b);                                            \
+        static_assert(a < b, "a < b");                                         \
         lcp_##a##eq##b##gt##c:                                                 \
 {                                                                              \
         debug()<<"\tlcp_"<<a<<"eq"<<b<<"gt"<<c<<"\n";                          \
@@ -649,7 +648,7 @@ lcp_1gt2eq0: goto lcp_1gt0eq2;
         assert(cmp(*from##b, *from##c) < 0);                                   \
         check_lcps(*(result-1),*from0,lcp0,*from1,lcp1,*from2,lcp2);           \
         int cmp##a##b; lcp_t lcp##a##b;                                        \
-        boost::tie(cmp##a##b, lcp##a##b)=compare(*from##a, *from##b, lcp##a);  \
+        std::tie(cmp##a##b, lcp##a##b)=compare(*from##a, *from##b, lcp##a);    \
         if (cmp##a##b <= 0) {                                                  \
                 *result++ = *from##a++;                                        \
                 if (OutputLCP) *lcp_result++ = lcp##a;                         \
@@ -1146,7 +1145,7 @@ merge_cache_lcp_2way(
 			} else {
 				stat_cache_useless();
 				int cmp01; lcp_t lcp01;
-				boost::tie(cmp01, lcp01) = compare(*from0, *from1, sizeof(CharT));
+				std::tie(cmp01, lcp01) = compare(*from0, *from1, sizeof(CharT));
 				if (cmp01 < 0) {
 					*result++ = *from0++;
 					if (OutputLCP) *cache_result++ = cache0;
@@ -1265,7 +1264,7 @@ merge_cache_lcp_2way(
 				} else {
 					stat_cache_useless();
 					int cmp01; lcp_t lcp01;
-					boost::tie(cmp01, lcp01) = compare(*from0, *from1, lcp0+sizeof(CharT));
+					std::tie(cmp01, lcp01) = compare(*from0, *from1, lcp0+sizeof(CharT));
 					if (cmp01 < 0) {
 						*result++ = *from0++;
 						if (OutputLCP) *lcp_result++ = lcp0 /* == lcp1 */;
@@ -1577,7 +1576,7 @@ merge_lcp_2way_unstable(
 	check_input(from1, lcp_input1, n1);
 	register lcp_t lcp0=0, lcp1=0;
 	int cmp01; lcp_t lcp01;
-	boost::tie(cmp01, lcp01) = compare(*from0, *from1);
+	std::tie(cmp01, lcp01) = compare(*from0, *from1);
 	if (cmp01 <= 0) {
 		*result++ = *from0++;
 		lcp0 = *lcp_input0++;
@@ -1612,7 +1611,7 @@ merge_lcp_2way_unstable(
 			if (--n1 == 0) goto finish1;
 		} else {
 			int cmp01; lcp_t lcp01;
-			boost::tie(cmp01,lcp01) = compare(*from0, *from1, lcp0);
+			std::tie(cmp01,lcp01) = compare(*from0, *from1, lcp0);
 			if (cmp01 < 0) {
 				*result++ = *from0++;
 				if (OutputLCP) *lcp_result++ = lcp0;

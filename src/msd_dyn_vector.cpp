@@ -48,7 +48,7 @@
 #include "vector_block.h"
 #include "vector_brodnik.h"
 #include "vector_bagwell.h"
-#include <boost/array.hpp>
+#include <array>
 
 // std::list::size() is O(n), so keep track of size manually.
 template <typename T>
@@ -107,7 +107,7 @@ msd_D(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 	for (; i < n; ++i) {
 		buckets[strings[i][depth]].push_back(strings[i]);
 	}
-	boost::array<BucketsizeType, 256> bucketsize;
+	std::array<BucketsizeType, 256> bucketsize;
 	for (unsigned i=0; i < 256; ++i) {
 		bucketsize[i] = buckets[i].size();
 	}

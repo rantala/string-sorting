@@ -27,7 +27,7 @@
 #include "util/debug.h"
 #include <cassert>
 #include <cstring>
-#include <boost/array.hpp>
+#include <array>
 
 static inline int
 cmp(const unsigned char* a, const unsigned char* b)
@@ -52,7 +52,7 @@ mergesort_losertree(unsigned char** strings, size_t n, unsigned char** tmp)
 	}
 	debug() << __func__ << "(), n="<<n<<"\n";
 	const size_t split = size_t(double(n) / double(K));
-	boost::array<std::pair<unsigned char**, size_t>, K> ranges;
+	std::array<std::pair<unsigned char**, size_t>, K> ranges;
 	for (unsigned i=0; i < K-1; ++i) {
 		ranges[i] = std::make_pair(strings+i*split, split);
 	}
@@ -126,7 +126,7 @@ mergesort_losertree_parallel(unsigned char** strings, size_t n, unsigned char** 
 	}
 	debug() << __func__ << "(), n="<<n<<"\n";
 	const size_t split = size_t(double(n) / double(K));
-	boost::array<std::pair<unsigned char**, size_t>, K> ranges;
+	std::array<std::pair<unsigned char**, size_t>, K> ranges;
 	for (unsigned i=0; i < K-1; ++i) {
 		ranges[i] = std::make_pair(strings+i*split, split);
 	}

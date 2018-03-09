@@ -32,7 +32,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <inttypes.h>
-#include <boost/array.hpp>
+#include <array>
 
 #define CACHED_BYTES 4
 
@@ -156,12 +156,12 @@ msd_A2(cacheblock_t* cache,
 		fill_cache(cache, N, true_depth);
 		cache_depth = 0;
 	}
-	boost::array<size_t, 256> bucketsize;
-	bucketsize.assign(0);
+	std::array<size_t, 256> bucketsize;
+	bucketsize.fill(0);
 	for (size_t i=0; i < N; ++i)
 		++bucketsize[cache[i].bytes[cache_depth]];
 	tmp.allocate(N);
-	static boost::array<size_t, 256> bucketindex;
+	static std::array<size_t, 256> bucketindex;
 	bucketindex[0] = 0;
 	for (unsigned i=1; i < 256; ++i)
 		bucketindex[i] = bucketindex[i-1] + bucketsize[i-1];
@@ -202,7 +202,7 @@ msd_A2_adaptive(cacheblock_t* cache,
 			 cache[i].bytes[cache_depth+1];
 		++bucketsize[bucket];
 	}
-	static boost::array<size_t, 0x10000> bucketindex;
+	static std::array<size_t, 0x10000> bucketindex;
 	bucketindex[0] = 0;
 	for (unsigned i=1; i < 0x10000; ++i)
 		bucketindex[i] = bucketindex[i-1] + bucketsize[i-1];

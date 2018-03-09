@@ -36,8 +36,7 @@
 #include "vector_bagwell.h"
 #include "vector_brodnik.h"
 #include "vector_block.h"
-#include <boost/array.hpp>
-#include <boost/static_assert.hpp>
+#include <array>
 
 template <typename CharT, typename BucketT>
 struct TrieNode
@@ -75,7 +74,8 @@ struct TrieNode
 	}
 	bool is_trie(unsigned index) const
 	{
-		BOOST_STATIC_ASSERT(sizeof(size_t)==sizeof(void*));
+		static_assert(sizeof(size_t)==sizeof(void*),
+			"size_t and void* size must match");
 		if (index < _buckets.size()) {return size_t(_buckets[index])&1;}
 		return false;
 	}
@@ -87,7 +87,8 @@ struct TrieNode
 
 static inline void make_trie(void*& ptr)
 {
-	BOOST_STATIC_ASSERT(sizeof(size_t)==sizeof(void*));
+	static_assert(sizeof(size_t)==sizeof(void*),
+		"size_t and void* size must match");
 	assert(ptr);
 	ptr = (void*)(size_t(ptr) | 1);
 }
@@ -107,8 +108,8 @@ struct BurstSimple
 		// container is expensive.
 		unsigned i=0;
 		for (; i < bucket_size-bucket_size%64; i+=64) {
-			boost::array<CharT, 64> cache;
-			boost::array<unsigned char*, 64> strings;
+			std::array<CharT, 64> cache;
+			std::array<unsigned char*, 64> strings;
 			for (unsigned j=0; j < 64; ++j) {
 				strings[j] = bucket[i+j];
 				cache[j] = get_char<CharT>(strings[j], depth);

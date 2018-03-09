@@ -30,13 +30,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <inttypes.h>
-#include <boost/array.hpp>
-#include <boost/static_assert.hpp>
+#include <array>
 
 template <unsigned CachedChars>
 struct Cacheblock
 {
-	boost::array<unsigned char, CachedChars> chars;
+	std::array<unsigned char, CachedChars> chars;
 	unsigned char* ptr;
 };
 
@@ -82,7 +81,7 @@ template <unsigned CachedChars>
 static void
 msd_lsd(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 {
-	BOOST_STATIC_ASSERT(CachedChars>=1);
+	static_assert(CachedChars>=1, "CachedChars must be positive");
 	if (N < 32) {
 		insertion_sort(cache, N, depth);
 		return;
@@ -127,8 +126,8 @@ template <unsigned CachedChars>
 static void
 msd_lsd_adaptive(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 {
-	BOOST_STATIC_ASSERT(CachedChars%2==0);
-	BOOST_STATIC_ASSERT(CachedChars>=2);
+	static_assert(CachedChars%2==0, "CachedChars%2==0");
+	static_assert(CachedChars>=2,   "CachedChars>=2");
 	if (N < 0x10000) {
 		msd_lsd(cache, N, depth);
 		return;

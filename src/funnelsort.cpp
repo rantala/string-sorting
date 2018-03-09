@@ -83,9 +83,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <boost/array.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/type_traits/integral_constant.hpp>
+#include <array>
+#include <type_traits>
 
 static inline int
 cmp(const unsigned char* a, const unsigned char* b)
@@ -112,8 +111,8 @@ check_input(unsigned char** from0, size_t n0)
 
 template <unsigned K>
 static void
-debug_print(const boost::array<size_t,K>& buffer_count,
-            const boost::array<Stream,K>& streams,
+debug_print(const std::array<size_t,K>& buffer_count,
+            const std::array<Stream,K>& streams,
             unsigned me, unsigned pos=1)
 {
 #ifndef NDEBUG
@@ -266,20 +265,20 @@ struct buffer_total_size {
 template <unsigned K> struct buffer_total_size<K,0> { enum { value = 0 }; };
 
 // Sanity check K=8.
-BOOST_STATIC_ASSERT(buffer_total_size<8>::value==108);
-BOOST_STATIC_ASSERT((buffer_layout_dfs<8,1>::lindex==0));
-BOOST_STATIC_ASSERT((buffer_layout_dfs<8,2>::lindex==8));
-BOOST_STATIC_ASSERT((buffer_layout_dfs<8,2>::rindex==8+23));
-BOOST_STATIC_ASSERT((buffer_layout_dfs<8,1>::rindex==8+23+23));
-BOOST_STATIC_ASSERT((buffer_layout_dfs<8,3>::lindex==8+23+23+8));
-BOOST_STATIC_ASSERT((buffer_layout_dfs<8,3>::rindex==8+23+23+8+23));
-BOOST_STATIC_ASSERT((subtree_size<8,1>::value==108));
-BOOST_STATIC_ASSERT((subtree_size<8,2>::value==23+23));
-BOOST_STATIC_ASSERT((subtree_size<8,3>::value==23+23));
-BOOST_STATIC_ASSERT((subtree_size<8,4>::value==0));
-BOOST_STATIC_ASSERT((subtree_size<8,5>::value==0));
-BOOST_STATIC_ASSERT((subtree_size<8,6>::value==0));
-BOOST_STATIC_ASSERT((subtree_size<8,7>::value==0));
+static_assert(buffer_total_size<8>::value==108, "sanity check with K=8");
+static_assert(buffer_layout_dfs<8,1>::lindex==0, "sanity check with K=8");
+static_assert(buffer_layout_dfs<8,2>::lindex==8, "sanity check with K=8");
+static_assert(buffer_layout_dfs<8,2>::rindex==8+23, "sanity check with K=8");
+static_assert(buffer_layout_dfs<8,1>::rindex==8+23+23, "sanity check with K=8");
+static_assert(buffer_layout_dfs<8,3>::lindex==8+23+23+8, "sanity check with K=8");
+static_assert(buffer_layout_dfs<8,3>::rindex==8+23+23+8+23, "sanity check with K=8");
+static_assert(subtree_size<8,1>::value==108, "sanity check with K=8");
+static_assert(subtree_size<8,2>::value==23+23, "sanity check with K=8");
+static_assert(subtree_size<8,3>::value==23+23, "sanity check with K=8");
+static_assert(subtree_size<8,4>::value==0, "sanity check with K=8");
+static_assert(subtree_size<8,5>::value==0, "sanity check with K=8");
+static_assert(subtree_size<8,6>::value==0, "sanity check with K=8");
+static_assert(subtree_size<8,7>::value==0, "sanity check with K=8");
 
 template <unsigned K, unsigned I,
           template <unsigned, unsigned> class BufferLayout> struct fill;
@@ -300,15 +299,15 @@ template <unsigned K, unsigned I,
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_leaf(boost::array<Stream,K>&, unsigned char**,
-               boost::array<size_t,K>&, boost::false_type) {}
+void fill_leaf(std::array<Stream,K>&, unsigned char**,
+               std::array<size_t,K>&, std::false_type) {}
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_leaf(boost::array<Stream,K>& restrict streams,
+void fill_leaf(std::array<Stream,K>& restrict streams,
                unsigned char** restrict buffer,
-               boost::array<size_t,K>& restrict buffer_count,
-               boost::true_type)
+               std::array<size_t,K>& restrict buffer_count,
+               std::true_type)
 {
 	debug() << __func__ << ", leaf,  I="<<I<<"\n"; debug_indent;
 	assert(buffer_count[I] == 0);
@@ -395,15 +394,15 @@ finish2_right:
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_inner(boost::array<Stream,K>&, unsigned char**,
-                boost::array<size_t,K>&, boost::false_type) {}
+void fill_inner(std::array<Stream,K>&, unsigned char**,
+                std::array<size_t,K>&, std::false_type) {}
 
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_inner(boost::array<Stream,K>& restrict streams,
+void fill_inner(std::array<Stream,K>& restrict streams,
                 unsigned char** restrict buffer,
-                boost::array<size_t,K>& restrict buffer_count,
-                boost::true_type)
+                std::array<size_t,K>& restrict buffer_count,
+                std::true_type)
 {
 	debug() << __func__ << ", inner, I="<<I<<"\n"; debug_indent;
 	size_t need = buffer_size<K,I/2>::value;
@@ -532,10 +531,10 @@ finish_right:
 
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
 static inline __attribute__((always_inline))
-void fill_root(boost::array<Stream,K>& restrict streams,
+void fill_root(std::array<Stream,K>& restrict streams,
                unsigned char** restrict result,
                unsigned char** restrict buffer,
-               boost::array<size_t,K>& restrict buffer_count)
+               std::array<size_t,K>& restrict buffer_count)
 {
 	debug() << __func__ << ", root\n"; debug_indent;
 	while (true) {
@@ -598,14 +597,14 @@ finish_right:
 template <unsigned K,unsigned I,template <unsigned,unsigned> class BufferLayout>
 struct fill
 {
-	void operator()(boost::array<Stream,K>& restrict streams,
+	void operator()(std::array<Stream,K>& restrict streams,
 	                unsigned char** restrict buffer,
-	                boost::array<size_t,K>& restrict buffer_count) const
+	                std::array<size_t,K>& restrict buffer_count) const
 	{
 		fill_inner<K,I,BufferLayout>(streams, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I>1 && I<K/2)>());
+		    typename std::integral_constant<bool, (I>1 && I<K/2)>());
 		fill_leaf<K,I,BufferLayout>(streams, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
+		    typename std::integral_constant<bool, (I>=K/2 && I<K)>());
 	}
 };
 
@@ -617,30 +616,30 @@ template <unsigned I,template <unsigned,unsigned> class BufferLayout>
 struct fill<8,I,BufferLayout>
 {
 	enum { K=8 };
-	void operator()(boost::array<Stream,K>& restrict streams,
+	void operator()(std::array<Stream,K>& restrict streams,
 	                unsigned char** restrict buffer,
-	                boost::array<size_t,K>& restrict buffer_count) const
+	                std::array<size_t,K>& restrict buffer_count) const
 	                __attribute__((always_inline))
 	{
 		fill_inner<K,I,BufferLayout>(streams, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I>1 && I<K/2)>());
+		    typename std::integral_constant<bool, (I>1 && I<K/2)>());
 		fill_leaf<K,I,BufferLayout>(streams, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
+		    typename std::integral_constant<bool, (I>=K/2 && I<K)>());
 	}
 };
 template <unsigned I,template <unsigned,unsigned> class BufferLayout>
 struct fill<16,I,BufferLayout>
 {
 	enum { K=16 };
-	void operator()(boost::array<Stream,K>& restrict streams,
+	void operator()(std::array<Stream,K>& restrict streams,
 	                unsigned char** restrict buffer,
-	                boost::array<size_t,K>& restrict buffer_count) const
+	                std::array<size_t,K>& restrict buffer_count) const
 	                __attribute__((always_inline))
 	{
 		fill_inner<K,I,BufferLayout>(streams, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I>1 && I<K/2)>());
+		    typename std::integral_constant<bool, (I>1 && I<K/2)>());
 		fill_leaf<K,I,BufferLayout>(streams, buffer, buffer_count,
-		    typename boost::integral_constant<bool, (I>=K/2 && I<K)>());
+		    typename std::integral_constant<bool, (I>=K/2 && I<K)>());
 	}
 };
 #endif
@@ -658,7 +657,7 @@ funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 		return;
 	}
 	size_t splitter = n/K;
-	boost::array<Stream, K> streams;
+	std::array<Stream, K> streams;
 	streams[0].stream = strings;
 	streams[0].n      = splitter;
 	for (unsigned i=1; i < K-1; ++i) {
@@ -672,10 +671,10 @@ funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 		                                        streams[i].n, tmp);
 		check_input(streams[i].stream, streams[i].n);
 	}
-	boost::array<unsigned char*, buffer_total_size<K>::value> buffers;
-	boost::array<size_t, K> buffer_count;
-	buffer_count.assign(0);
-	fill_root<K,BufferLayout>(streams,tmp,buffers.c_array(),buffer_count);
+	std::array<unsigned char*, buffer_total_size<K>::value> buffers;
+	std::array<size_t, K> buffer_count;
+	buffer_count.fill(0);
+	fill_root<K,BufferLayout>(streams,tmp,buffers.data(),buffer_count);
 	(void) memcpy(strings, tmp, n*sizeof(unsigned char*));
 	check_input(strings, n);
 }

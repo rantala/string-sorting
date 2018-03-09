@@ -41,7 +41,7 @@ purposes, and are copyright by their respective authors.
 Requirements
 ------------
 
-  * Boost
+  * C++11
   * CMake
 
 

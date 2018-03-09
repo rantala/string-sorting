@@ -31,7 +31,7 @@
 #include "util/median.h"
 #include <inttypes.h>
 #include <cassert>
-#include <boost/array.hpp>
+#include <array>
 #include <list>
 #include <cstring>
 #include <vector>
@@ -49,7 +49,7 @@ typedef unsigned char** Block;
 //typedef std::deque<Block> FreeBlocks;
 typedef std::list<Block> FreeBlocks;
 typedef std::list<Block> Bucket;
-typedef boost::array<Bucket, 3> Buckets;
+typedef std::array<Bucket, 3> Buckets;
 typedef std::vector<Block*> BackLinks;
 
 static inline Block
@@ -71,12 +71,12 @@ multikey_block(unsigned char** strings, size_t n, size_t depth)
 	}
 	assert(n > B);
 	static Buckets buckets;
-	static boost::array<unsigned char*, 32*B> temp_space;
+	static std::array<unsigned char*, 32*B> temp_space;
 	static FreeBlocks freeblocks;
 	const CharT partval = pseudo_median<CharT>(strings, n, depth);
 	BackLinks backlinks(n/B+1);
-	boost::array<size_t, 3> bucketsize;
-	bucketsize.assign(0);
+	std::array<size_t, 3> bucketsize;
+	bucketsize.fill(0);
 	buckets[0].clear();
 	buckets[1].clear();
 	buckets[2].clear();
@@ -90,7 +90,7 @@ multikey_block(unsigned char** strings, size_t n, size_t depth)
 	// stalls. The exact size of the cache is not very important.
 	size_t i=0;
 	for (; i < n-n%32; i+=32) {
-		boost::array<CharT, 32> cache;
+		std::array<CharT, 32> cache;
 		for (unsigned j=0; j<32; ++j) {
 			cache[j] = get_char<CharT>(strings[i+j], depth);
 		}

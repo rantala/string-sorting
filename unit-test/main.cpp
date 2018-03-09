@@ -6,7 +6,7 @@
 #include "../src/losertree.h"
 #include <cassert>
 #include <iostream>
-#include <boost/array.hpp>
+#include <array>
 #include <vector>
 #include <utility>
 
@@ -64,8 +64,8 @@ test_loser_tree()
 {
 	std::cerr<<__PRETTY_FUNCTION__<<std::endl;
 	{
-		boost::array<int, 5> seq1 = { 2, 4, 6, 8, 10 };
-		boost::array<int, 5> seq2 = { 3, 5, 7, 9, 11 };
+		std::array<int, 5> seq1 = { 2, 4, 6, 8, 10 };
+		std::array<int, 5> seq2 = { 3, 5, 7, 9, 11 };
 		std::vector<std::pair<int*, size_t> > seqs;
 		seqs.push_back(std::make_pair(seq1.data(), 5));
 		seqs.push_back(std::make_pair(seq2.data(), 5));
@@ -83,9 +83,9 @@ test_loser_tree()
 		assert(tree.min() == 11); assert(tree._nonempty_streams == 0);
 	}
 	{
-		boost::array<int, 3> seq1 = { 2, 5, 8  };
-		boost::array<int, 3> seq2 = { 3, 6, 9  };
-		boost::array<int, 3> seq3 = { 4, 7, 10 };
+		std::array<int, 3> seq1 = { 2, 5, 8  };
+		std::array<int, 3> seq2 = { 3, 6, 9  };
+		std::array<int, 3> seq3 = { 4, 7, 10 };
 		std::vector<std::pair<int*, size_t> > seqs;
 		seqs.push_back(std::make_pair(seq1.data(), 3));
 		seqs.push_back(std::make_pair(seq2.data(), 3));
@@ -103,9 +103,9 @@ test_loser_tree()
 		assert(tree.min() == 10); assert(tree._nonempty_streams == 0);
 	}
 	{
-		boost::array<int, 3> seq1 = { 2, 5, 8  };
-		boost::array<int, 3> seq2 = { 3, 6, 9  };
-		boost::array<int, 3> seq3 = { 4, 7, 10 };
+		std::array<int, 3> seq1 = { 2, 5, 8  };
+		std::array<int, 3> seq2 = { 3, 6, 9  };
+		std::array<int, 3> seq3 = { 4, 7, 10 };
 		std::vector<std::pair<int*, size_t> > seqs;
 		seqs.push_back(std::make_pair(seq3.data(), 3));
 		seqs.push_back(std::make_pair(seq2.data(), 3));

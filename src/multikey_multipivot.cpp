@@ -59,8 +59,7 @@
 #include <cstring>
 #include <set>
 #include <vector>
-#include <boost/array.hpp>
-#include <boost/static_assert.hpp>
+#include <array>
 #include <xmmintrin.h>
 #include <emmintrin.h>
 
@@ -112,12 +111,12 @@ fill_oracle_brute_force_sse(
                 unsigned char** strings,
                 size_t n,
                 uint8_t* restrict oracle,
-                const boost::array<unsigned char, Pivots>& pivots,
+                const std::array<unsigned char, Pivots>& pivots,
                 size_t depth)
 {
 	assert(n % 16 == 0);
-	BOOST_STATIC_ASSERT(Pivots > 0);
-	BOOST_STATIC_ASSERT(total_buckets(Pivots) < 0x100);
+	static_assert(Pivots > 0, "Pivots must be non-zero");
+	static_assert(total_buckets(Pivots) < 0x100, "total number of bucket must be max 255");
 	typedef unsigned char CharT;
 	static const uint8_t _Constants[] __attribute__((aligned(16))) = {
 		0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
@@ -183,12 +182,12 @@ fill_oracle_brute_force_sse(
                 unsigned char** strings,
                 size_t n,
                 uint8_t* restrict oracle,
-                const boost::array<uint16_t, Pivots>& pivots,
+                const std::array<uint16_t, Pivots>& pivots,
                 size_t depth)
 {
 	assert(n % 16 == 0);
-	BOOST_STATIC_ASSERT(Pivots > 0);
-	BOOST_STATIC_ASSERT(total_buckets(Pivots) < 0x100);
+	static_assert(Pivots > 0, "Pivots must be non-zero");
+	static_assert(total_buckets(Pivots) < 0x100, "total number of bucket must be max 255");
 	typedef uint16_t CharT;
 	static const uint16_t _Constants[] __attribute__((aligned(16))) = {
 		0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000,
@@ -251,7 +250,7 @@ template <unsigned pos>
 static inline __attribute__((__always_inline__))
 uint8_t extract8(__m128i a)
 {
-	BOOST_STATIC_ASSERT(pos%2==0);
+	static_assert(pos%2==0, "pos%2==0");
 	return uint8_t(_mm_extract_epi16(a, pos/2));
 }
 
@@ -261,12 +260,12 @@ fill_oracle_brute_force_sse(
                 unsigned char** strings,
                 size_t n,
                 uint8_t* restrict oracle,
-                const boost::array<uint32_t, Pivots>& pivots,
+                const std::array<uint32_t, Pivots>& pivots,
                 size_t depth)
 {
 	assert(n % 16 == 0);
-	BOOST_STATIC_ASSERT(Pivots > 0);
-	BOOST_STATIC_ASSERT(total_buckets(Pivots) < 0x100);
+	static_assert(Pivots > 0, "Pivots must be non-zero");
+	static_assert(total_buckets(Pivots) < 0x100, "total number of bucket must be max 255");
 	typedef uint32_t CharT;
 	static const CharT _Constants[] __attribute__((aligned(16))) = {
 		0x80000000, 0x80000000, 0x80000000, 0x80000000,
@@ -331,11 +330,11 @@ static void
 fill_oracle(unsigned char** strings,
             size_t N,
             uint8_t* oracle,
-            const boost::array<CharT, Pivots>& pivots,
+            const std::array<CharT, Pivots>& pivots,
             size_t depth)
 {
-	BOOST_STATIC_ASSERT(Pivots > 0);
-	BOOST_STATIC_ASSERT(total_buckets(Pivots) < 0x100);
+	static_assert(Pivots > 0, "Pivots must be non-zero");
+	static_assert(total_buckets(Pivots) < 0x100, "total number of bucket must be max 255");
 	size_t n = N-N%16;
 	fill_oracle_brute_force_sse<Pivots>(strings, n, oracle, pivots, depth);
 	for (size_t i=n; i < N; ++i) {
@@ -369,8 +368,8 @@ template <typename CharT, unsigned Pivots>
 static void
 multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 {
-	BOOST_STATIC_ASSERT(Pivots > 0);
-	BOOST_STATIC_ASSERT(total_buckets(Pivots) < 0x100);
+	static_assert(Pivots > 0, "Pivots must be non-zero");
+	static_assert(total_buckets(Pivots) < 0x100, "total number of bucket must be max 255");
 	if (n < 15000) {
 		mkqsort(strings, n, depth);
 		return;
@@ -381,7 +380,7 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 		double r=drand48();
 		size_t pos = ((size_t)((n-7)*r));
 		assert(pos+6 < n);
-		boost::array<CharT, 7> tmp;
+		std::array<CharT, 7> tmp;
 		for (unsigned j=0;j<tmp.size();++j) {
 			tmp[j] = get_char<CharT>(strings[pos+j], depth);
 		}
@@ -395,7 +394,7 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 	// Pick pivots from the sample.
 	std::vector<CharT> sample_array(sample.begin(), sample.end());
 	sample.clear();
-	boost::array<CharT, Pivots> pivots;
+	std::array<CharT, Pivots> pivots;
 	unsigned step = sample_array.size() / Pivots;
 	assert(step > 0);
 	for (unsigned i=0; i < Pivots; ++i) {
@@ -403,8 +402,8 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 	}
 	uint8_t* restrict oracle = static_cast<uint8_t*>(_mm_malloc(n, 16));
 	fill_oracle<Pivots>(strings, n, oracle, pivots, depth);
-	boost::array<size_t, total_buckets(Pivots)> bucketsize;
-	bucketsize.assign(0);
+	std::array<size_t, total_buckets(Pivots)> bucketsize;
+	bucketsize.fill(0);
 	uint8_t prev = oracle[0];
 	bool sorted = true;
 	size_t i=1;
@@ -422,7 +421,7 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 	if (not sorted) {
 		unsigned char** sorted = (unsigned char**)
 			malloc(n*sizeof(unsigned char*));
-		static boost::array<size_t, total_buckets(Pivots)> bucketindex;
+		static std::array<size_t, total_buckets(Pivots)> bucketindex;
 		bucketindex[0] = 0;
 		for (unsigned i=1; i < total_buckets(Pivots); ++i)
 			bucketindex[i] = bucketindex[i-1] + bucketsize[i-1];

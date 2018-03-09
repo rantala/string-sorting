@@ -46,7 +46,6 @@
 #include <cstddef>
 #include <vector>
 #include <cassert>
-#include <boost/static_assert.hpp>
 
 // Initial: Size of the initial memory allocation. Has to be a power of two.
 template <typename T, unsigned Initial = 16>
@@ -69,8 +68,9 @@ struct vector_bagwell
 	T operator[](size_t index) const
 	{
 		assert(index < size());
-		BOOST_STATIC_ASSERT(Initial==16);
-		BOOST_STATIC_ASSERT(sizeof(size_t) <= sizeof(unsigned long));
+		static_assert(Initial==16, "this code assumes Initial==16");
+		static_assert(sizeof(size_t) <= sizeof(unsigned long),
+			"sizeof(size_t) must be max sizeof(unsigned long)");
 		const unsigned long fixed = index+16;
 		const unsigned long msb_diff =
 			(sizeof(unsigned long)*8-4-1) - __builtin_clzl(fixed);
@@ -90,7 +90,7 @@ struct vector_bagwell
 	}
 	size_t size() const
 	{
-		BOOST_STATIC_ASSERT(Initial==16);
+		static_assert(Initial==16, "this code assumes Initial==16");
 		if (empty()) return 0;
 		return (1<<(3+_index_block.size()))-1-15
 			+ _insertpos-_index_block.back();

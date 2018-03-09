@@ -449,7 +449,7 @@ print_alg_names_and_descs(void)
 {
 	const struct routine **routines;
 	unsigned routines_cnt;
-	unsigned i;
+	unsigned i = 0;
 	routine_get_all(&routines, &routines_cnt);
 	qsort(routines, routines_cnt, sizeof(struct routine *), routine_cmp);
 	if (routines[0]->multicore == 0) {

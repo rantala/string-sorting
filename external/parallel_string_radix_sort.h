@@ -30,9 +30,9 @@
 #ifndef PARALLEL_STRING_RADIX_SORT_H_
 #define PARALLEL_STRING_RADIX_SORT_H_
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+//#ifdef _OPENMP
+//#include <omp.h>
+//#endif
 
 #include <stdint.h>
 #include <algorithm>

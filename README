@@ -53,7 +53,7 @@ Default compilation with GCC:
     $ git clone git://github.com/rantala/string-sorting.git
     $ mkdir string-sorting-build
     $ cd string-sorting-build
-    $ cmake -DCMAKE_BUILD_TYPE=release ../string-sorting
+    $ cmake -DCMAKE_BUILD_TYPE=Release ../string-sorting
     $ make
     $ ./sortstring
 
@@ -61,7 +61,7 @@ Use a separate debug build for easier debugging:
 
     $ mkdir debug-build
     $ cd debug-build
-    $ cmake -DCMAKE_BUILD_TYPE=debug ../string-sorting
+    $ cmake -DCMAKE_BUILD_TYPE=Debug ../string-sorting
 
 
 Huge pages

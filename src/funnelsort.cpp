@@ -682,11 +682,11 @@ funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 
 // Switch to 4-way mergesort on small inputs/lower levels of recursion.
 void mergesort_4way(unsigned char**, size_t, unsigned char**);
-template <> void funnelsort<2,buffer_layout_bfs>(unsigned char** strings,
-	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
+//template <> void funnelsort<2,buffer_layout_bfs>(unsigned char** strings,
+//	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
+//template <> void funnelsort<2,buffer_layout_dfs>(unsigned char** strings,
+//	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
 template <> void funnelsort<4,buffer_layout_bfs>(unsigned char** strings,
-	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
-template <> void funnelsort<2,buffer_layout_dfs>(unsigned char** strings,
 	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
 template <> void funnelsort<4,buffer_layout_dfs>(unsigned char** strings,
 	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }

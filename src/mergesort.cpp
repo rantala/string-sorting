@@ -65,8 +65,8 @@ merge_2way(unsigned char** restrict from0, size_t n0,
            unsigned char** restrict result)
 {
 	debug()<<__func__<<"(), n0="<<n0<<", n1="<<n1<<"\n";
-	register unsigned char* key0 = *from0;
-	register unsigned char* key1 = *from1;
+	unsigned char* key0 = *from0;
+	unsigned char* key1 = *from1;
 	assert(n0); assert(n1);
 	assert(from0); assert(from1); assert(result);
 	assert(key0); assert(key1);
@@ -163,9 +163,9 @@ merge_3way(unsigned char** restrict from0, size_t n0,
            unsigned char** restrict result)
 {
 	debug()<<__func__<<"(), n0="<<n0<<", n1="<<n1<<", n2="<<n2<<"\n";
-	register unsigned char* key0 = *from0;
-	register unsigned char* key1 = *from1;
-	register unsigned char* key2 = *from2;
+	unsigned char* key0 = *from0;
+	unsigned char* key1 = *from1;
+	unsigned char* key2 = *from2;
 	const int cmp01 = cmp(key0, key1);
 	const int cmp12 = cmp(key1, key2);
 	int cmp02 = 0;

@@ -1574,7 +1574,7 @@ merge_lcp_2way_unstable(
 	debug() << __func__ << "(): n0=" << n0 << ", n1=" << n1 << '\n';
 	check_input(from0, lcp_input0, n0);
 	check_input(from1, lcp_input1, n1);
-	register lcp_t lcp0=0, lcp1=0;
+	lcp_t lcp0=0, lcp1=0;
 	int cmp01; lcp_t lcp01;
 	std::tie(cmp01, lcp01) = compare(*from0, *from1);
 	if (cmp01 <= 0) {

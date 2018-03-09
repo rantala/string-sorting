@@ -69,8 +69,8 @@ merge_2way_unstable(unsigned char** restrict from0, size_t n0,
                     unsigned char** restrict result)
 {
 	debug()<<__func__<<"(), n0="<<n0<<", n1="<<n1<<"\n";
-	register unsigned char* key0 = *from0;
-	register unsigned char* key1 = *from1;
+	unsigned char* key0 = *from0;
+	unsigned char* key1 = *from1;
 initial:
 	const int cmp01 = cmp(key0, key1);
 	if (cmp01 > 0)  goto state_1lt0;

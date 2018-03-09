@@ -109,6 +109,7 @@ check_input(unsigned char** from0, size_t n0)
 #endif
 }
 
+#if 0
 template <unsigned K>
 static void
 debug_print(const std::array<size_t,K>& buffer_count,
@@ -140,6 +141,7 @@ debug_print(const std::array<size_t,K>& buffer_count,
 	debug_print(buffer_count, streams, me, 2*pos);
 #endif
 }
+#endif
 
 // Gives the buffer size of a given node.
 template <unsigned K, unsigned I> struct buffer_size;

@@ -110,7 +110,7 @@ struct loser_tree
 		return _streams[_nodes[pos]];
 	}
 
-	bool stream_empty(Stream& pos) const { return pos.n == size_t(0); }
+	bool stream_empty(const Stream& pos) const { return pos.n == size_t(0); }
 
 	unsigned init_min(unsigned root)
 	{

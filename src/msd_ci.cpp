@@ -36,6 +36,8 @@
 #include <cstddef>
 #include <cstdlib>
 #include <sys/types.h>
+#include <iostream>
+#include <limits>
 
 template <typename BucketType>
 struct distblock {
@@ -70,7 +72,7 @@ msd_ci(unsigned char** strings, size_t n, size_t depth)
 		while (1) {
 			// Continue until the current bucket is completely in
 			// place
-			if (--bucketindex[tmp.bucket] <= i)
+			if (--bucketindex[tmp.bucket] <= ssize_t(i))
 				break;
 			// backup all information of the position we are about
 			// to overwrite
@@ -123,7 +125,7 @@ msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 		while (1) {
 			// Continue until the current bucket is completely in
 			// place
-			if (--bucketindex[tmp.bucket] <= i)
+			if (--bucketindex[tmp.bucket] <= ssize_t(i))
 				break;
 			// backup all information of the position we are about
 			// to overwrite
@@ -152,9 +154,27 @@ msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 }
 
 void msd_ci(unsigned char** strings, size_t n)
-{ msd_ci<size_t>(strings, n, 0); }
+{
+	if (n > std::numeric_limits<ssize_t>::max()) {
+		std::cerr << "ERROR: "
+			<< __func__ << "(): too many input strings: "
+			<< n << " > " << std::numeric_limits<ssize_t>::max()
+			<< std::endl;
+		abort();
+	}
+	msd_ci<size_t>(strings, n, 0);
+}
 void msd_ci_adaptive(unsigned char** strings, size_t n)
-{ msd_ci_adaptive(strings, n, 0); }
+{
+	if (n > std::numeric_limits<ssize_t>::max()) {
+		std::cerr << "ERROR: "
+			<< __func__ << "(): too many input strings: "
+			<< n << " > " << std::numeric_limits<ssize_t>::max()
+			<< std::endl;
+		abort();
+	}
+	msd_ci_adaptive(strings, n, 0);
+}
 
 ROUTINE_REGISTER_SINGLECORE(msd_ci, "msd_CI")
 ROUTINE_REGISTER_SINGLECORE(msd_ci_adaptive, "msd_CI: adaptive")

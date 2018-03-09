@@ -82,7 +82,7 @@ free_pairs(char **pairs, unsigned pairs_cnt)
 char *
 vma_info(void *ptr)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	char *buf = NULL;
 	char *line = NULL;
 	char **pairs = NULL;

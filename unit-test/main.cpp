@@ -1,3 +1,5 @@
+static int cmp(int a, int b);
+
 #include "../src/vector_brodnik.h"
 #include "../src/vector_bagwell.h"
 #include "../src/vector_block.h"

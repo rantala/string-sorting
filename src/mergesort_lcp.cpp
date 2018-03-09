@@ -74,6 +74,7 @@
 // to save some memory.
 typedef size_t lcp_t;
 
+#ifndef NDEBUG
 static inline int
 cmp(const unsigned char* a, const unsigned char* b)
 {
@@ -82,6 +83,7 @@ cmp(const unsigned char* a, const unsigned char* b)
 	return strcmp(reinterpret_cast<const char*>(a),
 	              reinterpret_cast<const char*>(b));
 }
+#endif
 
 static lcp_t
 lcp(unsigned char* a, unsigned char* b)

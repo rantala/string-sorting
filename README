@@ -57,15 +57,6 @@ Default compilation with GCC:
     $ make
     $ ./sortstring
 
-The Intel C/C++ compiler is also supported, set USE_ICC to true when running
-CMake. This sets the proper compiler and some ICC specific flags.
-
-    $ mkdir string-sorting-build-icc
-    $ cd string-sorting-read-only-build-icc
-    $ cmake -DCMAKE_BUILD_TYPE=release -DUSE_ICC=true ../string-sorting
-    $ make
-    $ ./sortstring
-
 Use a separate debug build for easier debugging:
 
     $ mkdir debug-build

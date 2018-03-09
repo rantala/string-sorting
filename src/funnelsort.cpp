@@ -611,9 +611,8 @@ struct fill
 
 #ifdef FUNNELSORT_EXTRA_INLINING
 // Fully inline K=8 and K=16 with ''__attribute__((always_inline))''. Increases
-// compilation times with GCC and ICC by 5-10 minutes even with a fast computer.
-// Adding the attribute to the generic 'fill' struct above effectively kills the
-// compiler.
+// compilation times by 5-10 minutes even with a fast computer. Adding the
+// attribute to the generic 'fill' struct above effectively kills the compiler.
 template <unsigned I,template <unsigned,unsigned> class BufferLayout>
 struct fill<8,I,BufferLayout>
 {

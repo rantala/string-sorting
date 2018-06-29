@@ -1,0 +1,21 @@
+dist: trusty
+sudo: required
+
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+before_script:
+  - mkdir builddir
+  - cd builddir
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
+
+script: make -j $(nproc)
+
+addons:
+  apt:
+    packages:
+    - cmake
+    - libboost-dev

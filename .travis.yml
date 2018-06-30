@@ -1,3 +1,4 @@
+# vim: sw=2 et:
 dist: trusty
 sudo: required
 
@@ -10,3 +11,22 @@ compiler:
 script:
   - mkdir builddir-Debug   && (cd builddir-Debug   && cmake -DCMAKE_BUILD_TYPE=Debug ..   && make -j $(nproc))
   - mkdir builddir-Release && (cd builddir-Release && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j $(nproc))
+
+env:
+  global:
+    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+    #   via the "travis encrypt" command using the project repo's public key
+    - secure: "c1fqMoIcWjvDtTLmY2FmxoDFwTmU2p7n0lTPoYOTJZfZzy+WD0T6hroL52JKpztqQO/IzWFlFAtbU4xrhqLz85yXfelQs8m7Z231MeD/bkhFduK3+9wz5/zl4PF86aT2/tUPQm+oNOJ52yCdsWGN0aQ9F+udKlLYizNzjNThHhGBORBiurizdON8um94XKDPQ+yvUyMx81tzF8znlKr5NTZJXhVpWAklfqH1TVJ7jio38XjR3qr5R/6ehbido2SNogSHkjxRnuMClUAkEXV4uFXpakr5WNbL7wkGoGr/6d4IdBjZG8VxvA1Zw508XmpIPSAVPgDtoYj5pJZRkEtDxerZZ6g1FkN9RAUwiju0A2QS5UPQdsbigOt54ix9hDWDKant5UoR1AXvGyqfPHIXYWzrLJ4cFn2jwePazJrZRAD9VOFrjSGyQBkjRwN6QoQ8Ket1UzOfY0arGalOcggY4WgEALOUxLcKoJ0FoRwPeBssK6QYMndwYe+JpVswjl45zQLeQmh6QsQKTt/vNtej7vuzVkjkZCBBHn0p847MuCIyOlt4Bz/NTRfpMwDKNI0vXEhsmdzWzitzjLq06Ondo8BqgmUysxMkP8D8tc+X6vLX2RU37hDgvZjnEDoM9xXPAT2CBWWwXRvuDtZIsfKRAumBiC0FioHWFjOkGwrk6xo="
+
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+addons:
+  coverity_scan:
+    project:
+      name: "rantala/string-sorting"
+      description: "string-sorting"
+    notification_email: tt.rantala@gmail.com
+    build_command_prepend: "mkdir covbuild-Debug && (cd covbuild-Debug && cmake -DCMAKE_BUILD_TYPE=Debug ..)"
+    build_command: "make -C covbuild-Debug -j $(nproc)"
+    branch_pattern: coverity_scan

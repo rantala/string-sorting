@@ -8,5 +8,5 @@ compiler:
   - gcc
 
 script:
-  - mkdir builddir-Debug   && cd builddir-Debug   && cmake -DCMAKE_BUILD_TYPE=Debug ..   && make -j $(nproc) && cd ..
-  - mkdir builddir-Release && cd builddir-Release && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j $(nproc) && cd ..
+  - mkdir builddir-Debug   && (cd builddir-Debug   && cmake -DCMAKE_BUILD_TYPE=Debug ..   && make -j $(nproc))
+  - mkdir builddir-Release && (cd builddir-Release && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j $(nproc))

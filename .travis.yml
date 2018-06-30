@@ -7,15 +7,6 @@ compiler:
   - clang
   - gcc
 
-before_script:
-  - mkdir builddir
-  - cd builddir
-  - cmake -DCMAKE_BUILD_TYPE=Release ..
-
-script: make -j $(nproc)
-
-addons:
-  apt:
-    packages:
-    - cmake
-    - libboost-dev
+script:
+  - mkdir builddir-Debug   && cd builddir-Debug   && cmake -DCMAKE_BUILD_TYPE=Debug ..   && make -j $(nproc) && cd ..
+  - mkdir builddir-Release && cd builddir-Release && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j $(nproc) && cd ..

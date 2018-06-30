@@ -87,8 +87,8 @@ struct TempSpace
 		debug()<<__PRETTY_FUNCTION__<<"\n";
 		char* raw = reinterpret_cast<char*>(strs);
 		size_t rawbytes = n*sizeof(unsigned char*);
-		if (ptrdiff_t(raw) % sizeof(cacheblock_t)) {
-			unsigned diff = ptrdiff_t(raw) % sizeof(cacheblock_t);
+		if (std::ptrdiff_t(raw) % sizeof(cacheblock_t)) {
+			unsigned diff = std::ptrdiff_t(raw) % sizeof(cacheblock_t);
 			debug()<<"\t: alignment mismatch by "<<diff<<"bytes\n";
 			raw      += diff;
 			rawbytes -= diff;

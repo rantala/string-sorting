@@ -9,19 +9,19 @@ compiler:
   - gcc
 
 env:
-  - BUILD_TYPE=Debug
-  - BUILD_TYPE=Release
-
-script:
-  - mkdir builddir-$BUILD_TYPE
-  - (cd builddir-$BUILD_TYPE && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..)
-  - make -C builddir-$BUILD_TYPE -j $(nproc)
-
-env:
   global:
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
     #   via the "travis encrypt" command using the project repo's public key
     - secure: "c1fqMoIcWjvDtTLmY2FmxoDFwTmU2p7n0lTPoYOTJZfZzy+WD0T6hroL52JKpztqQO/IzWFlFAtbU4xrhqLz85yXfelQs8m7Z231MeD/bkhFduK3+9wz5/zl4PF86aT2/tUPQm+oNOJ52yCdsWGN0aQ9F+udKlLYizNzjNThHhGBORBiurizdON8um94XKDPQ+yvUyMx81tzF8znlKr5NTZJXhVpWAklfqH1TVJ7jio38XjR3qr5R/6ehbido2SNogSHkjxRnuMClUAkEXV4uFXpakr5WNbL7wkGoGr/6d4IdBjZG8VxvA1Zw508XmpIPSAVPgDtoYj5pJZRkEtDxerZZ6g1FkN9RAUwiju0A2QS5UPQdsbigOt54ix9hDWDKant5UoR1AXvGyqfPHIXYWzrLJ4cFn2jwePazJrZRAD9VOFrjSGyQBkjRwN6QoQ8Ket1UzOfY0arGalOcggY4WgEALOUxLcKoJ0FoRwPeBssK6QYMndwYe+JpVswjl45zQLeQmh6QsQKTt/vNtej7vuzVkjkZCBBHn0p847MuCIyOlt4Bz/NTRfpMwDKNI0vXEhsmdzWzitzjLq06Ondo8BqgmUysxMkP8D8tc+X6vLX2RU37hDgvZjnEDoM9xXPAT2CBWWwXRvuDtZIsfKRAumBiC0FioHWFjOkGwrk6xo="
+  matrix:
+    - BUILD_TYPE=Debug
+    - BUILD_TYPE=Release
+
+script:
+  - test "$BUILD_TYPE" || exit 1
+  - mkdir builddir-$BUILD_TYPE
+  - (cd builddir-$BUILD_TYPE && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..)
+  - make -C builddir-$BUILD_TYPE -j $(nproc)
 
 addons:
   coverity_scan:

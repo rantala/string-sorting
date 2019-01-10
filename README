@@ -83,9 +83,9 @@ actual strings from the given file) into huge pages, and the latter option
 places the string pointer array into huge pages. Using huge pages in Linux
 requires CPU support, and properly adjusted kernel settings.
 
-The external library libhugetlbfs (http://libhugetlbfs.ozlabs.org/) can be used
-to replace all calls to malloc to use huge pages. If this library is used, the
-aforementioned options are not needed.
+The external library libhugetlbfs (https://github.com/libhugetlbfs/libhugetlbfs)
+can be used to replace all calls to malloc to use huge pages. If this library is
+used, the aforementioned options are not needed.
 
 
 HTML report creation

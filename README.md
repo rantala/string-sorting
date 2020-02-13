@@ -1,4 +1,3 @@
-========================================================
 A collection of string sorting algorithm implementations
 ========================================================
 
@@ -25,16 +24,16 @@ License
 
 MIT.
 
-Exception: The directory `external' contains files, that are included for
+Exception: The directory `external` contains files, that are included for
 reference purposes, that may or may not be compatible with the MIT license.
 
 
 Copyright
 ---------
 
-Copyright © 2007-2012 by Tommi Rantala <tt.rantala@gmail.com>.
+Copyright © 2007-2012 by Tommi Rantala <tt.rantala@gmail.com>
 
-The directory `external' contains files, that are included for reference
+The directory `external` contains files, that are included for reference
 purposes, and are copyright by their respective authors.
 
 

@@ -72,7 +72,7 @@ typedef size_t UINT;
 typedef unsigned char BYTE, *LPBYTE, **LPPBYTE;
 typedef unsigned char STR, *LPSTR, **LPPSTR, **STRPARR;
 
-struct Stack {
+static struct Stack {
 	LPSTR* sa; LPBYTE sk;
 	int sn, sb;
 } stack[SS], *sp=stack;

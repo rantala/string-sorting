@@ -155,7 +155,7 @@ msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 
 void msd_ci(unsigned char** strings, size_t n)
 {
-	if (n > std::numeric_limits<ssize_t>::max()) {
+	if (n > size_t(std::numeric_limits<ssize_t>::max())) {
 		std::cerr << "ERROR: "
 			<< __func__ << "(): too many input strings: "
 			<< n << " > " << std::numeric_limits<ssize_t>::max()
@@ -166,7 +166,7 @@ void msd_ci(unsigned char** strings, size_t n)
 }
 void msd_ci_adaptive(unsigned char** strings, size_t n)
 {
-	if (n > std::numeric_limits<ssize_t>::max()) {
+	if (n > size_t(std::numeric_limits<ssize_t>::max())) {
 		std::cerr << "ERROR: "
 			<< __func__ << "(): too many input strings: "
 			<< n << " > " << std::numeric_limits<ssize_t>::max()

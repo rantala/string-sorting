@@ -50,6 +50,9 @@ set(EXTERNAL_SRCS
 	external/forward16.c
 	external/parallel_string_radix_sort.cpp)
 
+set_source_files_properties(external/adaptive.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
+set_source_files_properties(external/quicksort.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
+
 add_executable(sortstring
 	${INTERNAL_SRCS}
 	${EXTERNAL_SRCS})

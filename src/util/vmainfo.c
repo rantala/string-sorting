@@ -85,7 +85,7 @@ vma_info(void *ptr)
 	FILE *fp = NULL;
 	char *buf = NULL;
 	char *line = NULL;
-	char **pairs = NULL;
+	char **pairs = NULL, **tmp = NULL;
 	unsigned pairs_cnt = 0;
 	size_t line_n = 0;
 	buf = malloc(2048);
@@ -106,9 +106,10 @@ vma_info(void *ptr)
 			while (getline(&line, &line_n, fp) != -1) {
 				if (line[0] >= 'A' && line[0] <= 'Z'
 						&& strchr(line, ':') != NULL) {
-					pairs = realloc(pairs, (pairs_cnt+1) * sizeof(char *));
-					if (!pairs)
+					tmp = realloc(pairs, (pairs_cnt+1) * sizeof(char *));
+					if (!tmp)
 						goto done;
+					pairs = tmp;
 					pairs[pairs_cnt++] = line;
 					line = NULL;
 					line_n = 0;

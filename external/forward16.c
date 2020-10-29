@@ -250,11 +250,11 @@ static inline list forward2(list t, int n)
 
 void frssort(string strings[], size_t scnt)
 {
-   list listnodes;
+   list ptr, listnodes;
    size_t i;
 
     /* allocate memory based on the number of strings in the array */
-    listnodes = (list ) calloc(scnt, sizeof(struct listrec));
+    ptr = listnodes = (list ) calloc(scnt, sizeof(struct listrec));
 
     /* point the linked list nodes to the strings in the array */
     for( i=0; i<scnt; i++)
@@ -273,7 +273,7 @@ void frssort(string strings[], size_t scnt)
     for (i = 0;  i < scnt ; i++, listnodes=listnodes->next)
        strings[i] = listnodes->str;
 
-   return;
+    free(ptr);
 }
 
 void forward16(unsigned char **strings, size_t n)

@@ -7,6 +7,7 @@ include_directories(src src/util)
 link_libraries(rt)
 
 set(INTERNAL_SRCS
+	src/funnelsort.cpp
 	src/msd_a.cpp
 	src/msd_a2.cpp
 	src/msd_lsd.cpp
@@ -26,7 +27,6 @@ set(INTERNAL_SRCS
 	src/mergesort_unstable.cpp
 	src/mergesort_losertree.cpp
 	src/mergesort_lcp.cpp
-	src/funnelsort.cpp
 	src/routines.c
 	src/sortstring.c
 	src/util/timing.c

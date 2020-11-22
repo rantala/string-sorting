@@ -52,6 +52,7 @@ static struct {
 	unsigned hugetlb_text     : 1;
 	unsigned hugetlb_pointers : 1;
 	unsigned text_raw         : 1;
+	int perf_control_fd;
 } opts;
 
 static FILE *log_file;
@@ -73,6 +74,36 @@ open_log_file(void)
 		log_file = fopen("sortstring_log", "a");
 	free(log_fn);
 	setlinebuf(log_file);
+}
+
+static void
+perf_control_write(int fd, const char *msg)
+{
+	ssize_t len = (ssize_t)strlen(msg);
+	ssize_t ret = write(fd, msg, len);
+	if (ret != len) {
+		int err = errno;
+		fprintf(stderr,
+			"ERROR: perf control fd write %s failed (ret=%zd, errno=%d): %s\n",
+			msg, ret, err, strerror(err));
+		if (log_file)
+			fprintf(log_file,
+				"FATAL: perf control fd write %s failed (ret=%zd, errno=%d): %s\n",
+				msg, ret, err, strerror(err));
+		exit(1);
+	}
+}
+
+static void
+perf_control_enable(int fd)
+{
+	perf_control_write(fd, "enable\n");
+}
+
+static void
+perf_control_disable(int fd)
+{
+	perf_control_write(fd, "disable\n");
 }
 
 static void
@@ -418,11 +449,15 @@ run(const struct routine *r, unsigned char **strings, size_t n)
 	puts("Timing ...");
 	if (opts.oprofile)
 		opcontrol_start();
+	if (opts.perf_control_fd > 0)
+		perf_control_enable(opts.perf_control_fd);
 	timing_start();
 	r->f(strings, n);
 	timing_stop();
 	if (opts.oprofile)
 		opcontrol_stop();
+	if (opts.perf_control_fd > 0)
+		perf_control_disable(opts.perf_control_fd);
 	print_timing_results();
 	if (opts.check_result)
 		check_result(strings, n);
@@ -571,6 +606,10 @@ usage(void)
 	     "Options:\n"
 	     "   --check          : Tries to check output for validity. Might not catch\n"
 	     "                      all errors. Prints a warning when errors found.\n"
+	     "   --perf-ctrl-fd=FD  Use file descriptor to control perf tool.\n"
+	     "                      Enable perf just before sorting algorithm is called,\n"
+	     "                      and disable after returning from the call.\n"
+	     "                      See perf --control option.\n"
 	     "   --oprofile       : Executes `oprofile --start' just before calling the\n"
 	     "                      actual sorting algorithm, and `oprofile --stop' after\n"
 	     "                      returning from the call. Can be used to obtain more\n"
@@ -600,6 +639,11 @@ usage(void)
 	     "\n"
 	     "   # Sort all suffixes of of the given text file with quicksort:\n"
 	     "   ./sortstring --check --suffix-sorting quicksort ~/testdata/text\n"
+	     "\n"
+	     "   # Perf tool and control file descriptor:\n"
+	     "   mkfifo ctrl && exec 9<>ctrl && rm ctrl"
+	         " && perf stat --delay=-1 --control=fd:9"
+		 " -- taskset -c 0 ./sortstring --perf-ctrl-fd=9 quicksort testfile"
 	     "\n");
 }
 
@@ -631,6 +675,7 @@ int main(int argc, char **argv)
 		{"hugetlb-text",   0, 0, 1009},
 		{"hugetlb-ptrs",   0, 0, 1010},
 		{"raw",            0, 0, 1011},
+		{"perf-ctrl-fd",   1, 0, 1012},
 		{0,                0, 0, 0}
 	};
 	while (1) {
@@ -672,6 +717,9 @@ int main(int argc, char **argv)
 			break;
 		case 1011:
 			opts.text_raw = 1;
+			break;
+		case 1012:
+			opts.perf_control_fd = atoi(optarg);
 			break;
 		case '?':
 		default:

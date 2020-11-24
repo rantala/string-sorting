@@ -74,7 +74,8 @@ open_log_file(void)
 	else
 		log_file = fopen("sortstring_log", "a");
 	free(log_fn);
-	setlinebuf(log_file);
+	if (log_file)
+		setlinebuf(log_file);
 }
 
 static void
@@ -665,6 +666,8 @@ static void
 print_cmdline(int argc, char **argv, FILE *fp)
 {
 	int i;
+	if (!fp)
+		return;
 	fprintf(fp, "Command line:");
 	for (i=0; i < argc; ++i)
 		fprintf(fp, " %s", argv[i]);

@@ -6,6 +6,7 @@ static int cmp(int a, int b);
 #include "../src/vector_realloc.h"
 #include "../src/vector_malloc.h"
 #include "../src/losertree.h"
+#include "../src/util/insertion_sort.h"
 #include <cassert>
 #include <iostream>
 #include <array>
@@ -147,6 +148,52 @@ test_loser_tree()
 	}
 }
 
+static void
+test_insertion_sort()
+{
+	std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+	{
+		std::array<const char *, 0> input;
+		insertion_sort((unsigned char **)input.data(), input.size(), 0);
+	}
+	{
+		std::array<const char *, 1> input = {""};
+		insertion_sort((unsigned char **)input.data(), input.size(), 0);
+	}
+	{
+		std::array<const char *, 5> input = {
+			"c",
+			"",
+			"bbaaa",
+			"aaaaa",
+			"bbbbb",
+		};
+		insertion_sort((unsigned char **)input.data(), input.size(), 0);
+		assert(strcmp(input[0], "") == 0);
+		assert(strcmp(input[1], "aaaaa") == 0);
+		assert(strcmp(input[2], "bbaaa") == 0);
+		assert(strcmp(input[3], "bbbbb") == 0);
+		assert(strcmp(input[4], "c") == 0);
+		insertion_sort((unsigned char **)input.data(), input.size(), 0);
+		assert(strcmp(input[0], "") == 0);
+		assert(strcmp(input[1], "aaaaa") == 0);
+		assert(strcmp(input[2], "bbaaa") == 0);
+		assert(strcmp(input[3], "bbbbb") == 0);
+		assert(strcmp(input[4], "c") == 0);
+	}
+	{
+		std::array<const char *, 3> input = {
+			"bbbb1",
+			"aaaa3",
+			"aaaa2",
+		};
+		insertion_sort((unsigned char **)input.data(), input.size(), 4);
+		assert(strcmp(input[0], "bbbb1") == 0);
+		assert(strcmp(input[1], "aaaa2") == 0);
+		assert(strcmp(input[2], "aaaa3") == 0);
+	}
+}
+
 struct OK { ~OK() { std::cerr << "*** All OK ***\n"; } };
 
 int main()
@@ -172,5 +219,7 @@ int main()
 	test_basics<vector_realloc<uint64_t> >();
 	test_basics<vector_realloc_counter_clear<uint64_t> >();
 	test_basics<vector_realloc_shrink_clear<uint64_t> >();
+	/*********************************************************/
+	test_insertion_sort();
 	/*********************************************************/
 }

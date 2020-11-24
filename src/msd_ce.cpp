@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2011,2020 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -61,6 +61,9 @@
  * msd_CE7:
  *   - Check for sorted (sub)inputs to avoid the distribution step when not
  *     required.
+ *
+ * msd_CE8:
+ *   - Prefetch strings to reduce stalls.
  */
 
 #include "routine.h"
@@ -487,3 +490,87 @@ void msd_CE7(unsigned char** strings, size_t n)
 }
 ROUTINE_REGISTER_SINGLECORE(msd_CE7,
 	"CE7: oracle+loop fission+adaptive+16bit counter+prealloc+unroll+sortedness")
+
+static void
+msd_CE8_(unsigned char** strings, size_t n, size_t depth,
+		uint16_t* restrict oracle, unsigned char** sorted)
+{
+	if (n < 0x10000) {
+		msd_CE2_16bit_5(strings, n, depth, (unsigned char*)oracle, sorted);
+		return;
+	}
+	{
+		size_t i;
+		for (i=0; i < n-n%2; i+=2) {
+			__builtin_prefetch(&strings[i+2][depth]);
+			unsigned char* str1 = strings[i];
+			unsigned char* str2 = strings[i+1];
+			uint16_t ch1 = get_char<uint16_t>(str1, depth);
+			uint16_t ch2 = get_char<uint16_t>(str2, depth);
+			oracle[i  ] = ch1;
+			oracle[i+1] = ch2;
+		}
+		for (; i < n; ++i) {
+			//__builtin_prefetch(&strings[i+1][depth]);
+			oracle[i] = get_char<uint16_t>(strings[i], depth);
+		}
+	}
+	size_t* restrict bucketsize = (size_t*)
+		calloc(0x10000, sizeof(size_t));
+	int is_sorted = 1;
+	{
+		size_t i;
+		uint16_t prev_ch = oracle[0];
+		++bucketsize[prev_ch];
+		for (i=1; i < n; ++i) {
+			__builtin_prefetch(&oracle[i+1]);
+			uint16_t ch = oracle[i];
+			++bucketsize[ch];
+			if (ch > prev_ch) {
+				is_sorted = 0;
+				++i;
+				break;
+			}
+			prev_ch = ch;
+		}
+		for (; i < n; ++i) {
+			__builtin_prefetch(&oracle[i+1]);
+			++bucketsize[oracle[i]];
+		}
+	}
+	if (is_sorted)
+		goto in_order;
+	static size_t bucketindex[0x10000];
+	bucketindex[0] = 0;
+	__builtin_prefetch(&bucketsize[0]);
+	for (size_t i=1; i < 0x10000; ++i) {
+		__builtin_prefetch(&bucketsize[i]);
+		bucketindex[i] = bucketindex[i-1]+bucketsize[i-1];
+	}
+	for (size_t i=0; i < n; ++i) {
+		__builtin_prefetch(&oracle[i+1]);
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	}
+	memcpy(strings, sorted, n*sizeof(unsigned char*));
+in_order:
+	size_t bsum = bucketsize[0];
+	for (size_t i=1; i < 0x10000; ++i) {
+		if (bucketsize[i] == 0) continue;
+		if (i & 0xFF) msd_CE8_(strings+bsum, bucketsize[i],
+				depth+2, oracle, sorted);
+		bsum += bucketsize[i];
+	}
+	free(bucketsize);
+}
+void msd_CE8(unsigned char** strings, size_t n)
+{
+	uint16_t* restrict oracle = (uint16_t*)
+		malloc(n*sizeof(uint16_t));
+	unsigned char** sorted = (unsigned char**)
+		malloc(n*sizeof(unsigned char*));
+	msd_CE8_(strings, n, 0, oracle, sorted);
+	free(oracle);
+	free(sorted);
+}
+ROUTINE_REGISTER_SINGLECORE(msd_CE8,
+	"CE8: oracle+loop fission+adaptive+16bit counter+prealloc+unroll+sortedness+prefetch")

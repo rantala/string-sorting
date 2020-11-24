@@ -44,6 +44,7 @@
 #include <array>
 #include <xmmintrin.h>
 
+template <bool Prefetch>
 static void
 calculate_bucketsizes_sse(
 		unsigned char** strings, size_t n,
@@ -74,6 +75,9 @@ calculate_bucketsizes_sse(
 		FlipBit);
 	for (size_t i=0; i < n; i += 16) {
 		unsigned char data00[16] __attribute__ ((aligned (16)));
+		if (Prefetch)
+			for (unsigned j=0; j < 16; ++j)
+				__builtin_prefetch(&strings[i+j+16][depth]);
 		for (unsigned j=0; j < 16; ++j)
 			data00[j] = strings[i+j][depth];
 		__m128i d00 = _mm_load_si128(
@@ -88,6 +92,7 @@ calculate_bucketsizes_sse(
 	}
 }
 
+template <bool Prefetch>
 static void
 calculate_bucketsizes_sse(
 		unsigned char** strings,
@@ -116,6 +121,9 @@ calculate_bucketsizes_sse(
 		_mm_load_si128(reinterpret_cast<const __m128i*>(_Pivot)),
 		FlipBit);
 	for (size_t i=0; i < n; i += 16) {
+		if (Prefetch)
+			for (unsigned j=0; j < 16; ++j)
+				__builtin_prefetch(&strings[i+j+16][depth]);
 		const CharT data00[] __attribute__ ((aligned (16)))
 			= {
 				get_char<CharT>(strings[i+0 ], depth),
@@ -161,6 +169,7 @@ calculate_bucketsizes_sse(
 	}
 }
 
+template <bool Prefetch>
 static void
 calculate_bucketsizes_sse(
 		unsigned char** strings,
@@ -189,6 +198,9 @@ calculate_bucketsizes_sse(
 		_mm_load_si128(reinterpret_cast<const __m128i*>(_Pivot)),
 		FlipBit);
 	for (size_t i=0; i < n; i += 16) {
+		if (Prefetch)
+			for (unsigned j=0; j < 16; ++j)
+				__builtin_prefetch(&strings[i+j+16][depth]);
 		const CharT data00[] __attribute__ ((aligned (16)))
 			= {
 				get_char<CharT>(strings[i+0 ], depth),
@@ -271,7 +283,7 @@ multikey_simd(unsigned char** strings, size_t N, size_t depth)
 	std::array<size_t, 3> bucketsize;
 	bucketsize.fill(0);
 	size_t i=N-N%16;
-	calculate_bucketsizes_sse(strings, i, oracle, partval, depth);
+	calculate_bucketsizes_sse<false>(strings, i, oracle, partval, depth);
 	for (; i < N; ++i)
 		oracle[i] = get_bucket(
 				get_char<CharT>(strings[i], depth),
@@ -315,6 +327,92 @@ ROUTINE_REGISTER_SINGLECORE(multikey_simd2,
 ROUTINE_REGISTER_SINGLECORE(multikey_simd4,
 		"multikey_simd with 4byte alphabet")
 
+/*
+ * Same as multikey_simd(), but "sorted" and "oracle" memory is preallocated,
+ * and prefetching is done to try to speed up string accesses.
+ */
+template <typename CharT>
+static void
+multikey_simd_b(unsigned char** strings, size_t N, size_t depth,
+		unsigned char** restrict sorted, uint8_t* restrict oracle)
+{
+	if (N < 32) {
+		insertion_sort(strings, N, depth);
+		return;
+	}
+	CharT partval = pseudo_median<CharT>(strings, N, depth);
+	std::array<size_t, 3> bucketsize;
+	bucketsize.fill(0);
+	size_t i=N-N%16;
+	calculate_bucketsizes_sse<true>(strings, i, oracle, partval, depth);
+	for (; i < N; ++i)
+		oracle[i] = get_bucket(
+				get_char<CharT>(strings[i], depth),
+				partval);
+	for (i=0; i < N; ++i) {
+		__builtin_prefetch(&oracle[i+1]);
+		++bucketsize[oracle[i]];
+	}
+	assert(bucketsize[0] + bucketsize[1] + bucketsize[2] == N);
+	size_t bucketindex[3];
+	bucketindex[0] = 0;
+	bucketindex[1] = bucketsize[0];
+	bucketindex[2] = bucketsize[0] + bucketsize[1];
+	for (size_t i=0; i < N; ++i) {
+		__builtin_prefetch(&oracle[i+1]);
+		sorted[bucketindex[oracle[i]]++] = strings[i];
+	}
+	std::copy(sorted, sorted+N, strings);
+	multikey_simd_b<CharT>(strings, bucketsize[0], depth,
+			sorted, oracle);
+	if (not is_end(partval))
+		multikey_simd_b<CharT>(strings+bucketsize[0],
+				bucketsize[1], depth+sizeof(CharT),
+				sorted, oracle);
+	multikey_simd_b<CharT>(strings+bucketsize[0]+bucketsize[1],
+			bucketsize[2], depth, sorted, oracle);
+}
+
+void multikey_simd_b_1(unsigned char** strings, size_t n)
+{
+	unsigned char** sorted =
+		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
+	uint8_t* const restrict oracle =
+		static_cast<uint8_t*>(_mm_malloc(n, 16));
+	multikey_simd_b<unsigned char>(strings, n, 0, sorted, oracle);
+	_mm_free(oracle);
+	free(sorted);
+}
+
+void multikey_simd_b_2(unsigned char** strings, size_t n)
+{
+	unsigned char** sorted =
+		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
+	uint8_t* const restrict oracle =
+		static_cast<uint8_t*>(_mm_malloc(n, 16));
+	multikey_simd_b<uint16_t>(strings, n, 0, sorted, oracle);
+	_mm_free(oracle);
+	free(sorted);
+}
+
+void multikey_simd_b_4(unsigned char** strings, size_t n)
+{
+	unsigned char** sorted =
+		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
+	uint8_t* const restrict oracle =
+		static_cast<uint8_t*>(_mm_malloc(n, 16));
+	multikey_simd_b<uint32_t>(strings, n, 0, sorted, oracle);
+	_mm_free(oracle);
+	free(sorted);
+}
+
+ROUTINE_REGISTER_SINGLECORE(multikey_simd_b_1,
+		"multikey_simd with 1byte alphabet + prealloc + prefetch")
+ROUTINE_REGISTER_SINGLECORE(multikey_simd_b_2,
+		"multikey_simd with 2byte alphabet + prealloc + prefetch")
+ROUTINE_REGISTER_SINGLECORE(multikey_simd_b_4,
+		"multikey_simd with 4byte alphabet + prealloc + prefetch")
+
 template <typename CharT>
 static void
 multikey_simd_parallel(unsigned char** strings, size_t N, size_t depth)
@@ -333,14 +431,14 @@ multikey_simd_parallel(unsigned char** strings, size_t N, size_t depth)
 #pragma omp parallel sections
 		{
 #pragma omp section
-		calculate_bucketsizes_sse(strings, i/2, oracle,
+		calculate_bucketsizes_sse<false>(strings, i/2, oracle,
 				partval, depth);
 #pragma omp section
-		calculate_bucketsizes_sse(strings+i/2, i/2, oracle+i/2,
+		calculate_bucketsizes_sse<false>(strings+i/2, i/2, oracle+i/2,
 				partval, depth);
 		}
 	} else
-		calculate_bucketsizes_sse(strings, i, oracle, partval, depth);
+		calculate_bucketsizes_sse<false>(strings, i, oracle, partval, depth);
 	for (; i < N; ++i)
 		oracle[i] = get_bucket(
 				get_char<CharT>(strings[i], depth),

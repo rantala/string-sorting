@@ -227,15 +227,26 @@ input_copy(const char *fname, unsigned char **text_, size_t *text_len_)
 		exit(1);
 	}
 	unsigned char *text = alloc_text(filesize);
-	ssize_t ret = read(fd, text, filesize);
-	if (ret < filesize) {
-		/* Not strictly a failure... */
-		fprintf(stderr,
-			"ERROR: read() only %lld bytes out of %lld "
-			"from input file '%s': %s.\n",
-			(long long)ret, (long long)filesize,
-			fname, strerror(errno));
-		exit(1);
+	const size_t block_size = 128*1024;
+	for (size_t i=0; i < (size_t)filesize; ) {
+		size_t r = (size_t)filesize - i;
+		if (r > block_size)
+			r = block_size;
+		ssize_t ret = read(fd, &text[i], r);
+		if (ret < 0) {
+			if (errno == EINTR)
+				continue;
+			fprintf(stderr, "ERROR: failed read() "
+				"from input file '%s': %s.\n",
+				fname, strerror(errno));
+			exit(1);
+		} else if (ret == 0) {
+			fprintf(stderr, "ERROR: EOF read() before reading "
+				"whole input file '%s': %s.\n",
+				fname, strerror(errno));
+			exit(1);
+		}
+		i += ret;
 	}
 	if (close(fd) == -1) {
 		fprintf(stderr,

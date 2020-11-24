@@ -103,7 +103,7 @@ struct vector_brodnik
 		const unsigned k = 31 - __builtin_clz(r);
 		const unsigned msbit = 1 << (31 - __builtin_clz(r));
 		const size_t b = (r & ~msbit) >> (k-k/2);
-		const size_t e = ~((~0 >> (k-k/2)) << (k-k/2)) & r;
+		const size_t e = ~((~size_t(0) >> (k-k/2)) << (k-k/2)) & r;
 		const size_t p = k&1 ? (3*(1<<(k>>1))-2) : ((1<<((k>>1)+1))-2);
 		/*
 		std::cerr<<__func__<<"\n"

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 11)
+include(CheckIncludeFile)
 
 project(sortstring)
 include_directories(src src/util)
@@ -49,6 +50,11 @@ set(EXTERNAL_SRCS
 	external/burstsortA.c
 	external/forward16.c
 	external/parallel_string_radix_sort.cpp)
+
+check_include_file(sys/sdt.h HAVE_SYS_SDT_H)
+if(HAVE_SYS_SDT_H)
+	add_definitions(-DHAVE_SYS_SDT_H=1)
+endif()
 
 set_source_files_properties(external/adaptive.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 set_source_files_properties(external/quicksort.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)

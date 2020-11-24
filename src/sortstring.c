@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008,2011 by Tommi Rantala <tt.rantala@gmail.com>
+ * Copyright 2007-2008,2011,2020 by Tommi Rantala <tt.rantala@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -26,6 +26,7 @@
 #include "vmainfo.h"
 #include "routines.h"
 #include "cpus_allowed.h"
+#include "util/sdt.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -462,9 +463,11 @@ run(const struct routine *r, unsigned char **strings, size_t n)
 		opcontrol_start();
 	if (opts.perf_control_fd > 0)
 		perf_control_enable(opts.perf_control_fd);
+	STAP_PROBE2(sortstring, routine_start, r->name, n);
 	timing_start();
 	r->f(strings, n);
 	timing_stop();
+	STAP_PROBE2(sortstring, routine_done, r->name, n);
 	if (opts.oprofile)
 		opcontrol_stop();
 	if (opts.perf_control_fd > 0)

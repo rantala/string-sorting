@@ -25,7 +25,15 @@
 
 #include "routine.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const struct routine *routine_from_name(const char *);
 void routine_get_all(const struct routine ***, unsigned *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ROUTINES_H */

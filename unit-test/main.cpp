@@ -207,11 +207,12 @@ test_routines()
 	routine_get_all(&routines, &routines_cnt);
 
 	for (unsigned i=0; i < routines_cnt; ++i) {
-		std::cerr << "- " << routines[i]->name << '\n';
+		std::cerr << __PRETTY_FUNCTION__
+			<< " [" << routines[i]->name << ']' << std::endl;
 
-		{
+		for (size_t k=1; k < 2000; k += 200) {
 			std::vector<char *> input;
-			for (size_t i=0; i < 1500; ++i)
+			for (size_t i=0; i < k; ++i)
 				input.push_back(strdup("aaa"));
 
 			const size_t n = input.size();
@@ -223,11 +224,11 @@ test_routines()
 			for (size_t i=0; i < n; ++i)
 				free(input[i]);
 		}
-		{
+		for (size_t k=1; k < 1000; k += 200) {
 			std::vector<char *> input;
-			for (size_t i=0; i < 300; ++i) {
-				input.push_back(strdup("a"));
+			for (size_t i=0; i < k; ++i) {
 				input.push_back(strdup("bb"));
+				input.push_back(strdup("a"));
 				input.push_back(strdup("bbb"));
 			}
 
@@ -240,6 +241,22 @@ test_routines()
 				assert(strcmp(input[i], "bb") == 0);
 			for (size_t i=2*(n/3); i < 3*(n/3); ++i)
 				assert(strcmp(input[i], "bbb") == 0);
+			assert(check_result((unsigned char**)input.data(), n) == 0);
+			for (size_t i=0; i < n; ++i)
+				free(input[i]);
+		}
+		for (size_t k=1; k < 10000; k += 2000) {
+			std::vector<char *> input;
+			for (size_t i=0; i < k; ++i) {
+				char buf[10];
+				memset(buf, 'a'+(i%30), sizeof(buf)-1);
+				buf[sizeof(buf)-1] = 0;
+				input.push_back(strdup(buf));
+			}
+
+			const size_t n = input.size();
+			routines[i]->f((unsigned char **)input.data(), n);
+			// for (size_t i=0; i < n; ++i) std::cerr<<input[i]<<'\n';
 			assert(check_result((unsigned char**)input.data(), n) == 0);
 			for (size_t i=0; i < n; ++i)
 				free(input[i]);

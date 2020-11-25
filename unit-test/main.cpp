@@ -6,6 +6,7 @@ static int cmp(int a, int b);
 #include "../src/vector_realloc.h"
 #include "../src/vector_malloc.h"
 #include "../src/losertree.h"
+#include "../src/routines.h"
 #include "../src/util/insertion_sort.h"
 #include <iostream>
 #include <array>
@@ -196,6 +197,56 @@ test_insertion_sort()
 	}
 }
 
+static void
+test_routines()
+{
+	std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+
+	const struct routine **routines;
+	unsigned routines_cnt;
+	routine_get_all(&routines, &routines_cnt);
+
+	for (unsigned i=0; i < routines_cnt; ++i) {
+		std::cerr << "- " << routines[i]->name << '\n';
+
+		{
+			std::vector<char *> input;
+			for (size_t i=0; i < 1500; ++i)
+				input.push_back(strdup("aaa"));
+
+			const size_t n = input.size();
+			routines[i]->f((unsigned char **)input.data(), n);
+
+			for (size_t i=0; i < n; ++i)
+				assert(strcmp(input[i], "aaa") == 0);
+			assert(check_result((unsigned char**)input.data(), n) == 0);
+			for (size_t i=0; i < n; ++i)
+				free(input[i]);
+		}
+		{
+			std::vector<char *> input;
+			for (size_t i=0; i < 300; ++i) {
+				input.push_back(strdup("a"));
+				input.push_back(strdup("bb"));
+				input.push_back(strdup("bbb"));
+			}
+
+			const size_t n = input.size();
+			routines[i]->f((unsigned char **)input.data(), n);
+
+			for (size_t i=0*(n/3); i < 1*(n/3); ++i)
+				assert(strcmp(input[i], "a") == 0);
+			for (size_t i=1*(n/3); i < 2*(n/3); ++i)
+				assert(strcmp(input[i], "bb") == 0);
+			for (size_t i=2*(n/3); i < 3*(n/3); ++i)
+				assert(strcmp(input[i], "bbb") == 0);
+			assert(check_result((unsigned char**)input.data(), n) == 0);
+			for (size_t i=0; i < n; ++i)
+				free(input[i]);
+		}
+	}
+}
+
 struct OK { ~OK() { std::cerr << "*** All OK ***\n"; } };
 
 int main()
@@ -223,5 +274,7 @@ int main()
 	test_basics<vector_realloc_shrink_clear<uint64_t> >();
 	/*********************************************************/
 	test_insertion_sort();
+	/*********************************************************/
+	test_routines();
 	/*********************************************************/
 }

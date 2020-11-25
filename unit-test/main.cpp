@@ -36,7 +36,7 @@ void test_basics()
 		for (unsigned i=0; i < N; ++i) {
 			assert(v.size()==i);
 			v.push_back(i);
-			assert(v[i]==i);
+			assert(unsigned(v[i])==i);
 		}
 		assert(v.size()==N);
 	}
@@ -44,15 +44,15 @@ void test_basics()
 		Container v;
 		const unsigned N=1000000;
 		for (unsigned i=0; i < N; ++i) v.push_back(i);
-		for (unsigned i=0; i < N; ++i) assert(v[i]==i);
+		for (unsigned i=0; i < N; ++i) assert(unsigned(v[i])==i);
 		v.clear();
 		assert(v.size()==0);
 		for (unsigned i=0; i < N; ++i) v.push_back(i);
-		for (unsigned i=0; i < N; ++i) assert(v[i]==i);
+		for (unsigned i=0; i < N; ++i) assert(unsigned(v[i])==i);
 		v.clear();
 		assert(v.size()==0);
 		for (unsigned i=0; i < N; ++i) v.push_back(i);
-		for (unsigned i=0; i < N; ++i) assert(v[i]==i);
+		for (unsigned i=0; i < N; ++i) assert(unsigned(v[i])==i);
 		v.clear();
 		assert(v.size()==0);
 	}
@@ -144,7 +144,7 @@ test_loser_tree()
 		assert(tree._nonempty_streams == data.size());
 		for (unsigned i=0; i < items; ++i) {
 			for (unsigned j=0; j < data.size(); ++j) {
-				assert(tree.min() == i);
+				assert(tree.min() == int(i));
 			}
 		}
 		assert(tree._nonempty_streams == 0);

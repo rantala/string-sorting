@@ -26,6 +26,7 @@
 #include "vmainfo.h"
 #include "routines.h"
 #include "cpus_allowed.h"
+#include "util/debug.h"
 #include "util/sdt.h"
 
 #include <stdio.h>
@@ -356,12 +357,6 @@ create_suffixes(unsigned char *text, size_t text_len,
 	*strings_cnt = text_len;
 }
 
-static int
-strcmp_u(unsigned char *a, unsigned char *b)
-{
-	return strcmp((char *)a, (char *)b);
-}
-
 static void
 write_result(unsigned char **strings, size_t n)
 {
@@ -396,36 +391,6 @@ write_result(unsigned char **strings, size_t n)
 }
 
 static void
-check_result(unsigned char **strings, size_t n)
-{
-	size_t wrong = 0;
-	size_t identical = 0;
-	size_t invalid = 0;
-	for (size_t i=0; i < n-1; ++i) {
-		if (strings[i] == strings[i+1])
-			++identical;
-		if (strings[i]==NULL || strings[i+1]==NULL)
-			++invalid;
-		else if (strcmp_u(strings[i], strings[i+1]) > 0)
-			++wrong;
-	}
-	if (identical)
-		fprintf(stderr,
-			"WARNING: found %zu identical pointers!\n",
-			identical);
-	if (wrong)
-		fprintf(stderr,
-			"WARNING: found %zu incorrect orderings!\n",
-			wrong);
-	if (invalid)
-		fprintf(stderr,
-			"WARNING: found %zu invalid pointers!\n",
-			invalid);
-	if (!identical && !wrong && !invalid)
-		fprintf(stderr, "Check: GOOD\n");
-}
-
-static void
 print_timing_results_xml(void)
 {
 	/*
@@ -456,9 +421,10 @@ print_timing_results(void)
 		print_timing_results_human();
 }
 
-void
+int
 run(const struct routine *r, unsigned char **strings, size_t n)
 {
+	int ret = 0;
 	puts("Timing ...");
 	if (opts.oprofile)
 		opcontrol_start();
@@ -474,10 +440,14 @@ run(const struct routine *r, unsigned char **strings, size_t n)
 	if (opts.perf_control_fd > 0)
 		perf_control_disable(opts.perf_control_fd);
 	print_timing_results();
-	if (opts.check_result)
-		check_result(strings, n);
+	if (opts.check_result) {
+		ret = check_result(strings, n);
+		if (ret == 0)
+			fprintf(stderr, "Check: GOOD\n");
+	}
 	if (opts.write)
 		write_result(strings, n);
+	return ret;
 }
 
 static void
@@ -658,6 +628,7 @@ print_cmdline(int argc, char **argv, FILE *fp)
 
 int main(int argc, char **argv)
 {
+	int ret = 0;
 	if (argc < 2) {
 		usage();
 		return 1;
@@ -775,11 +746,12 @@ int main(int argc, char **argv)
 		create_strings(text, text_len, &strings, &strings_len);
 	}
 	input_information(text, text_len, strings, strings_len);
-	run(opts.r, strings, strings_len);
+	ret = run(opts.r, strings, strings_len);
 	free_text(text, text_len);
 	free_pointers(strings, strings_len);
 	if (log_file) {
 		fprintf(log_file, "===DONE===\n");
 		fclose(log_file);
 	}
+	return ret;
 }

@@ -1,21 +1,41 @@
-name: Build
+name: Build and unit test
 
 on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.build_type }} build on ${{ matrix.os }}
+    name: ${{ matrix.build_type }} GCC on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         build_type: [Release, Debug]
-        os: [ubuntu-latest, ubuntu-18.04, ubuntu-16.04]
+        os: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04]
     steps:
     - uses: actions/checkout@v2
-    - name: Install cmake
+    - name: Install dependencies
       run: sudo apt-get install cmake
     - name: cmake
       run: cmake -B builddir -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
     - name: make
       run: make -j $(nproc) -C builddir
+    - name: unit test
+      run: ./builddir/unit-test
+  build-llvm:
+    name: ${{ matrix.build_type }} Clang on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+        os: [ubuntu-20.04]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get install cmake clang
+    - name: cmake
+      run: CC=clang CXX=clang++ cmake -B builddir -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+    - name: make
+      run: make -j $(nproc) -C builddir
+    - name: unit test
+      run: ./builddir/unit-test

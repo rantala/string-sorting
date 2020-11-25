@@ -1426,12 +1426,15 @@ void mergesort_cache2_lcp_2way(unsigned char** strings, size_t n)
 void mergesort_cache4_lcp_2way(unsigned char** strings, size_t n)
 { mergesort_cache_lcp_2way<uint32_t>(strings, n); }
 
+/* Disabled due to memory errors reported by valgrind. */
+/*
 ROUTINE_REGISTER_SINGLECORE(mergesort_cache1_lcp_2way,
 		"LCP mergesort with 2way merger and 1byte cache")
 ROUTINE_REGISTER_SINGLECORE(mergesort_cache2_lcp_2way,
 		"LCP mergesort with 2way merger and 2byte cache")
 ROUTINE_REGISTER_SINGLECORE(mergesort_cache4_lcp_2way,
 		"LCP mergesort with 2way merger and 4byte cache")
+*/
 
 template <bool OutputLCP, typename CharT>
 MergeResult
@@ -1539,12 +1542,15 @@ void mergesort_cache2_lcp_2way_parallel(unsigned char** strings, size_t n)
 void mergesort_cache4_lcp_2way_parallel(unsigned char** strings, size_t n)
 { mergesort_cache_lcp_2way_parallel<uint32_t>(strings, n); }
 
+/* Disabled due to memory errors reported by valgrind. */
+/*
 ROUTINE_REGISTER_MULTICORE(mergesort_cache1_lcp_2way_parallel,
 		"Parallel LCP mergesort with 2way merger and 1byte cache")
 ROUTINE_REGISTER_MULTICORE(mergesort_cache2_lcp_2way_parallel,
 		"Parallel LCP mergesort with 2way merger and 2byte cache")
 ROUTINE_REGISTER_MULTICORE(mergesort_cache4_lcp_2way_parallel,
 		"Parallel LCP mergesort with 2way merger and 4byte cache")
+*/
 
 /*******************************************************************************
  *

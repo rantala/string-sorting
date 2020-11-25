@@ -480,28 +480,12 @@ run(const struct routine *r, unsigned char **strings, size_t n)
 		write_result(strings, n);
 }
 
-static int
-routine_cmp(const void *a, const void *b)
-{
-	const struct routine *aa = *(const struct routine **)a;
-	const struct routine *bb = *(const struct routine **)b;
-	if (aa->f == bb->f)
-		return 0;
-	if (aa->multicore < bb->multicore)
-		return -1;
-	if (aa->multicore > bb->multicore)
-		return 1;
-	return strcmp(aa->name, bb->name);
-}
-
 static void
 print_alg_names_and_descs(void)
 {
 	const struct routine **routines;
-	unsigned routines_cnt;
-	unsigned i = 0;
+	unsigned i = 0, routines_cnt;
 	routine_get_all(&routines, &routines_cnt);
-	qsort(routines, routines_cnt, sizeof(struct routine *), routine_cmp);
 	if (routines[0]->multicore == 0) {
 		puts(":: SINGLE CORE ROUTINES ::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		puts(":: NAME :::::::::::::::::::::: DESCRIPTION :::::::::::::::::::::::::::::::::::::");
@@ -530,10 +514,8 @@ static void
 print_alg_names(void)
 {
 	const struct routine **routines;
-	unsigned routines_cnt;
-	unsigned i;
+	unsigned i, routines_cnt;
 	routine_get_all(&routines, &routines_cnt);
-	qsort(routines, routines_cnt, sizeof(struct routine *), routine_cmp);
 	for (i=0; i < routines_cnt; ++i)
 		puts(routines[i]->name);
 }

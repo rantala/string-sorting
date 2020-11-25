@@ -52,9 +52,24 @@ routine_from_name(const char *name)
 	return NULL;
 }
 
+static int
+routine_cmp(const void *a, const void *b)
+{
+	const struct routine *aa = *(const struct routine **)a;
+	const struct routine *bb = *(const struct routine **)b;
+	if (aa->f == bb->f)
+		return 0;
+	if (aa->multicore < bb->multicore)
+		return -1;
+	if (aa->multicore > bb->multicore)
+		return 1;
+	return strcmp(aa->name, bb->name);
+}
+
 void
 routine_get_all(const struct routine ***r, unsigned *cnt)
 {
 	*r = routines;
 	*cnt = routine_cnt;
+	qsort(*r, *cnt, sizeof(struct routine *), routine_cmp);
 }

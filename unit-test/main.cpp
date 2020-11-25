@@ -7,11 +7,13 @@ static int cmp(int a, int b);
 #include "../src/vector_malloc.h"
 #include "../src/losertree.h"
 #include "../src/util/insertion_sort.h"
-#include <cassert>
 #include <iostream>
 #include <array>
 #include <vector>
 #include <utility>
+
+#undef NDEBUG
+#include <cassert>
 
 template <typename Container>
 void test_basics()

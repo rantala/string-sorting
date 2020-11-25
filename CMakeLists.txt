@@ -29,7 +29,6 @@ set(INTERNAL_SRCS
 	src/mergesort_losertree.cpp
 	src/mergesort_lcp.cpp
 	src/routines.c
-	src/sortstring.c
 	src/util/timing.c
 	src/util/cpus_allowed.c
 	src/util/vmainfo.c)
@@ -59,9 +58,10 @@ endif()
 set_source_files_properties(external/adaptive.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 set_source_files_properties(external/quicksort.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 
-add_executable(sortstring
-	${INTERNAL_SRCS}
-	${EXTERNAL_SRCS})
+add_executable(sortstring src/sortstring.c ${INTERNAL_SRCS} ${EXTERNAL_SRCS})
+
+add_executable(unit-test unit-test/main.cpp ${INTERNAL_SRCS} ${EXTERNAL_SRCS})
+target_compile_definitions(unit-test PUBLIC UNIT_TEST)
 
 add_definitions(-msse2)
 add_definitions(-Drestrict=__restrict__)

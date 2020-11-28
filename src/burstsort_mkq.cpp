@@ -283,11 +283,14 @@ handle_bucket(TSTNode<CharT>* node,
 {
 	static_assert(BucketNum < 3, "BucketNum < 3");
 	if (node->is_tst[BucketNum]) {
+		TSTNode<CharT>* n =
+			static_cast<TSTNode<CharT>*>(node->buckets[BucketNum]);
 		pos = burst_traverse<BucketT>(
-			static_cast<TSTNode<CharT>*>(node->buckets[BucketNum]),
+			n,
 			strings,
 			pos,
 			depth + (BucketNum==1)*sizeof(CharT));
+		delete n;
 	} else if (node->buckets[BucketNum]) {
 		BucketT* buck = static_cast<BucketT*>(node->buckets[BucketNum]);
 		size_t bsize = buck->size();
@@ -315,7 +318,6 @@ burst_traverse(TSTNode<CharT>* node,
 	pos = handle_bucket<0, BucketT>(node, strings, pos, depth);
 	pos = handle_bucket<1, BucketT>(node, strings, pos, depth);
 	pos = handle_bucket<2, BucketT>(node, strings, pos, depth);
-	delete node;
 	return pos;
 }
 
@@ -325,10 +327,10 @@ burstsort_mkq_simpleburst(unsigned char** strings, size_t N)
 {
 	typedef std::vector<unsigned char*> BucketT;
 	typedef BurstSimple<CharT> BurstImpl;
-	TSTNode<CharT>* root = new TSTNode<CharT>;
-	root->pivot = pseudo_median<CharT>(strings, N, 0);
-	burst_insert<8192, BucketT, BurstImpl>(root, strings, N);
-	burst_traverse<BucketT>(root, strings, 0, 0);
+	TSTNode<CharT> root;
+	root.pivot = pseudo_median<CharT>(strings, N, 0);
+	burst_insert<8192, BucketT, BurstImpl>(&root, strings, N);
+	burst_traverse<BucketT>(&root, strings, 0, 0);
 }
 
 void burstsort_mkq_simpleburst_1(unsigned char** strings, size_t N)
@@ -353,10 +355,10 @@ burstsort_mkq_recursiveburst(unsigned char** strings, size_t N)
 {
 	typedef std::vector<unsigned char*> BucketT;
 	typedef BurstRecursive<CharT> BurstImpl;
-	TSTNode<CharT>* root = new TSTNode<CharT>;
-	root->pivot = pseudo_median<CharT>(strings, N, 0);
-	burst_insert<8192, BucketT, BurstImpl>(root, strings, N);
-	burst_traverse<BucketT>(root, strings, 0, 0);
+	TSTNode<CharT> root;
+	root.pivot = pseudo_median<CharT>(strings, N, 0);
+	burst_insert<8192, BucketT, BurstImpl>(&root, strings, N);
+	burst_traverse<BucketT>(&root, strings, 0, 0);
 }
 
 void burstsort_mkq_recursiveburst_1(unsigned char** strings, size_t N)

@@ -29,10 +29,12 @@
 #include "routine.h"
 #include "util/get_char.h"
 #include "util/median.h"
+#include "util/debug.h"
 #include <iostream>
 #include <vector>
 #include <bitset>
 #include <array>
+#include <cassert>
 
 // Ternary search tree:
 //    0 : left, smaller than pivot
@@ -78,6 +80,11 @@ struct BurstSimple
 		new_node->buckets[0] = bucket0;
 		new_node->buckets[1] = bucket1;
 		new_node->buckets[2] = bucket2;
+		debug() << "BurstSimple() pivot=" << pivot
+			<< " [0]=" << bucket0->size()
+			<< " [1]=" << bucket1->size()
+			<< " [2]=" << bucket2->size()
+			<< "\n";
 		return new_node;
 	}
 };
@@ -89,6 +96,7 @@ struct BurstRecursive
 	TSTNode<CharT>*
 	operator()(const BucketT& bucket, CharT* oracle, size_t depth) const
 	{
+		debug() << "BurstRecursive() bucket.size()=" << bucket.size() << " depth=" << depth << "\n"; debug_indent;
 		TSTNode<CharT>* new_node
 			= BurstSimple<CharT>()(bucket, oracle, depth);
 		BucketT* bucket0 = static_cast<BucketT*>(new_node->buckets[0]);
@@ -100,6 +108,8 @@ struct BurstRecursive
 				== bucket.size());
 		size_t bsize = 0;
 		if (bucket0->size() > threshold) {
+			debug() << "BurstRecursive() bursting bucket0: size()=" << bucket0->size()
+				<< " threshold=" << threshold << " bsize=" << bsize << "\n";
 			for (unsigned i=0; i < bucket0->size(); ++i)
 				oracle[bsize+i] = get_char<CharT>((*bucket0)[i], depth);
 			new_node->buckets[0] = this->operator()(*bucket0,
@@ -109,6 +119,8 @@ struct BurstRecursive
 		}
 		bsize += bucket0->size();
 		if (bucket1->size() > threshold and not is_end(new_node->pivot)) {
+			debug() << "BurstRecursive() bursting bucket1: size()=" << bucket1->size()
+				<< " threshold=" << threshold << " bsize=" << bsize << "\n";
 			for (unsigned i=0; i < bucket1->size(); ++i)
 				oracle[bsize+i] = get_char<CharT>((*bucket1)[i], depth+sizeof(CharT));
 			new_node->buckets[1] = this->operator()(*bucket1,
@@ -118,6 +130,8 @@ struct BurstRecursive
 		}
 		bsize += bucket1->size();
 		if (bucket2->size() > threshold) {
+			debug() << "BurstRecursive() bursting bucket2: size()=" << bucket2->size()
+				<< " threshold=" << threshold << " bsize=" << bsize << "\n";
 			for (unsigned i=0; i < bucket2->size(); ++i)
 				oracle[bsize+i] = get_char<CharT>((*bucket2)[i], depth);
 			new_node->buckets[2] = this->operator()(*bucket2,
@@ -128,6 +142,74 @@ struct BurstRecursive
 		return new_node;
 	}
 };
+
+template <typename BucketT, typename CharT>
+static bool
+verify_tst(TSTNode<CharT>* root, size_t depth);
+
+template <unsigned BucketNum, typename BucketT, typename CharT>
+static bool
+verify_bucket(TSTNode<CharT>* node, size_t depth)
+{
+	static_assert(BucketNum < 3, "BucketNum < 3");
+
+	if (node->is_tst[BucketNum]) {
+		debug() << __func__ << "() buckets[" << BucketNum << "] is TST" << '\n';
+		return verify_tst<BucketT, CharT>(
+			static_cast<TSTNode<CharT>*>(node->buckets[BucketNum]),
+			depth + (BucketNum==1)*sizeof(CharT));
+	}
+
+	if (!node->buckets[BucketNum]) {
+		debug() << __func__ << "() buckets[" << BucketNum << "] == NULL" << '\n';
+		return true;
+	}
+
+	BucketT* buck = static_cast<BucketT*>(node->buckets[BucketNum]);
+	size_t bsize = buck->size();
+	debug() << __func__ << "() buckets[" << BucketNum << "].size()=" << bsize << '\n';
+	for (size_t i=0; i < bsize; ++i) {
+		/*
+		if (i==0 || strcmp((char *)(*buck)[i-1], (char *)(*buck)[i]) != 0)
+			debug() << "- " << (*buck)[i] << " [pivot=" << node->pivot << "]" << '\n';
+		*/
+		CharT ch = get_char<CharT>((*buck)[i], depth);
+		if (BucketNum == 0) {
+			if (!(ch < node->pivot)) {
+				debug() << "INVALID: " << (*buck)[i] << " [pivot=" << node->pivot << "]" << '\n';
+			}
+			assert(ch < node->pivot);
+		}
+		if (BucketNum == 1) {
+			if (!(ch == node->pivot)) {
+				debug() << "INVALID: " << (*buck)[i] << " [pivot=" << node->pivot << "]" << '\n';
+			}
+			assert(ch == node->pivot);
+		}
+		if (BucketNum == 2) {
+			if (!(ch > node->pivot)) {
+				debug() << "INVALID: " << (*buck)[i] << " [pivot=" << node->pivot << "]" << '\n';
+			}
+			assert(ch > node->pivot);
+		}
+	}
+	return true;
+}
+
+template <typename BucketT, typename CharT>
+static bool
+verify_tst(TSTNode<CharT>* node, size_t depth)
+{
+	if (node->pivot)
+		debug() << __func__ << "() pivot=" << node->pivot << " depth=" << depth << '\n';
+	else
+		debug() << __func__ << "() pivot=" << int(node->pivot) << " depth=" << depth << '\n';
+	debug_indent;
+	verify_bucket<0, BucketT, CharT>(node, depth);
+	verify_bucket<1, BucketT, CharT>(node, depth);
+	verify_bucket<2, BucketT, CharT>(node, depth);
+	return true;
+}
 
 template <typename CharT>
 static inline unsigned
@@ -173,14 +255,17 @@ burst_insert(TSTNode<CharT>* root, unsigned char** strings, size_t N)
 			for (unsigned j=0; j < buck->size(); ++j) {
 				oracle[j] = get_char<CharT>((*buck)[j], depth);
 			}
+			assert(verify_tst<BucketT>(root, 0));
 			TSTNode<CharT>* new_node
 				= BurstImpl()(*buck, oracle, depth);
 			free(oracle);
 			delete buck;
 			node->buckets[bucket] = new_node;
 			node->is_tst[bucket] = true;
+			assert(verify_tst<BucketT>(root, 0));
 		}
 	}
+	assert(verify_tst<BucketT>(root, 0));
 }
 
 extern "C" void mkqsort(unsigned char**, int, int);

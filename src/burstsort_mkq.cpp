@@ -98,38 +98,32 @@ struct BurstRecursive
 				unsigned(0.7f*bucket.size()));
 		assert(bucket0->size() + bucket1->size() + bucket2->size()
 				== bucket.size());
-		size_t bsize = bucket0->size();
+		size_t bsize = 0;
 		if (bucket0->size() > threshold) {
+			for (unsigned i=0; i < bucket0->size(); ++i)
+				oracle[bsize+i] = get_char<CharT>((*bucket0)[i], depth);
 			new_node->buckets[0] = this->operator()(*bucket0,
 					oracle, depth);
 			delete bucket0;
 			new_node->is_tst[0] = true;
-		} else {
-			new_node->buckets[0] = bucket0;
-			assert(new_node->is_tst[0] == false);
 		}
+		bsize += bucket0->size();
 		if (bucket1->size() > threshold and not is_end(new_node->pivot)) {
-			for (unsigned i=0; i < bucket1->size(); ++i) {
-				oracle[bsize+i] = get_char<CharT>((*bucket1)[i],
-						depth+sizeof(CharT));
-			}
+			for (unsigned i=0; i < bucket1->size(); ++i)
+				oracle[bsize+i] = get_char<CharT>((*bucket1)[i], depth+sizeof(CharT));
 			new_node->buckets[1] = this->operator()(*bucket1,
 					oracle+bsize, depth+sizeof(CharT));
-			bsize += bucket1->size();
 			delete bucket1;
 			new_node->is_tst[1] = true;
-		} else {
-			new_node->buckets[1] = bucket1;
-			assert(new_node->is_tst[1] == false);
 		}
+		bsize += bucket1->size();
 		if (bucket2->size() > threshold) {
+			for (unsigned i=0; i < bucket2->size(); ++i)
+				oracle[bsize+i] = get_char<CharT>((*bucket2)[i], depth);
 			new_node->buckets[2] = this->operator()(*bucket2,
 					oracle+bsize, depth);
 			delete bucket2;
 			new_node->is_tst[2] = true;
-		} else {
-			new_node->buckets[2] = bucket2;
-			assert(new_node->is_tst[2] == false);
 		}
 		return new_node;
 	}

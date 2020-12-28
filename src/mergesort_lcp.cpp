@@ -288,12 +288,10 @@ mergesort_lcp_2way_parallel(
 {
 	assert(n > 0);
 	debug() << __func__ << "(): n=" << n << '\n';
-	if (n < 32) {
-		insertion_sort(strings_input, n, 0);
-		for (unsigned i=0; i < n-1; ++i)
-			lcp_input[i] = lcp(strings_input[i], strings_input[i+1]);
-		return SortedInPlace;
-	}
+	if (n < 0x10000)
+		return mergesort_lcp_2way<true>(
+				strings_input, strings_output,
+				lcp_input, lcp_output, n);
 	const size_t split0 = n/2;
 	MergeResult ml, mr;
 #pragma omp task shared(ml)

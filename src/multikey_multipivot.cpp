@@ -50,6 +50,8 @@
  * memory especially with large inputs.
  */
 
+#ifdef __SSE2__
+
 #include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
@@ -473,3 +475,5 @@ ROUTINE_REGISTER_SINGLECORE(multikey_multipivot_brute_simd2,
 		"multikey_multipivot_brute_simd with 2byte alphabet")
 ROUTINE_REGISTER_SINGLECORE(multikey_multipivot_brute_simd4,
 		"multikey_multipivot_brute_simd with 4byte alphabet")
+
+#endif

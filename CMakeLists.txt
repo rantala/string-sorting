@@ -63,7 +63,6 @@ add_executable(sortstring src/sortstring.c ${INTERNAL_SRCS} ${EXTERNAL_SRCS})
 add_executable(unit-test unit-test/main.cpp ${INTERNAL_SRCS} ${EXTERNAL_SRCS})
 target_compile_definitions(unit-test PUBLIC UNIT_TEST)
 
-add_definitions(-msse2)
 add_definitions(-Drestrict=__restrict__)
 set(CMAKE_CXX_FLAGS_RELEASE        "-fopenmp -g -DNDEBUG -march=native ${CMAKE_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-fopenmp -g -DNDEBUG -march=native ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")

@@ -34,6 +34,8 @@
  *   Link - http://www.springerlink.com/content/aqjvtlhtx9g8ncdx
  */
 
+#ifdef __SSE2__
+
 #include "routine.h"
 #include "util/insertion_sort.h"
 #include "util/get_char.h"
@@ -487,3 +489,5 @@ ROUTINE_REGISTER_MULTICORE(multikey_simd_parallel2,
 		"parallel multikey_simd with 2byte alphabet")
 ROUTINE_REGISTER_MULTICORE(multikey_simd_parallel4,
 		"parallel multikey_simd with 4byte alphabet")
+
+#endif

@@ -16,6 +16,12 @@ static int cmp(int a, int b);
 #undef NDEBUG
 #include <cassert>
 
+template <typename Ch1, typename Ch2>
+static int strcmp_u(Ch1 *a, Ch2 *b)
+{
+	return strcmp((const char*)a, (const char*)b);
+}
+
 template <typename Container>
 void test_basics()
 {
@@ -160,40 +166,41 @@ test_insertion_sort()
 		insertion_sort((unsigned char **)input.data(), input.size(), 0);
 	}
 	{
-		std::array<const char *, 1> input = {""};
+		std::array<const unsigned char *, 1> input { (const unsigned char *)"" };
 		insertion_sort((unsigned char **)input.data(), input.size(), 0);
 	}
 	{
-		std::array<const char *, 5> input = {
-			"c",
-			"",
-			"bbaaa",
-			"aaaaa",
-			"bbbbb",
+		std::array<const unsigned char *, 5> input {
+			(const unsigned char *)"c",
+			(const unsigned char *)"",
+			(const unsigned char *)"bbaaa",
+			(const unsigned char *)"aaaaa",
+			(const unsigned char *)"bbbbb",
 		};
 		insertion_sort((unsigned char **)input.data(), input.size(), 0);
-		assert(strcmp(input[0], "") == 0);
-		assert(strcmp(input[1], "aaaaa") == 0);
-		assert(strcmp(input[2], "bbaaa") == 0);
-		assert(strcmp(input[3], "bbbbb") == 0);
-		assert(strcmp(input[4], "c") == 0);
+		assert(strcmp_u(input[0], "") == 0);
+		assert(strcmp_u(input[1], "aaaaa") == 0);
+		assert(strcmp_u(input[2], "bbaaa") == 0);
+		assert(strcmp_u(input[3], "bbbbb") == 0);
+		assert(strcmp_u(input[4], "c") == 0);
+
 		insertion_sort((unsigned char **)input.data(), input.size(), 0);
-		assert(strcmp(input[0], "") == 0);
-		assert(strcmp(input[1], "aaaaa") == 0);
-		assert(strcmp(input[2], "bbaaa") == 0);
-		assert(strcmp(input[3], "bbbbb") == 0);
-		assert(strcmp(input[4], "c") == 0);
+		assert(strcmp_u(input[0], "") == 0);
+		assert(strcmp_u(input[1], "aaaaa") == 0);
+		assert(strcmp_u(input[2], "bbaaa") == 0);
+		assert(strcmp_u(input[3], "bbbbb") == 0);
+		assert(strcmp_u(input[4], "c") == 0);
 	}
 	{
-		std::array<const char *, 3> input = {
-			"bbbb1",
-			"aaaa3",
-			"aaaa2",
+		std::array<const unsigned char *, 3> input {
+			(const unsigned char *)"bbbb1",
+			(const unsigned char *)"aaaa3",
+			(const unsigned char *)"aaaa2",
 		};
 		insertion_sort((unsigned char **)input.data(), input.size(), 4);
-		assert(strcmp(input[0], "bbbb1") == 0);
-		assert(strcmp(input[1], "aaaa2") == 0);
-		assert(strcmp(input[2], "aaaa3") == 0);
+		assert(strcmp_u(input[0], "bbbb1") == 0);
+		assert(strcmp_u(input[1], "aaaa2") == 0);
+		assert(strcmp_u(input[2], "aaaa3") == 0);
 	}
 }
 

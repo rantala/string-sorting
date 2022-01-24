@@ -107,6 +107,8 @@ struct BurstRecursive
 		assert(bucket0->size() + bucket1->size() + bucket2->size()
 				== bucket.size());
 		size_t bsize = 0;
+		const size_t bsize0 = bucket0->size();
+		const size_t bsize1 = bucket1->size();
 		if (bucket0->size() > threshold) {
 			debug() << "BurstRecursive() bursting bucket0: size()=" << bucket0->size()
 				<< " threshold=" << threshold << " bsize=" << bsize << "\n";
@@ -117,7 +119,7 @@ struct BurstRecursive
 			delete bucket0;
 			new_node->is_tst[0] = true;
 		}
-		bsize += bucket0->size();
+		bsize += bsize0;
 		if (bucket1->size() > threshold and not is_end(new_node->pivot)) {
 			debug() << "BurstRecursive() bursting bucket1: size()=" << bucket1->size()
 				<< " threshold=" << threshold << " bsize=" << bsize << "\n";
@@ -128,7 +130,7 @@ struct BurstRecursive
 			delete bucket1;
 			new_node->is_tst[1] = true;
 		}
-		bsize += bucket1->size();
+		bsize += bsize1;
 		if (bucket2->size() > threshold) {
 			debug() << "BurstRecursive() bursting bucket2: size()=" << bucket2->size()
 				<< " threshold=" << threshold << " bsize=" << bsize << "\n";

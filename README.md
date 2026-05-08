@@ -63,6 +63,21 @@ Use a separate debug build for easier debugging:
     $ cmake -DCMAKE_BUILD_TYPE=Debug ../string-sorting
 
 
+GCC static analyzer
+-------------------
+
+The build can be configured to run the GCC static analyzer (`-fanalyzer`) on
+the project's own sources. Third-party code under `external/` is excluded.
+
+    $ cmake -DENABLE_GCC_ANALYZER=ON ../string-sorting
+    $ make
+
+The option requires GCC >= 13 for both C and C++; configuration fails fast
+with any other compiler or older version. Analyzer diagnostics are emitted as
+build warnings; the build still succeeds. Expect significantly longer compile
+times when the option is enabled.
+
+
 Huge pages
 ----------
 

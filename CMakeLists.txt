@@ -3,6 +3,19 @@ set(CMAKE_CXX_STANDARD 11)
 include(CheckIncludeFile)
 
 project(sortstring)
+
+option(ENABLE_GCC_ANALYZER "Enable GCC -fanalyzer static analysis on internal sources" OFF)
+if(ENABLE_GCC_ANALYZER)
+	if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		message(FATAL_ERROR "ENABLE_GCC_ANALYZER requires GCC for both C and C++ "
+			"(got C=${CMAKE_C_COMPILER_ID}, CXX=${CMAKE_CXX_COMPILER_ID}).")
+	endif()
+	if(CMAKE_C_COMPILER_VERSION VERSION_LESS 13 OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
+		message(FATAL_ERROR "ENABLE_GCC_ANALYZER requires GCC >= 13 (got "
+			"C=${CMAKE_C_COMPILER_VERSION}, CXX=${CMAKE_CXX_COMPILER_VERSION}).")
+	endif()
+endif()
+
 include_directories(src src/util)
 
 link_libraries(rt)
@@ -58,10 +71,21 @@ endif()
 set_source_files_properties(external/adaptive.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 set_source_files_properties(external/quicksort.c PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 
-add_executable(sortstring src/sortstring.c ${INTERNAL_SRCS} ${EXTERNAL_SRCS})
+add_library(sortstring_internal          OBJECT ${INTERNAL_SRCS})
+add_library(sortstring_internal_unittest OBJECT ${INTERNAL_SRCS})
+target_compile_definitions(sortstring_internal_unittest PRIVATE UNIT_TEST)
 
-add_executable(unit-test unit-test/main.cpp ${INTERNAL_SRCS} ${EXTERNAL_SRCS})
-target_compile_definitions(unit-test PUBLIC UNIT_TEST)
+if(ENABLE_GCC_ANALYZER)
+	target_compile_options(sortstring_internal          PRIVATE -fanalyzer)
+	target_compile_options(sortstring_internal_unittest PRIVATE -fanalyzer)
+endif()
+
+add_executable(sortstring src/sortstring.c
+	$<TARGET_OBJECTS:sortstring_internal> ${EXTERNAL_SRCS})
+
+add_executable(unit-test unit-test/main.cpp
+	$<TARGET_OBJECTS:sortstring_internal_unittest> ${EXTERNAL_SRCS})
+target_compile_definitions(unit-test PRIVATE UNIT_TEST)
 
 add_definitions(-Drestrict=__restrict__)
 set(CMAKE_CXX_FLAGS_RELEASE        "-fopenmp -g -DNDEBUG -march=native ${CMAKE_CXX_FLAGS_RELEASE}")

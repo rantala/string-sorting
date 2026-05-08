@@ -16,6 +16,18 @@ if(ENABLE_GCC_ANALYZER)
 	endif()
 endif()
 
+option(ENABLE_CLANG_ANALYZER "Enable clang-tidy clang-analyzer-* checks on internal sources" OFF)
+if(ENABLE_CLANG_ANALYZER)
+	find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy)
+	if(NOT CLANG_TIDY_EXECUTABLE)
+		message(FATAL_ERROR "ENABLE_CLANG_ANALYZER requires clang-tidy on PATH.")
+	endif()
+	set(CLANG_TIDY_COMMAND
+		${CLANG_TIDY_EXECUTABLE}
+		-checks=-*,clang-analyzer-*
+		-header-filter=^${CMAKE_SOURCE_DIR}/src/.*)
+endif()
+
 include_directories(src src/util)
 
 link_libraries(rt)
@@ -78,6 +90,12 @@ target_compile_definitions(sortstring_internal_unittest PRIVATE UNIT_TEST)
 if(ENABLE_GCC_ANALYZER)
 	target_compile_options(sortstring_internal          PRIVATE -fanalyzer)
 	target_compile_options(sortstring_internal_unittest PRIVATE -fanalyzer)
+endif()
+
+if(ENABLE_CLANG_ANALYZER)
+	set_target_properties(sortstring_internal sortstring_internal_unittest PROPERTIES
+		C_CLANG_TIDY   "${CLANG_TIDY_COMMAND}"
+		CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 endif()
 
 add_executable(sortstring src/sortstring.c

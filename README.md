@@ -78,6 +78,23 @@ build warnings; the build still succeeds. Expect significantly longer compile
 times when the option is enabled.
 
 
+Clang static analyzer
+---------------------
+
+The build can also be configured to run the Clang static analyzer via
+`clang-tidy`, scoped to the `clang-analyzer-*` check group. Third-party code
+under `external/` is excluded.
+
+    $ cmake -DENABLE_CLANG_ANALYZER=ON ../string-sorting
+    $ make
+
+The option requires `clang-tidy` on `PATH` (Ubuntu: `apt install clang-tidy`);
+configuration fails fast if it is not found. Diagnostics appear inline like
+compiler warnings and the build still succeeds. The configured C/C++ compiler
+does not need to be Clang. `ENABLE_GCC_ANALYZER` and `ENABLE_CLANG_ANALYZER`
+can be combined when building with GCC >= 13.
+
+
 Huge pages
 ----------
 

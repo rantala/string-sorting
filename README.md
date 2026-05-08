@@ -41,7 +41,9 @@ Requirements
 ------------
 
   * C++11
-  * CMake
+  * CMake >= 3.16
+  * OpenMP
+  * Ninja (optional; the default Make generator also works)
 
 
 Compilation
@@ -49,18 +51,14 @@ Compilation
 
 Default compilation with GCC:
 
-    $ git clone git://github.com/rantala/string-sorting.git
-    $ mkdir string-sorting-build
-    $ cd string-sorting-build
-    $ cmake -DCMAKE_BUILD_TYPE=Release ../string-sorting
-    $ make
-    $ ./sortstring
+    $ git clone https://github.com/rantala/string-sorting.git
+    $ cd string-sorting
+    $ cmake -B build -G Ninja && ninja -C build
+    $ ./build/sortstring
 
 Use a separate debug build for easier debugging:
 
-    $ mkdir debug-build
-    $ cd debug-build
-    $ cmake -DCMAKE_BUILD_TYPE=Debug ../string-sorting
+    $ cmake -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug && ninja -C build-debug
 
 
 GCC static analyzer
@@ -69,8 +67,7 @@ GCC static analyzer
 The build can be configured to run the GCC static analyzer (`-fanalyzer`) on
 the project's own sources. Third-party code under `external/` is excluded.
 
-    $ cmake -DENABLE_GCC_ANALYZER=ON ../string-sorting
-    $ make
+    $ cmake -B build-gcc-analyzer -G Ninja -DENABLE_GCC_ANALYZER=ON && ninja -C build-gcc-analyzer
 
 The option requires GCC >= 13 for both C and C++; configuration fails fast
 with any other compiler or older version. Analyzer diagnostics are emitted as
@@ -85,8 +82,7 @@ The build can also be configured to run the Clang static analyzer via
 `clang-tidy`, scoped to the `clang-analyzer-*` check group. Third-party code
 under `external/` is excluded.
 
-    $ cmake -DENABLE_CLANG_ANALYZER=ON ../string-sorting
-    $ make
+    $ cmake -B build-clang-analyzer -G Ninja -DENABLE_CLANG_ANALYZER=ON && ninja -C build-clang-analyzer
 
 The option requires `clang-tidy` on `PATH` (Ubuntu: `apt install clang-tidy`);
 configuration fails fast if it is not found. Diagnostics appear inline like

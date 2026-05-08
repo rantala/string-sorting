@@ -10,11 +10,11 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Release, Debug]
-        os: [ubuntu-20.04, ubuntu-18.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
     - name: Install dependencies
-      run: sudo apt-get install cmake
+      run: sudo apt-get install -y cmake systemtap-sdt-dev
     - name: cmake
       run: cmake -B builddir -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
     - name: make
@@ -28,11 +28,11 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Release, Debug]
-        os: [ubuntu-20.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
     - name: Install dependencies
-      run: sudo apt-get install cmake clang systemtap-sdt-dev
+      run: sudo apt-get install -y cmake clang libomp-dev systemtap-sdt-dev
     - name: cmake
       run: CC=clang CXX=clang++ cmake -B builddir -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
     - name: make

@@ -91,6 +91,7 @@ struct vector_brodnik
 			_left_in_superblock = _superblock_size;
 		}
 		_insertpos = static_cast<T*>(malloc(_block_size*sizeof(T)));
+		if (!_insertpos) abort();
 		_index_block.push_back(_insertpos);
 		_left_in_block = _block_size;
 		--_left_in_superblock;

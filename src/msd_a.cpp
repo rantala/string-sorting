@@ -94,6 +94,7 @@ msd_A(cacheblock_t* cache, size_t N, size_t cache_depth, size_t true_depth)
 		++bucketsize[cache[i].bytes[cache_depth]];
 	cacheblock_t* sorted = (cacheblock_t*)
 		malloc(N*sizeof(cacheblock_t));
+	if (!sorted) abort();
 	static size_t bucketindex[256];
 	bucketindex[0] = 0;
 	for (unsigned i=1; i < 256; ++i)
@@ -127,6 +128,7 @@ msd_A_adaptive(cacheblock_t* cache,
 		cache_depth = 0;
 	}
 	size_t* bucketsize = (size_t*) calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < N; ++i) {
 		uint16_t bucket =
 			(cache[i].bytes[cache_depth] << 8) |
@@ -135,6 +137,7 @@ msd_A_adaptive(cacheblock_t* cache,
 	}
 	cacheblock_t* sorted = (cacheblock_t*)
 		malloc(N*sizeof(cacheblock_t));
+	if (!sorted) abort();
 	static size_t bucketindex[0x10000];
 	bucketindex[0] = 0;
 	for (unsigned i=1; i < 0x10000; ++i)
@@ -161,6 +164,7 @@ void
 msd_A(unsigned char** strings, size_t N)
 {
 	cacheblock_t* cache = (cacheblock_t*) malloc(N*sizeof(cacheblock_t));
+	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
 	fill_cache(cache, N, 0);
 	msd_A(cache, N, 0, 0);
@@ -173,6 +177,7 @@ void
 msd_A_adaptive(unsigned char** strings, size_t N)
 {
 	cacheblock_t* cache = (cacheblock_t*) malloc(N*sizeof(cacheblock_t));
+	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
 	fill_cache(cache, N, 0);
 	msd_A_adaptive(cache, N, 0, 0);

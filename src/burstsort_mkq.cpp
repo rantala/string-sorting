@@ -254,6 +254,7 @@ burst_insert(TSTNode<CharT>* root, unsigned char** strings, size_t N)
 			}
 			CharT* oracle = static_cast<CharT*>(
 				malloc(buck->size()*sizeof(CharT)));
+			if (!oracle) abort();
 			for (unsigned j=0; j < buck->size(); ++j) {
 				oracle[j] = get_char<CharT>((*buck)[j], depth);
 			}

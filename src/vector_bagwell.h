@@ -59,6 +59,7 @@ struct vector_bagwell
 			_left_in_block = Initial << _index_block.size();
 			_insertpos = static_cast<T*>(
 					malloc(_left_in_block*sizeof(T)));
+			if (!_insertpos) abort();
 			_index_block.push_back(_insertpos);
 		}
 		*_insertpos++ = t;

@@ -218,6 +218,7 @@ multikey_cache(unsigned char** strings, size_t n, size_t depth)
 	Cacheblock<CachedChars>* cache =
 		static_cast<Cacheblock<CachedChars>*>(
 			malloc(n*sizeof(Cacheblock<CachedChars>)));
+	if (!cache) abort();
 	for (size_t i=0; i < n; ++i) {
 		cache[i].ptr = strings[i];
 	}

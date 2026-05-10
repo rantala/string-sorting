@@ -403,6 +403,7 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 		pivots[i] = sample_array[step*i];
 	}
 	uint8_t* restrict oracle = static_cast<uint8_t*>(_mm_malloc(n, 16));
+	if (!oracle) abort();
 	fill_oracle<Pivots>(strings, n, oracle, pivots, depth);
 	std::array<size_t, total_buckets(Pivots)> bucketsize;
 	bucketsize.fill(0);
@@ -423,6 +424,7 @@ multikey_multipivot(unsigned char** strings, size_t n, size_t depth)
 	if (not sorted) {
 		unsigned char** sorted = (unsigned char**)
 			malloc(n*sizeof(unsigned char*));
+		if (!sorted) abort();
 		static std::array<size_t, total_buckets(Pivots)> bucketindex;
 		bucketindex[0] = 0;
 		for (unsigned i=1; i < total_buckets(Pivots); ++i)

@@ -64,6 +64,7 @@ private:
 			_capacity = InitialSize;
 		}
 		_data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		if (!_data) abort();
 	}
 	T* _data;
 	size_t _size;
@@ -100,6 +101,7 @@ private:
 			_capacity = InitialSize;
 		}
 		_data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		if (!_data) abort();
 	}
 	T* _data;
 	size_t _size;
@@ -140,6 +142,7 @@ private:
 			_capacity = InitialSize;
 		}
 		_data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		if (!_data) abort();
 	}
 	void shrink()
 	{
@@ -147,6 +150,7 @@ private:
 			_capacity = _capacity / 2;
 			_data = static_cast<T*>(
 				realloc(_data, _capacity*sizeof(T)));
+			if (!_data) abort();
 		}
 	}
 	T* _data;

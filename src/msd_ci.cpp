@@ -56,6 +56,7 @@ msd_ci(unsigned char** strings, size_t n, size_t depth)
 	BucketsizeType bucketsize[256] = {0};
 	unsigned char* restrict oracle =
 		(unsigned char*) malloc(n);
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		oracle[i] = strings[i][depth];
 	for (size_t i=0; i < n; ++i)
@@ -107,10 +108,12 @@ msd_ci_adaptive(unsigned char** strings, size_t n, size_t depth)
 	}
 	uint16_t* restrict oracle =
 		(uint16_t*) malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		oracle[i] = get_char<uint16_t>(strings[i], depth);
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	static ssize_t bucketindex[0x10000];

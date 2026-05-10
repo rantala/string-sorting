@@ -117,6 +117,7 @@ struct TempSpace
 			allocated = static_cast<cacheblock_t*>(
 					malloc((elems-elements_in_strings) *
 						sizeof(cacheblock_t)));
+			if (!allocated) abort();
 		}
 	}
 	void deallocate()
@@ -196,6 +197,7 @@ msd_A2_adaptive(cacheblock_t* cache,
 	tmp.allocate(N);
 	size_t* bucketsize = static_cast<size_t*>(calloc(0x10000,
 				sizeof(size_t)));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < N; ++i) {
 		uint16_t bucket =
 			(cache[i].bytes[cache_depth] << 8) |
@@ -228,6 +230,7 @@ msd_A2(unsigned char** strings, size_t N)
 {
 	cacheblock_t* cache =
 		static_cast<cacheblock_t*>(malloc(N*sizeof(cacheblock_t)));
+	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
 	TempSpace tmp(strings, N);
 	fill_cache(cache, N, 0);
@@ -242,6 +245,7 @@ msd_A2_adaptive(unsigned char** strings, size_t N)
 {
 	cacheblock_t* cache =
 		static_cast<cacheblock_t*>(malloc(N*sizeof(cacheblock_t)));
+	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
 	TempSpace tmp(strings, N);
 	fill_cache(cache, N, 0);

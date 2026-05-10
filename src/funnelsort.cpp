@@ -697,6 +697,7 @@ void funnelsort_Kway(unsigned char** strings, size_t n)
 {
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	funnelsort<K, BufferLayout>(strings, n, tmp);
 	free(tmp);
 }

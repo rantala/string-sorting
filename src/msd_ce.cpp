@@ -85,6 +85,7 @@ msd_CE0(unsigned char** strings, size_t n, size_t depth)
 		++bucketsize[strings[i][depth]];
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	static size_t bucketindex[256];
 	bucketindex[0] = 0;
 	for (size_t i=1; i < 256; ++i)
@@ -115,10 +116,12 @@ msd_CE1(unsigned char** strings, size_t n, size_t depth)
 	size_t bucketsize[256] = {0};
 	unsigned char* restrict oracle =
 		(unsigned char*) malloc(n);
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i] = strings[i][depth]];
 	unsigned char** restrict sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	size_t bucketindex[256];
 	bucketindex[0] = 0;
 	for (size_t i=1; i < 256; ++i)
@@ -150,12 +153,14 @@ msd_CE2(unsigned char** strings, size_t n, size_t depth)
 	size_t bucketsize[256] = {0};
 	unsigned char* restrict oracle =
 		(unsigned char*) malloc(n);
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		oracle[i] = strings[i][depth];
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	unsigned char** restrict sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	size_t bucketindex[256];
 	bucketindex[0] = 0;
 	for (size_t i=1; i < 256; ++i)
@@ -187,12 +192,14 @@ msd_CE2_16bit(unsigned char** strings, size_t n, size_t depth)
 	uint16_t bucketsize[256] = {0};
 	unsigned char* restrict oracle =
 		(unsigned char*) malloc(n);
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		oracle[i] = strings[i][depth];
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	unsigned char** restrict sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	uint16_t bucketindex[256];
 	bucketindex[0] = 0;
 	for (size_t i=1; i < 256; ++i)
@@ -219,14 +226,17 @@ msd_CE3(unsigned char** strings, size_t n, size_t depth)
 	}
 	uint16_t* restrict oracle =
 		(uint16_t*) malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		oracle[i] = get_char<uint16_t>(strings[i], depth);
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	static size_t bucketindex[0x10000];
 	bucketindex[0] = 0;
 	for (size_t i=1; i < 0x10000; ++i)
@@ -259,14 +269,17 @@ msd_CE4(unsigned char** strings, size_t n, size_t depth)
 	}
 	uint16_t* restrict oracle =
 		(uint16_t*) malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	for (size_t i=0; i < n; ++i)
 		oracle[i] = get_char<uint16_t>(strings[i], depth);
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	static size_t bucketindex[0x10000];
 	bucketindex[0] = 0;
 	for (size_t i=1; i < 0x10000; ++i)
@@ -332,6 +345,7 @@ msd_CE5(unsigned char** strings, size_t n, size_t depth,
 		oracle[i] = get_char<uint16_t>(strings[i], depth);
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	static size_t bucketindex[0x10000];
@@ -355,8 +369,10 @@ void msd_CE5(unsigned char** strings, size_t n)
 {
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	msd_CE5(strings, n, 0, oracle, sorted);
 	free(oracle);
 	free(sorted);
@@ -387,6 +403,7 @@ msd_CE6(unsigned char** strings, size_t n, size_t depth,
 	}
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	for (size_t i=0; i < n; ++i)
 		++bucketsize[oracle[i]];
 	static size_t bucketindex[0x10000];
@@ -409,8 +426,10 @@ void msd_CE6(unsigned char** strings, size_t n)
 {
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	msd_CE6(strings, n, 0, oracle, sorted);
 	free(oracle);
 	free(sorted);
@@ -441,6 +460,7 @@ msd_CE7_(unsigned char** strings, size_t n, size_t depth,
 	}
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	int is_sorted = 1;
 	{
 		size_t i;
@@ -482,8 +502,10 @@ void msd_CE7(unsigned char** strings, size_t n)
 {
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	msd_CE7_(strings, n, 0, oracle, sorted);
 	free(oracle);
 	free(sorted);
@@ -517,6 +539,7 @@ msd_CE8_(unsigned char** strings, size_t n, size_t depth,
 	}
 	size_t* restrict bucketsize = (size_t*)
 		calloc(0x10000, sizeof(size_t));
+	if (!bucketsize) abort();
 	int is_sorted = 1;
 	{
 		size_t i;
@@ -566,8 +589,10 @@ void msd_CE8(unsigned char** strings, size_t n)
 {
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
+	if (!oracle) abort();
 	unsigned char** sorted = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!sorted) abort();
 	msd_CE8_(strings, n, 0, oracle, sorted);
 	free(oracle);
 	free(sorted);

@@ -62,9 +62,11 @@ private:
 		if (_capacity == 0) {
 			_capacity = InitialSize;
 			_data = static_cast<T*>(malloc(_capacity*sizeof(T)));
+			if (!_data) abort();
 		} else {
 			_capacity <<= 1;
 			T* t = static_cast<T*>(malloc(_capacity*sizeof(T)));
+			if (!t) abort();
 			(void) memcpy(t, _data, _size*sizeof(T));
 			free(_data);
 			_data = t;
@@ -103,9 +105,11 @@ private:
 		if (_capacity == 0) {
 			_capacity = InitialSize;
 			_data = static_cast<T*>(malloc(_capacity*sizeof(T)));
+			if (!_data) abort();
 		} else {
 			_capacity <<= 1;
 			T* t = static_cast<T*>(malloc(_capacity*sizeof(T)));
+			if (!t) abort();
 			(void) memcpy(t, _data, _size*sizeof(T));
 			free(_data);
 			_data = t;

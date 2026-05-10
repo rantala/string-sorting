@@ -282,6 +282,7 @@ multikey_simd(unsigned char** strings, size_t N, size_t depth)
 	CharT partval = pseudo_median<CharT>(strings, N, depth);
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(N, 16));
+	if (!oracle) abort();
 	std::array<size_t, 3> bucketsize;
 	bucketsize.fill(0);
 	size_t i=N-N%16;
@@ -295,6 +296,7 @@ multikey_simd(unsigned char** strings, size_t N, size_t depth)
 	assert(bucketsize[0] + bucketsize[1] + bucketsize[2] == N);
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(N*sizeof(unsigned char*)));
+	if (!sorted) abort();
 	size_t bucketindex[3];
 	bucketindex[0] = 0;
 	bucketindex[1] = bucketsize[0];
@@ -379,8 +381,10 @@ void multikey_simd_b_1(unsigned char** strings, size_t n)
 {
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
+	if (!sorted) abort();
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(n, 16));
+	if (!oracle) abort();
 	multikey_simd_b<unsigned char>(strings, n, 0, sorted, oracle);
 	_mm_free(oracle);
 	free(sorted);
@@ -390,8 +394,10 @@ void multikey_simd_b_2(unsigned char** strings, size_t n)
 {
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
+	if (!sorted) abort();
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(n, 16));
+	if (!oracle) abort();
 	multikey_simd_b<uint16_t>(strings, n, 0, sorted, oracle);
 	_mm_free(oracle);
 	free(sorted);
@@ -401,8 +407,10 @@ void multikey_simd_b_4(unsigned char** strings, size_t n)
 {
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
+	if (!sorted) abort();
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(n, 16));
+	if (!oracle) abort();
 	multikey_simd_b<uint32_t>(strings, n, 0, sorted, oracle);
 	_mm_free(oracle);
 	free(sorted);
@@ -426,6 +434,7 @@ multikey_simd_parallel(unsigned char** strings, size_t N, size_t depth)
 	CharT partval = pseudo_median<CharT>(strings, N, depth);
 	uint8_t* const restrict oracle =
 		static_cast<uint8_t*>(_mm_malloc(N, 16));
+	if (!oracle) abort();
 	std::array<size_t, 3> bucketsize;
 	bucketsize.fill(0);
 	size_t i=N-N%32;
@@ -450,6 +459,7 @@ multikey_simd_parallel(unsigned char** strings, size_t N, size_t depth)
 	assert(bucketsize[0] + bucketsize[1] + bucketsize[2] == N);
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(N*sizeof(unsigned char*)));
+	if (!sorted) abort();
 	size_t bucketindex[3];
 	bucketindex[0] = 0;
 	bucketindex[1] = bucketsize[0];

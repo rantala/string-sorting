@@ -40,7 +40,16 @@ string(APPEND CMAKE_C_FLAGS_DEBUG   " -O1 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -O1 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2")
 
 set(INTERNAL_SRCS
-	src/funnelsort.cpp
+	src/funnelsort_bfs_128way.cpp
+	src/funnelsort_bfs_16way.cpp
+	src/funnelsort_bfs_32way.cpp
+	src/funnelsort_bfs_64way.cpp
+	src/funnelsort_bfs_8way.cpp
+	src/funnelsort_dfs_128way.cpp
+	src/funnelsort_dfs_16way.cpp
+	src/funnelsort_dfs_32way.cpp
+	src/funnelsort_dfs_64way.cpp
+	src/funnelsort_dfs_8way.cpp
 	src/msd_a.cpp
 	src/msd_a2.cpp
 	src/msd_lsd.cpp

@@ -91,6 +91,18 @@ does not need to be Clang. `ENABLE_GCC_ANALYZER` and `ENABLE_CLANG_ANALYZER`
 can be combined when building with GCC >= 13.
 
 
+Target architecture
+-------------------
+
+The compiler `-march=` value can be overridden via the `MARCH` cache
+variable (default `native`):
+
+    $ cmake -B build-v3 -G Ninja -DMARCH=x86-64-v3 && ninja -C build-v3
+
+Useful for targeting a portable ISA level or restricting the instructions
+emitted by the compiler.
+
+
 Huge pages
 ----------
 

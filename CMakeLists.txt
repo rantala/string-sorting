@@ -27,11 +27,14 @@ if(ENABLE_CLANG_ANALYZER)
 		-header-filter=^${CMAKE_SOURCE_DIR}/src/.*)
 endif()
 
+set(MARCH "native" CACHE STRING
+	"Value passed to -march=. Override to target a different ISA level.")
+
 check_include_file(sys/sdt.h HAVE_SYS_SDT_H)
 
 find_package(OpenMP REQUIRED)
 
-add_compile_options(-Wall -Wextra -march=native)
+add_compile_options(-Wall -Wextra -march=${MARCH})
 
 string(APPEND CMAKE_C_FLAGS_RELEASE          " -g")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE        " -g")

@@ -23,7 +23,15 @@
 #ifndef VMAINFO_H
 #define VMAINFO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Release return value with free() when no longer needed. */
 char *vma_info(void *ptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* VMAINFO_H */

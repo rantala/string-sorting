@@ -75,7 +75,7 @@ set(INTERNAL_SRCS
 	src/routines.c
 	src/util/timing.c
 	src/util/cpus_allowed.c
-	src/util/vmainfo.c)
+	src/util/vmainfo.cpp)
 
 set(EXTERNAL_SRCS
 	external/lcp-quicksort.cpp

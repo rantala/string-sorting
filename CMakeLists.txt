@@ -74,7 +74,7 @@ set(INTERNAL_SRCS
 	src/mergesort_lcp.cpp
 	src/routines.c
 	src/util/timing.c
-	src/util/cpus_allowed.c
+	src/util/cpus_allowed.cpp
 	src/util/vmainfo.cpp)
 
 set(EXTERNAL_SRCS

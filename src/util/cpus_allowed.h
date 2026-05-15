@@ -26,9 +26,17 @@
 #define _GNU_SOURCE
 #include <sched.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 char *cpus_allowed_list(void);
 cpu_set_t *cpus_allowed(size_t *, int *maxcpu);
 int cpu_scaling_max_freq(int cpu);
 int cpu_scaling_min_freq(int cpu);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CPUS_ALLOWED_H */

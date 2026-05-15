@@ -73,7 +73,7 @@ set(INTERNAL_SRCS
 	src/mergesort_losertree.cpp
 	src/mergesort_lcp.cpp
 	src/routines.c
-	src/util/timing.c
+	src/util/timing.cpp
 	src/util/cpus_allowed.cpp
 	src/util/vmainfo.cpp)
 

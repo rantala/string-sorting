@@ -72,7 +72,7 @@ set(INTERNAL_SRCS
 	src/mergesort_unstable.cpp
 	src/mergesort_losertree.cpp
 	src/mergesort_lcp.cpp
-	src/routines.c
+	src/routines.cpp
 	src/util/timing.cpp
 	src/util/cpus_allowed.cpp
 	src/util/vmainfo.cpp)
@@ -126,7 +126,7 @@ if(ENABLE_CLANG_ANALYZER)
 		CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 endif()
 
-add_executable(sortstring src/sortstring.c ${EXTERNAL_SRCS})
+add_executable(sortstring src/sortstring.cpp ${EXTERNAL_SRCS})
 target_link_libraries(sortstring PRIVATE sortstring_internal rt)
 
 add_executable(unit-test unit-test/main.cpp ${EXTERNAL_SRCS})

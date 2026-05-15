@@ -23,10 +23,6 @@
 #ifndef TIMING_H
 #define TIMING_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void timing_start(void);
 void timing_stop(void);
 
@@ -35,9 +31,5 @@ double gettime_sys(void);
 double gettime_user_sys(void);
 double gettime_process_cputime(void);
 double gettime_wall_clock(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* TIMING_H */

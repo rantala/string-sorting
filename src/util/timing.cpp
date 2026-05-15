@@ -52,7 +52,7 @@ ms_between(const timeval &a, const timeval &b)
 
 } // namespace
 
-extern "C" void
+void
 timing_start(void)
 {
 	getrusage(RUSAGE_SELF, &startclock);
@@ -60,7 +60,7 @@ timing_start(void)
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,   &process_cputime_start);
 }
 
-extern "C" void
+void
 timing_stop(void)
 {
 	getrusage(RUSAGE_SELF, &stopclock);
@@ -68,31 +68,31 @@ timing_stop(void)
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,   &process_cputime_stop);
 }
 
-extern "C" double
+double
 gettime_wall_clock(void)
 {
 	return ms_between(monotonic_start, monotonic_stop);
 }
 
-extern "C" double
+double
 gettime_user(void)
 {
 	return ms_between(startclock.ru_utime, stopclock.ru_utime);
 }
 
-extern "C" double
+double
 gettime_sys(void)
 {
 	return ms_between(startclock.ru_stime, stopclock.ru_stime);
 }
 
-extern "C" double
+double
 gettime_user_sys(void)
 {
 	return gettime_user() + gettime_sys();
 }
 
-extern "C" double
+double
 gettime_process_cputime(void)
 {
 	return ms_between(process_cputime_start, process_cputime_stop);

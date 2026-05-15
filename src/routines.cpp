@@ -20,56 +20,61 @@
  * IN THE SOFTWARE.
  */
 
-#include "routine.h"
-#include <string.h>
+#include "routines.h"
 
-#define ROUTINES_MAX 256
+#include <cstdlib>
+#include <cstring>
 
-static const struct routine *routines[ROUTINES_MAX];
-static unsigned routine_cnt;
+namespace {
 
-void
-routine_register(const struct routine *r)
-{
-	if (!r)
-		abort();
-	if (!r->name)
-		abort();
-	if (!r->desc)
-		abort();
-	if (routine_cnt >= ROUTINES_MAX)
-		abort();
-	routines[routine_cnt++] = r;
-}
+constexpr unsigned ROUTINES_MAX = 256;
 
-const struct routine *
-routine_from_name(const char *name)
-{
-	unsigned i;
-	for (i=0; i < routine_cnt; ++i)
-		if (strcmp(name, routines[i]->name) == 0)
-			return routines[i];
-	return NULL;
-}
+const routine *routines[ROUTINES_MAX];
+unsigned routine_cnt;
 
-static int
+int
 routine_cmp(const void *a, const void *b)
 {
-	const struct routine *aa = *(const struct routine **)a;
-	const struct routine *bb = *(const struct routine **)b;
+	const routine *aa = *static_cast<const routine *const *>(a);
+	const routine *bb = *static_cast<const routine *const *>(b);
 	if (aa->f == bb->f)
 		return 0;
 	if (aa->multicore < bb->multicore)
 		return -1;
 	if (aa->multicore > bb->multicore)
 		return 1;
-	return strcmp(aa->name, bb->name);
+	return std::strcmp(aa->name, bb->name);
+}
+
+} // namespace
+
+extern "C" void
+routine_register(const routine *r)
+{
+	if (!r)
+		std::abort();
+	if (!r->name)
+		std::abort();
+	if (!r->desc)
+		std::abort();
+	if (routine_cnt >= ROUTINES_MAX)
+		std::abort();
+	routines[routine_cnt++] = r;
+}
+
+const routine *
+routine_from_name(const char *name)
+{
+	for (unsigned i = 0; i < routine_cnt; ++i)
+		if (std::strcmp(name, routines[i]->name) == 0)
+			return routines[i];
+	return nullptr;
 }
 
 void
-routine_get_all(const struct routine ***r, unsigned *cnt)
+routine_get_all(const routine ***r, unsigned *cnt)
 {
 	*r = routines;
 	*cnt = routine_cnt;
-	qsort(*r, *cnt, sizeof(struct routine *), routine_cmp);
+	std::qsort(*r, *cnt, sizeof(routine *), routine_cmp);
 }

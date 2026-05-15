@@ -127,7 +127,7 @@ read_int_file(const std::string &path)
 
 } // namespace
 
-extern "C" char *
+char *
 cpus_allowed_list(void)
 {
 	std::string s = status_entry("Cpus_allowed_list");
@@ -135,7 +135,7 @@ cpus_allowed_list(void)
 	return strdup_malloc(s);
 }
 
-extern "C" cpu_set_t *
+cpu_set_t *
 cpus_allowed(size_t *setsize, int *maxcpu)
 {
 	std::string allowed = status_entry("Cpus_allowed");
@@ -151,7 +151,7 @@ cpus_allowed(size_t *setsize, int *maxcpu)
 	return c;
 }
 
-extern "C" int
+int
 cpu_scaling_min_freq(int cpu)
 {
 	std::ostringstream path;
@@ -159,7 +159,7 @@ cpu_scaling_min_freq(int cpu)
 	return read_int_file(path.str());
 }
 
-extern "C" int
+int
 cpu_scaling_max_freq(int cpu)
 {
 	std::ostringstream path;

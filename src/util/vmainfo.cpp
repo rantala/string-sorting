@@ -115,7 +115,7 @@ strdup_malloc(const std::string &s)
 
 } // namespace
 
-extern "C" char *
+char *
 vma_info(void *ptr)
 {
 	auto target = reinterpret_cast<unsigned long>(ptr);

@@ -209,9 +209,7 @@ test_routines()
 {
 	std::cerr<<__PRETTY_FUNCTION__<<std::endl;
 
-	const struct routine **routines;
-	unsigned routines_cnt;
-	routine_get_all(&routines, &routines_cnt);
+	auto [routines, routines_cnt] = routine_get_all();
 
 	for (unsigned i=0; i < routines_cnt; ++i) {
 		std::cerr << __PRETTY_FUNCTION__

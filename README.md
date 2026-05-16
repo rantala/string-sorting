@@ -40,7 +40,7 @@ purposes, and are copyright by their respective authors.
 Requirements
 ------------
 
-  * C++11
+  * C++17
   * CMake >= 3.16
   * OpenMP
   * Ninja (optional; the default Make generator also works)

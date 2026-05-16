@@ -112,7 +112,7 @@ foreach(tgt sortstring_internal sortstring_internal_unittest)
 	target_link_libraries(${tgt} PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_CXX)
 	set_target_properties(${tgt} PROPERTIES
 		C_STANDARD 99   C_STANDARD_REQUIRED YES
-		CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES)
+		CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 endforeach()
 
 if(ENABLE_GCC_ANALYZER)
@@ -135,4 +135,4 @@ target_compile_definitions(unit-test PRIVATE UNIT_TEST)
 
 set_target_properties(sortstring unit-test PROPERTIES
 	C_STANDARD 99   C_STANDARD_REQUIRED YES
-	CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES)
+	CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)

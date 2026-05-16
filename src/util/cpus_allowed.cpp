@@ -23,34 +23,24 @@
 #include "cpus_allowed.h"
 
 #include <cctype>
-#include <cstdlib>
-#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 namespace {
-
-char *
-strdup_malloc(const std::string &s)
-{
-	char *p = static_cast<char *>(std::malloc(s.size() + 1));
-	if (!p) std::abort();
-	std::memcpy(p, s.c_str(), s.size() + 1);
-	return p;
-}
 
 /* Read /proc/self/status, return the (whitespace-trimmed) value of the
  * requested key, or an empty string if not present. */
 std::string
-status_entry(const std::string &key)
+status_entry(std::string_view key)
 {
 	std::ifstream f("/proc/self/status");
 	if (!f) return std::string();
 	for (std::string line; std::getline(f, line); ) {
 		auto colon = line.find(':');
 		if (colon == std::string::npos) continue;
-		if (line.compare(0, colon, key) != 0) continue;
+		if (std::string_view(line).substr(0, colon) != key) continue;
 		auto v = colon + 1;
 		while (v < line.size() && (line[v] == ' ' || line[v] == '\t'))
 			++v;
@@ -78,7 +68,7 @@ hex_val(char ch)
  * digits on the right). Non-hex characters (e.g. comma separators) are
  * skipped. Returns -1 if no bits are set. */
 int
-high_bit_order(const std::string &allowed)
+high_bit_order(std::string_view allowed)
 {
 	int order = -1;
 	int i = 0;
@@ -100,7 +90,7 @@ high_bit_order(const std::string &allowed)
 }
 
 void
-set_cpu_bits(const std::string &allowed, cpu_set_t *c, size_t setsize)
+set_cpu_bits(std::string_view allowed, cpu_set_t *c, size_t setsize)
 {
 	int i = 0;
 	for (auto it = allowed.rbegin(); it != allowed.rend(); ++it) {
@@ -115,43 +105,43 @@ set_cpu_bits(const std::string &allowed, cpu_set_t *c, size_t setsize)
 	}
 }
 
-int
+std::optional<int>
 read_int_file(const std::string &path)
 {
 	std::ifstream f(path);
-	if (!f) return -1;
+	if (!f) return std::nullopt;
 	int v;
-	if (!(f >> v)) return -1;
+	if (!(f >> v)) return std::nullopt;
 	return v;
 }
 
 } // namespace
 
-char *
-cpus_allowed_list(void)
+std::string
+cpus_allowed_list()
 {
-	std::string s = status_entry("Cpus_allowed_list");
-	if (s.empty()) return nullptr;
-	return strdup_malloc(s);
+	return status_entry("Cpus_allowed_list");
 }
 
-cpu_set_t *
-cpus_allowed(size_t *setsize, int *maxcpu)
+cpus_info
+cpus_allowed()
 {
+	cpus_info info;
 	std::string allowed = status_entry("Cpus_allowed");
-	if (allowed.empty()) return nullptr;
+	if (allowed.empty()) return info;
 	int top = high_bit_order(allowed);
-	if (top == -1) return nullptr;
-	*maxcpu = top;
+	if (top == -1) return info;
 	cpu_set_t *c = CPU_ALLOC(top + 1);
-	if (!c) return nullptr;
-	*setsize = CPU_ALLOC_SIZE(top + 1);
-	CPU_ZERO_S(*setsize, c);
-	set_cpu_bits(allowed, c, *setsize);
-	return c;
+	if (!c) return info;
+	info.set     = c;
+	info.setsize = CPU_ALLOC_SIZE(top + 1);
+	info.maxcpu  = top;
+	CPU_ZERO_S(info.setsize, info.set);
+	set_cpu_bits(allowed, info.set, info.setsize);
+	return info;
 }
 
-int
+std::optional<int>
 cpu_scaling_min_freq(int cpu)
 {
 	std::ostringstream path;
@@ -159,7 +149,7 @@ cpu_scaling_min_freq(int cpu)
 	return read_int_file(path.str());
 }
 
-int
+std::optional<int>
 cpu_scaling_max_freq(int cpu)
 {
 	std::ostringstream path;

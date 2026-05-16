@@ -38,7 +38,7 @@ static std::string __debug_indent_str;
 #endif
 #endif /* __cplusplus */
 
-static inline int
+[[nodiscard]] static inline int
 check_result(unsigned char **strings, size_t n)
 {
 	if (n < 2) return 0;

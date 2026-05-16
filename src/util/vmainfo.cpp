@@ -23,11 +23,10 @@
 #include "vmainfo.h"
 
 #include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 /* Format the /proc/pid/smaps key-value pairs into two columns:
@@ -104,20 +103,11 @@ format(const Entry &e)
 	return out.str();
 }
 
-char *
-strdup_malloc(const std::string &s)
-{
-	char *p = static_cast<char *>(std::malloc(s.size() + 1));
-	if (!p) std::abort();
-	std::memcpy(p, s.c_str(), s.size() + 1);
-	return p;
-}
-
 } // namespace
 
-char *
-vma_info(void *ptr)
+std::string
+vma_info(const void *ptr)
 {
 	auto target = reinterpret_cast<unsigned long>(ptr);
-	return strdup_malloc(format(find_entry(target)));
+	return format(find_entry(target));
 }

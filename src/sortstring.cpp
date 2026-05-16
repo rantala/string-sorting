@@ -32,6 +32,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <string>
+#include <string_view>
 #include <fcntl.h>
 #include <getopt.h>
 #include <libgen.h>
@@ -44,17 +46,17 @@
 namespace {
 
 struct {
-	const routine *r;
-	char *write_filename;
-	unsigned suffixsorting    : 1;
-	unsigned check_result     : 1;
-	unsigned oprofile         : 1;
-	unsigned write            : 1;
-	unsigned xml_stats        : 1;
-	unsigned hugetlb_text     : 1;
-	unsigned hugetlb_pointers : 1;
-	unsigned text_raw         : 1;
-	int perf_control_fd;
+	const routine *r          = nullptr;
+	std::string write_filename;
+	bool suffixsorting    = false;
+	bool check_result     = false;
+	bool oprofile         = false;
+	bool write            = false;
+	bool xml_stats        = false;
+	bool hugetlb_text     = false;
+	bool hugetlb_pointers = false;
+	bool text_raw         = false;
+	int perf_control_fd   = 0;
 } opts;
 
 FILE *log_file;
@@ -62,19 +64,14 @@ FILE *log_file;
 void
 open_log_file(void)
 {
-	char *log_fn = nullptr;
-	char *host = nullptr;
 	if (log_file)
 		return;
-	host = std::getenv("HOSTNAME");
-	if (host && *host)
-		if (asprintf(&log_fn, "sortstring_log_%s", host) == -1)
-			log_fn = nullptr;
-	if (log_fn)
-		log_file = std::fopen(log_fn, "a");
-	else
-		log_file = std::fopen("sortstring_log", "a");
-	std::free(log_fn);
+	std::string log_fn = "sortstring_log";
+	if (const char *host = std::getenv("HOSTNAME"); host && *host) {
+		log_fn += '_';
+		log_fn += host;
+	}
+	log_file = std::fopen(log_fn.c_str(), "a");
 	if (log_file)
 		setlinebuf(log_file);
 }
@@ -139,15 +136,14 @@ opcontrol_stop(void)
 	}
 }
 
-char *
-bazename(const char *fname)
+std::string
+bazename(std::string_view fname)
 {
-	static char buf[300];
-	std::strcpy(buf, fname);
-	return basename(buf);
+	std::string copy(fname);
+	return basename(copy.data());
 }
 
-void *
+[[nodiscard]] void *
 alloc_bytes(size_t bytes, int hugetlb)
 {
 	int map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
@@ -163,13 +159,13 @@ alloc_bytes(size_t bytes, int hugetlb)
 	return p;
 }
 
-unsigned char *
+[[nodiscard]] unsigned char *
 alloc_text(size_t bytes)
 {
 	return static_cast<unsigned char *>(alloc_bytes(bytes, opts.hugetlb_text));
 }
 
-unsigned char **
+[[nodiscard]] unsigned char **
 alloc_pointers(size_t num)
 {
 	return static_cast<unsigned char **>(
@@ -188,7 +184,7 @@ free_pointers(unsigned char **strings, size_t strings_len)
 	munmap(strings, strings_len);
 }
 
-off_t
+[[nodiscard]] off_t
 file_size(int fd)
 {
 	off_t size = lseek(fd, 0, SEEK_END);
@@ -355,15 +351,15 @@ create_suffixes(unsigned char *text, size_t text_len,
 void
 write_result(unsigned char **strings, size_t n)
 {
-	FILE *fp;
-	if (!opts.write_filename) {
+	if (opts.write_filename.empty()) {
 		const char *username = std::getenv("USERNAME");
 		if (!username)
 			username = "";
-		if (asprintf(&opts.write_filename, "/tmp/%s/alg.out", username) == -1)
-			opts.write_filename = nullptr;
+		opts.write_filename = "/tmp/";
+		opts.write_filename += username;
+		opts.write_filename += "/alg.out";
 	}
-	fp = std::fopen(opts.write_filename, "w");
+	FILE *fp = std::fopen(opts.write_filename.c_str(), "w");
 	if (!fp) {
 		std::fprintf(stderr,
 			"WARNING: --write failed: "
@@ -376,7 +372,7 @@ write_result(unsigned char **strings, size_t n)
 	}
 	std::fclose(fp);
 	std::fprintf(stderr, "Wrote sorted output to '%s'.\n",
-			opts.write_filename);
+			opts.write_filename.c_str());
 }
 
 void
@@ -442,9 +438,8 @@ run(const routine *r, unsigned char **strings, size_t n)
 void
 print_alg_names_and_descs(void)
 {
-	const routine **routines;
-	unsigned i = 0, routines_cnt;
-	routine_get_all(&routines, &routines_cnt);
+	auto [routines, routines_cnt] = routine_get_all();
+	unsigned i = 0;
 	if (routines[0]->multicore == 0) {
 		std::puts(":: SINGLE CORE ROUTINES ::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		std::puts(":: NAME :::::::::::::::::::::: DESCRIPTION :::::::::::::::::::::::::::::::::::::");
@@ -472,9 +467,7 @@ print_alg_names_and_descs(void)
 void
 print_alg_names(void)
 {
-	const routine **routines;
-	unsigned routines_cnt;
-	routine_get_all(&routines, &routines_cnt);
+	auto [routines, routines_cnt] = routine_get_all();
 	for (unsigned i=0; i < routines_cnt; ++i)
 		std::puts(routines[i]->name);
 }
@@ -505,47 +498,43 @@ input_information(unsigned char *text, size_t text_len,
 		std::printf("    size: %zu bytes\n", text_len);
 	std::printf("    strings: %zu\n", strings_len);
 	std::puts("");
-	char *vma_info_text = vma_info(text);
-	char *vma_info_strings = vma_info(strings);
-	if (std::strcmp(vma_info_text, vma_info_strings) == 0) {
+	std::string vma_info_text    = vma_info(text);
+	std::string vma_info_strings = vma_info(strings);
+	if (vma_info_text == vma_info_strings) {
 		std::puts("VMA information for text and string pointer arrays:");
-		std::puts(vma_info_text);
+		std::puts(vma_info_text.c_str());
 	} else {
 		std::puts("VMA information for text array:");
-		std::puts(vma_info_text);
+		std::puts(vma_info_text.c_str());
 		std::puts("VMA information for string pointer array:");
-		std::puts(vma_info_strings);
+		std::puts(vma_info_strings.c_str());
 	}
-	std::free(vma_info_text);
-	std::free(vma_info_strings);
 }
 
 void
 cpu_information(void)
 {
-	int maxcpu = -1;
-	size_t cpus_setsize = 0;
-	char *cpus_al = cpus_allowed_list();
-	cpu_set_t *cpus = cpus_allowed(&cpus_setsize, &maxcpu);
-	if (!cpus_al && !cpus)
+	std::string cpus_al = cpus_allowed_list();
+	auto [cpus, cpus_setsize, maxcpu] = cpus_allowed();
+	if (cpus_al.empty() && !cpus)
 		return;
 	std::printf("CPU information:\n");
-	if (cpus_al)
-		std::printf("    CPUs allowed: %s\n", cpus_al);
+	if (!cpus_al.empty())
+		std::printf("    CPUs allowed: %s\n", cpus_al.c_str());
 	for (int i=0; i < maxcpu; ++i) {
 		if (CPU_ISSET_S(i, cpus_setsize, cpus)) {
 			std::printf("    CPU%d", i);
-			int min_freq = cpu_scaling_min_freq(i);
-			int max_freq = cpu_scaling_max_freq(i);
-			if (min_freq != -1 && max_freq != -1)
+			auto min_freq = cpu_scaling_min_freq(i);
+			auto max_freq = cpu_scaling_max_freq(i);
+			if (min_freq && max_freq)
 				std::printf(", scaling frequencies: [%dMHz .. %dMHz]",
-						max_freq/1000, min_freq/1000);
+						*max_freq/1000, *min_freq/1000);
 			std::puts("");
 		}
 	}
 	std::putchar('\n');
-	std::free(cpus_al);
-	std::free(cpus);
+	if (cpus)
+		CPU_FREE(cpus);
 }
 
 void
@@ -651,30 +640,30 @@ int main(int argc, char **argv)
 			print_alg_names();
 			return 0;
 		case 1003:
-			opts.check_result = 1;
+			opts.check_result = true;
 			break;
 		case 1004:
-			opts.suffixsorting = 1;
+			opts.suffixsorting = true;
 			break;
 		case 1005:
-			opts.write = 1;
+			opts.write = true;
 			if (optarg)
 				opts.write_filename = optarg;
 			break;
 		case 1007:
-			opts.oprofile = 1;
+			opts.oprofile = true;
 			break;
 		case 1008:
-			opts.xml_stats = 1;
+			opts.xml_stats = true;
 			break;
 		case 1009:
-			opts.hugetlb_text = 1;
+			opts.hugetlb_text = true;
 			break;
 		case 1010:
-			opts.hugetlb_pointers = 1;
+			opts.hugetlb_pointers = true;
 			break;
 		case 1011:
-			opts.text_raw = 1;
+			opts.text_raw = true;
 			break;
 		case 1012:
 			opts.perf_control_fd = std::atoi(optarg);
@@ -695,8 +684,9 @@ int main(int argc, char **argv)
 			"ERROR: please specify algorithm name.\n");
 		return 1;
 	}
-	opts.r = routine_from_name(algorithm);
-	if (!opts.r) {
+	if (auto r = routine_from_name(algorithm); r) {
+		opts.r = *r;
+	} else {
 		std::fprintf(stderr,
 			"ERROR: no match found for algorithm '%s'!\n",
 			algorithm);
@@ -721,7 +711,7 @@ int main(int argc, char **argv)
 		std::fprintf(log_file, "Random seed: %lu.\n", seed);
 	std::printf("Input (%s): %s ...\n",
 			opts.text_raw ? "RAW" : "plain",
-			bazename(filename));
+			bazename(filename).c_str());
 	unsigned char *text;
 	unsigned char **strings;
 	size_t text_len, strings_len;

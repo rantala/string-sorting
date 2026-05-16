@@ -25,7 +25,11 @@
 
 #include "routine.h"
 
-const routine *routine_from_name(const char *);
-void routine_get_all(const routine ***, unsigned *);
+#include <optional>
+#include <string_view>
+#include <utility>
+
+[[nodiscard]] std::optional<const routine *> routine_from_name(std::string_view name);
+[[nodiscard]] std::pair<const routine *const *, unsigned> routine_get_all();
 
 #endif /* ROUTINES_H */

@@ -25,9 +25,19 @@
 
 #include <sched.h>
 
-char *cpus_allowed_list(void);
-cpu_set_t *cpus_allowed(size_t *, int *maxcpu);
-int cpu_scaling_max_freq(int cpu);
-int cpu_scaling_min_freq(int cpu);
+#include <cstddef>
+#include <optional>
+#include <string>
+
+struct cpus_info {
+	cpu_set_t *set     = nullptr;
+	size_t     setsize = 0;
+	int        maxcpu  = 0;
+};
+
+[[nodiscard]] std::string cpus_allowed_list();
+[[nodiscard]] cpus_info cpus_allowed();
+[[nodiscard]] std::optional<int> cpu_scaling_max_freq(int cpu);
+[[nodiscard]] std::optional<int> cpu_scaling_min_freq(int cpu);
 
 #endif /* CPUS_ALLOWED_H */

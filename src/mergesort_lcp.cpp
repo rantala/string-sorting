@@ -263,10 +263,14 @@ mergesort_lcp_2way(unsigned char** restrict strings_input,
 void
 mergesort_lcp_2way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_output) abort();
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	const MergeResult m = mergesort_lcp_2way<false>(strings, tmp,
 			lcp_input, lcp_output, n);
 	if (m == SortedInTemp) {
@@ -334,10 +338,14 @@ mergesort_lcp_2way_parallel(
 void
 mergesort_lcp_2way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_output) abort();
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 #pragma omp parallel
 	{
 #pragma omp single
@@ -818,11 +826,15 @@ mergesort_lcp_3way(unsigned char** restrict strings_input,
 void
 mergesort_lcp_3way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	debug() << __func__ << '\n';
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_input) abort();
 	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_tmp) abort();
 	unsigned char** input_tmp = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!input_tmp) abort();
 	const MergeResult m = mergesort_lcp_3way<false>(strings, input_tmp,
 			lcp_input, lcp_tmp, n);
 	if (m == SortedInTemp) {
@@ -940,11 +952,15 @@ mergesort_lcp_3way_parallel(unsigned char** restrict strings_input,
 void
 mergesort_lcp_3way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	debug() << __func__ << '\n';
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_input) abort();
 	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_tmp) abort();
 	unsigned char** input_tmp = (unsigned char**)
 		malloc(n*sizeof(unsigned char*));
+	if (!input_tmp) abort();
 #pragma omp parallel
 	{
 #pragma omp single
@@ -1407,11 +1423,17 @@ template <typename CharT>
 static void
 mergesort_cache_lcp_2way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_input) abort();
 	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_tmp) abort();
 	unsigned char** input_tmp = (unsigned char**) malloc(n*sizeof(unsigned char*));
+	if (!input_tmp) abort();
 	CharT* cache     = (CharT*) malloc(n*sizeof(CharT));
+	if (!cache) abort();
 	CharT* cache_tmp = (CharT*) malloc(n*sizeof(CharT));
+	if (!cache_tmp) abort();
 	MergeResult m = mergesort_cache_lcp_2way<false>(strings, input_tmp,
 			lcp_input, lcp_tmp, cache, cache_tmp, n);
 	if (m == SortedInTemp) {
@@ -1523,11 +1545,17 @@ template <typename CharT>
 static void
 mergesort_cache_lcp_2way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_input) abort();
 	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
+	if (!lcp_tmp) abort();
 	unsigned char** input_tmp = (unsigned char**) malloc(n*sizeof(unsigned char*));
+	if (!input_tmp) abort();
 	CharT* cache     = (CharT*) malloc(n*sizeof(CharT));
+	if (!cache) abort();
 	CharT* cache_tmp = (CharT*) malloc(n*sizeof(CharT));
+	if (!cache_tmp) abort();
 	MergeResult m = mergesort_cache_lcp_2way_parallel<false>(strings, input_tmp,
 			lcp_input, lcp_tmp, cache, cache_tmp, n);
 	if (m == SortedInTemp) {
@@ -1737,10 +1765,14 @@ mergesort_lcp_2way_unstable(unsigned char** restrict strings_input,
 void
 mergesort_lcp_2way_unstable(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_output) abort();
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	const MergeResult m = mergesort_lcp_2way_unstable<false>(strings, tmp,
 			lcp_input, lcp_output, n);
 	if (m == SortedInTemp) {
@@ -1810,10 +1842,14 @@ mergesort_lcp_2way_unstable_parallel(unsigned char** restrict strings_input,
 void
 mergesort_lcp_2way_unstable_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
+	if (!lcp_output) abort();
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 #pragma omp parallel
 	{
 #pragma omp single

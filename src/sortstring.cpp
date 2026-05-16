@@ -20,8 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-#define _GNU_SOURCE
-
 #include "timing.h"
 #include "vmainfo.h"
 #include "routines.h"
@@ -29,12 +27,13 @@
 #include "util/debug.h"
 #include "util/sdt.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <string>
+#include <string_view>
 #include <fcntl.h>
 #include <getopt.h>
 #include <libgen.h>
@@ -42,192 +41,184 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
-static struct {
-	const struct routine *r;
-	char *write_filename;
-	unsigned suffixsorting    : 1;
-	unsigned check_result     : 1;
-	unsigned oprofile         : 1;
-	unsigned write            : 1;
-	unsigned xml_stats        : 1;
-	unsigned hugetlb_text     : 1;
-	unsigned hugetlb_pointers : 1;
-	unsigned text_raw         : 1;
-	int perf_control_fd;
+namespace {
+
+struct {
+	const routine *r          = nullptr;
+	std::string write_filename;
+	bool suffixsorting    = false;
+	bool check_result     = false;
+	bool oprofile         = false;
+	bool write            = false;
+	bool xml_stats        = false;
+	bool hugetlb_text     = false;
+	bool hugetlb_pointers = false;
+	bool text_raw         = false;
+	int perf_control_fd   = 0;
 } opts;
 
-static FILE *log_file;
+FILE *log_file;
 
-static void
+void
 open_log_file(void)
 {
-	char *log_fn = NULL;
-	char *host = NULL;
 	if (log_file)
 		return;
-	host = getenv("HOSTNAME");
-	if (host && *host)
-		if (asprintf(&log_fn, "sortstring_log_%s", host) == -1)
-			log_fn = NULL;
-	if (log_fn)
-		log_file = fopen(log_fn, "a");
-	else
-		log_file = fopen("sortstring_log", "a");
-	free(log_fn);
+	std::string log_fn = "sortstring_log";
+	if (const char *host = std::getenv("HOSTNAME"); host && *host) {
+		log_fn += '_';
+		log_fn += host;
+	}
+	log_file = std::fopen(log_fn.c_str(), "a");
 	if (log_file)
 		setlinebuf(log_file);
 }
 
-static void
+void
 perf_control_write(int fd, const char *msg)
 {
-	ssize_t len = (ssize_t)strlen(msg);
+	ssize_t len = (ssize_t)std::strlen(msg);
 	ssize_t ret = write(fd, msg, len);
 	if (ret != len) {
 		int err = errno;
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: perf control fd write %s failed (ret=%zd, errno=%d): %s\n",
-			msg, ret, err, strerror(err));
+			msg, ret, err, std::strerror(err));
 		if (log_file)
-			fprintf(log_file,
+			std::fprintf(log_file,
 				"FATAL: perf control fd write %s failed (ret=%zd, errno=%d): %s\n",
-				msg, ret, err, strerror(err));
-		exit(1);
+				msg, ret, err, std::strerror(err));
+		std::exit(1);
 	}
 }
 
-static void
+void
 perf_control_enable(int fd)
 {
 	perf_control_write(fd, "enable\n");
 }
 
-static void
+void
 perf_control_disable(int fd)
 {
 	perf_control_write(fd, "disable\n");
 }
 
-static void
+void
 opcontrol_start(void)
 {
-	int ret = system("opcontrol --start");
+	int ret = std::system("opcontrol --start");
 	if (ret == -1 || WIFEXITED(ret) == 0 || WEXITSTATUS(ret) != 0) {
-		fprintf(stderr, "ERROR: opcontrol --start failed.\n");
+		std::fprintf(stderr, "ERROR: opcontrol --start failed.\n");
 		if (log_file)
-			fprintf(log_file,
+			std::fprintf(log_file,
 		             "FATAL: opcontrol --start failed. "
 			     "ret=%d, WIFEXITED=%d, WEXITSTATUS=%d\n",
 			     ret, WIFEXITED(ret), WEXITSTATUS(ret));
-		exit(1);
+		std::exit(1);
 	}
 }
 
-static void
+void
 opcontrol_stop(void)
 {
-	int ret = system("opcontrol --stop");
+	int ret = std::system("opcontrol --stop");
 	if (ret == -1 || WIFEXITED(ret) == 0 || WEXITSTATUS(ret) != 0) {
-		fprintf(stderr, "ERROR: opcontrol --stop failed.");
+		std::fprintf(stderr, "ERROR: opcontrol --stop failed.");
 		if (log_file)
-			fprintf(log_file,
+			std::fprintf(log_file,
 		             "FATAL: opcontrol --stop failed. "
 			     "ret=%d, WIFEXITED=%d, WEXITSTATUS=%d\n",
 			     ret, WIFEXITED(ret), WEXITSTATUS(ret));
-		exit(1);
+		std::exit(1);
 	}
 }
 
-static char *
-bazename(const char *fname)
+std::string
+bazename(std::string_view fname)
 {
-	static char buf[300];
-	strcpy(buf, fname);
-	return basename(buf);
+	std::string copy(fname);
+	return basename(copy.data());
 }
 
-static void *
+[[nodiscard]] void *
 alloc_bytes(size_t bytes, int hugetlb)
 {
-	int map_flags;
-	void *p;
-	map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
+	int map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
 	if (hugetlb)
 		map_flags |= MAP_HUGETLB;
-	p = mmap(NULL, bytes, PROT_READ | PROT_WRITE, map_flags, -1, 0);
+	void *p = mmap(nullptr, bytes, PROT_READ | PROT_WRITE, map_flags, -1, 0);
 	if (p == MAP_FAILED) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to mmap memory for input: %s.\n",
-			strerror(errno));
-		exit(1);
+			std::strerror(errno));
+		std::exit(1);
 	}
 	return p;
 }
 
-static unsigned char *
+[[nodiscard]] unsigned char *
 alloc_text(size_t bytes)
 {
-	void *p = alloc_bytes(bytes, opts.hugetlb_text);
-	return (unsigned char *)p;
+	return static_cast<unsigned char *>(alloc_bytes(bytes, opts.hugetlb_text));
 }
 
-static unsigned char **
+[[nodiscard]] unsigned char **
 alloc_pointers(size_t num)
 {
-	void *p = alloc_bytes(num*sizeof(unsigned char *),
-			opts.hugetlb_pointers);
-	return (unsigned char **)p;
+	return static_cast<unsigned char **>(
+		alloc_bytes(num * sizeof(unsigned char *), opts.hugetlb_pointers));
 }
 
-static void
+void
 free_text(unsigned char *text, size_t text_len)
 {
-	munmap((void *)text, text_len);
+	munmap(text, text_len);
 }
 
-static void
+void
 free_pointers(unsigned char **strings, size_t strings_len)
 {
-	munmap((void *)strings, strings_len);
+	munmap(strings, strings_len);
 }
 
-static off_t
+[[nodiscard]] off_t
 file_size(int fd)
 {
-	off_t size;
-	size = lseek(fd, 0, SEEK_END);
+	off_t size = lseek(fd, 0, SEEK_END);
 	if (size == -1) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to lseek() input file: %s.\n",
-			strerror(errno));
-		exit(1);
+			std::strerror(errno));
+		std::exit(1);
 	}
 	if (lseek(fd, 0, SEEK_SET) == -1) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to lseek() input file: %s.\n",
-			strerror(errno));
-		exit(1);
+			std::strerror(errno));
+		std::exit(1);
 	}
 	return size;
 }
 
-static void
+void
 input_copy(const char *fname, unsigned char **text_, size_t *text_len_)
 {
 	int fd = open(fname, O_RDONLY);
 	if (fd == -1) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to open() input file '%s': %s.\n",
-			fname, strerror(errno));
-		exit(1);
+			fname, std::strerror(errno));
+		std::exit(1);
 	}
 	off_t filesize = file_size(fd);
 	if (filesize <= 0) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: input file '%s' empty.\n",
 			fname);
-		exit(1);
+		std::exit(1);
 	}
 	unsigned char *text = alloc_text(filesize);
 	const size_t block_size = 128*1024;
@@ -239,23 +230,23 @@ input_copy(const char *fname, unsigned char **text_, size_t *text_len_)
 		if (ret < 0) {
 			if (errno == EINTR)
 				continue;
-			fprintf(stderr, "ERROR: failed read() "
+			std::fprintf(stderr, "ERROR: failed read() "
 				"from input file '%s': %s.\n",
-				fname, strerror(errno));
-			exit(1);
+				fname, std::strerror(errno));
+			std::exit(1);
 		} else if (ret == 0) {
-			fprintf(stderr, "ERROR: EOF read() before reading "
+			std::fprintf(stderr, "ERROR: EOF read() before reading "
 				"whole input file '%s': %s.\n",
-				fname, strerror(errno));
-			exit(1);
+				fname, std::strerror(errno));
+			std::exit(1);
 		}
 		i += ret;
 	}
 	if (close(fd) == -1) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to close() input file '%s': %s.\n",
-			fname, strerror(errno));
-		exit(1);
+			fname, std::strerror(errno));
+		std::exit(1);
 	}
 	*text_ = text;
 	*text_len_ = filesize;
@@ -263,41 +254,41 @@ input_copy(const char *fname, unsigned char **text_, size_t *text_len_)
 
 /* mmap() input data that is in raw format (uses NULL bytes for delimiting
  * strings). */
-static void
+void
 input_mmap(const char *fname, unsigned char **text, size_t *text_len)
 {
 	int fd = open(fname, O_RDONLY);
 	if (fd == -1) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to open() input file '%s': %s.\n",
-			fname, strerror(errno));
-		exit(1);
+			fname, std::strerror(errno));
+		std::exit(1);
 	}
 	off_t filesize = file_size(fd);
 	if (filesize <= 0) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: input file '%s' empty.\n",
 			fname);
-		exit(1);
+		std::exit(1);
 	}
 	void *raw = mmap(0, filesize, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (raw == MAP_FAILED) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to mmap input file '%s': %s.\n",
-			fname, strerror(errno));
-		exit(1);
+			fname, std::strerror(errno));
+		std::exit(1);
 	}
 	if (close(fd) == -1) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to close() input file '%s': %s.\n",
-			fname, strerror(errno));
-		exit(1);
+			fname, std::strerror(errno));
+		std::exit(1);
 	}
-	*text = (unsigned char *)raw;
+	*text = static_cast<unsigned char *>(raw);
 	*text_len = filesize;
 }
 
-static void
+void
 readbytes(const char *fname, unsigned char **text, size_t *text_len)
 {
 	/* mapping file with MAP_HUGETLB does not work. */
@@ -307,7 +298,7 @@ readbytes(const char *fname, unsigned char **text, size_t *text_len)
 		return input_copy(fname, text, text_len);
 }
 
-static void
+void
 create_strings_delim(unsigned char *text, size_t text_len, int delim,
 		unsigned char ***strings, size_t *strings_cnt)
 {
@@ -316,10 +307,10 @@ create_strings_delim(unsigned char *text, size_t text_len, int delim,
 		if (text[i] == delim)
 			++strs_cnt;
 	if (strs_cnt == 0) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: unable to read any lines from the input "
 			"file.\n");
-		exit(1);
+		std::exit(1);
 	}
 	unsigned char **strs = alloc_pointers(strs_cnt);
 	unsigned char *line_start = text;
@@ -334,7 +325,7 @@ create_strings_delim(unsigned char *text, size_t text_len, int delim,
 	*strings_cnt = strs_cnt;
 }
 
-static void
+void
 create_strings(unsigned char *text, size_t text_len,
 		unsigned char ***strings, size_t *strings_cnt)
 {
@@ -346,7 +337,7 @@ create_strings(unsigned char *text, size_t text_len,
 				strings, strings_cnt);
 }
 
-static void
+void
 create_suffixes(unsigned char *text, size_t text_len,
 		unsigned char ***strings, size_t *strings_cnt)
 {
@@ -357,40 +348,34 @@ create_suffixes(unsigned char *text, size_t text_len,
 	*strings_cnt = text_len;
 }
 
-static void
+void
 write_result(unsigned char **strings, size_t n)
 {
-	FILE *fp;
-	if (!opts.write_filename) {
-		const char *username = getenv("USERNAME");
+	if (opts.write_filename.empty()) {
+		const char *username = std::getenv("USERNAME");
 		if (!username)
 			username = "";
-		if (asprintf(&opts.write_filename, "/tmp/%s/alg.out", username) == -1)
-			opts.write_filename = NULL;
+		opts.write_filename = "/tmp/";
+		opts.write_filename += username;
+		opts.write_filename += "/alg.out";
 	}
-	fp = fopen(opts.write_filename, "w");
+	FILE *fp = std::fopen(opts.write_filename.c_str(), "w");
 	if (!fp) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"WARNING: --write failed: "
 			"unable to open file for writing!\n");
 		return;
 	}
 	for (size_t i=0; i < n; ++i) {
-		fputs((const char *)strings[i], fp);
-		fputc('\n', fp);
+		std::fputs(reinterpret_cast<const char *>(strings[i]), fp);
+		std::fputc('\n', fp);
 	}
-	fclose(fp);
-	fprintf(stderr, "Wrote sorted output to '%s'.\n",
-			opts.write_filename);
-	/*
-	std::cout << "\n";
-	system("md5sum " + opts.write_filename);
-	system("cat    " + opts.input_filename + ".md5sum");
-	std::cout << "\n";
-	*/
+	std::fclose(fp);
+	std::fprintf(stderr, "Wrote sorted output to '%s'.\n",
+			opts.write_filename.c_str());
 }
 
-static void
+void
 print_timing_results_xml(void)
 {
 	/*
@@ -402,17 +387,17 @@ print_timing_results_xml(void)
 	*/
 }
 
-static void
+void
 print_timing_results_human(void)
 {
-	printf("%10.2f ms : wall-clock\n", gettime_wall_clock());
-	printf("%10.2f ms : user\n", gettime_user());
-	printf("%10.2f ms : sys\n", gettime_sys());
-	printf("%10.2f ms : user+sys\n", gettime_user_sys());
-	printf("%10.2f ms : PROCESS_CPUTIME\n", gettime_process_cputime());
+	std::printf("%10.2f ms : wall-clock\n", gettime_wall_clock());
+	std::printf("%10.2f ms : user\n", gettime_user());
+	std::printf("%10.2f ms : sys\n", gettime_sys());
+	std::printf("%10.2f ms : user+sys\n", gettime_user_sys());
+	std::printf("%10.2f ms : PROCESS_CPUTIME\n", gettime_process_cputime());
 }
 
-static void
+void
 print_timing_results(void)
 {
 	if (opts.xml_stats)
@@ -422,10 +407,10 @@ print_timing_results(void)
 }
 
 int
-run(const struct routine *r, unsigned char **strings, size_t n)
+run(const routine *r, unsigned char **strings, size_t n)
 {
 	int ret = 0;
-	puts("Timing ...");
+	std::puts("Timing ...");
 	if (opts.oprofile)
 		opcontrol_start();
 	if (opts.perf_control_fd > 0)
@@ -443,128 +428,129 @@ run(const struct routine *r, unsigned char **strings, size_t n)
 	if (opts.check_result) {
 		ret = check_result(strings, n);
 		if (ret == 0)
-			fprintf(stderr, "Check: GOOD\n");
+			std::fprintf(stderr, "Check: GOOD\n");
 	}
 	if (opts.write)
 		write_result(strings, n);
 	return ret;
 }
 
-static void
+void
 print_alg_names_and_descs(void)
 {
-	const struct routine **routines;
-	unsigned i = 0, routines_cnt;
-	routine_get_all(&routines, &routines_cnt);
+	auto [routines, routines_cnt] = routine_get_all();
+	unsigned i = 0;
 	if (routines[0]->multicore == 0) {
-		puts(":: SINGLE CORE ROUTINES ::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		puts(":: NAME :::::::::::::::::::::: DESCRIPTION :::::::::::::::::::::::::::::::::::::");
+		std::puts(":: SINGLE CORE ROUTINES ::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		std::puts(":: NAME :::::::::::::::::::::: DESCRIPTION :::::::::::::::::::::::::::::::::::::");
 		for (i=0; i < routines_cnt && routines[i]->multicore == 0; ++i)
-			if (strlen(routines[i]->name) > 30) {
-				printf("%s\n", routines[i]->name);
-				printf("%30s %s\n", "", routines[i]->desc);
+			if (std::strlen(routines[i]->name) > 30) {
+				std::printf("%s\n", routines[i]->name);
+				std::printf("%30s %s\n", "", routines[i]->desc);
 			} else
-				printf("%-30s %s\n", routines[i]->name, routines[i]->desc);
+				std::printf("%-30s %s\n", routines[i]->name, routines[i]->desc);
 	}
 	if (i < routines_cnt && routines[i]->multicore) {
 		if (i)
-			puts("");
-		puts(":: MULTI CORE ROUTINES :::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		puts(":: NAME :::::::::::::::::::::: DESCRIPTION :::::::::::::::::::::::::::::::::::::");
+			std::puts("");
+		std::puts(":: MULTI CORE ROUTINES :::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		std::puts(":: NAME :::::::::::::::::::::: DESCRIPTION :::::::::::::::::::::::::::::::::::::");
 		for (; i < routines_cnt; ++i)
-			if (strlen(routines[i]->name) > 30) {
-				printf("%s\n", routines[i]->name);
-				printf("%30s %s\n", "", routines[i]->desc);
+			if (std::strlen(routines[i]->name) > 30) {
+				std::printf("%s\n", routines[i]->name);
+				std::printf("%30s %s\n", "", routines[i]->desc);
 			} else
-				printf("%-30s %s\n", routines[i]->name, routines[i]->desc);
+				std::printf("%-30s %s\n", routines[i]->name, routines[i]->desc);
 	}
 }
 
-static void
+void
 print_alg_names(void)
 {
-	const struct routine **routines;
-	unsigned i, routines_cnt;
-	routine_get_all(&routines, &routines_cnt);
-	for (i=0; i < routines_cnt; ++i)
-		puts(routines[i]->name);
+	auto [routines, routines_cnt] = routine_get_all();
+	for (unsigned i=0; i < routines_cnt; ++i)
+		std::puts(routines[i]->name);
 }
 
-static void
-routine_information(const struct routine *r)
+void
+routine_information(const routine *r)
 {
-	printf("Routine (%s): %s\n",
+	std::printf("Routine (%s): %s\n",
 			r->multicore ? "multi core" : "single core",
 			r->name);
-	printf("    \"%s\"\n", r->desc);
-	printf("\n");
+	std::printf("    \"%s\"\n", r->desc);
+	std::printf("\n");
 }
 
-static void
+void
 input_information(unsigned char *text, size_t text_len,
 		unsigned char **strings, size_t strings_len)
 {
 	size_t input_mb = text_len / (1024*1024);
 	size_t input_kb = text_len / 1024;
 	if (input_mb)
-		printf("    size: %zu MB (%zu kB, %zu bytes)\n",
+		std::printf("    size: %zu MB (%zu kB, %zu bytes)\n",
 				input_mb, input_kb, text_len);
 	else if (input_kb)
-		printf("    size: %zu kB (%zu bytes)\n",
+		std::printf("    size: %zu kB (%zu bytes)\n",
 				input_kb, text_len);
 	else
-		printf("    size: %zu bytes\n", text_len);
-	printf("    strings: %zu\n", strings_len);
-	puts("");
-	char *vma_info_text = vma_info(text);
-	char *vma_info_strings = vma_info(strings);
-	if (strcmp(vma_info_text, vma_info_strings) == 0) {
-		puts("VMA information for text and string pointer arrays:");
-		puts(vma_info_text);
+		std::printf("    size: %zu bytes\n", text_len);
+	std::printf("    strings: %zu\n", strings_len);
+	std::puts("");
+	std::string vma_info_text    = vma_info(text);
+	std::string vma_info_strings = vma_info(strings);
+	if (vma_info_text == vma_info_strings) {
+		std::puts("VMA information for text and string pointer arrays:");
+		std::puts(vma_info_text.c_str());
 	} else {
-		puts("VMA information for text array:");
-		puts(vma_info_text);
-		puts("VMA information for string pointer array:");
-		puts(vma_info_strings);
+		std::puts("VMA information for text array:");
+		std::puts(vma_info_text.c_str());
+		std::puts("VMA information for string pointer array:");
+		std::puts(vma_info_strings.c_str());
 	}
-	free(vma_info_text);
-	free(vma_info_strings);
 }
 
-static void
+void
 cpu_information(void)
 {
-	int i;
-	int maxcpu = -1;
-	size_t cpus_setsize = 0;
-	char *cpus_al = cpus_allowed_list();
-	cpu_set_t *cpus = cpus_allowed(&cpus_setsize, &maxcpu);
-	if (!cpus_al && !cpus)
+	std::string cpus_al = cpus_allowed_list();
+	auto [cpus, cpus_setsize, maxcpu] = cpus_allowed();
+	if (cpus_al.empty() && !cpus)
 		return;
-	printf("CPU information:\n");
-	if (cpus_al)
-		printf("    CPUs allowed: %s\n", cpus_al);
-	for (i=0; i < maxcpu; ++i) {
-		if (CPU_ISSET_S(i, cpus_setsize, cpus)) {
-			int min_freq, max_freq;
-			printf("    CPU%d", i);
-			min_freq = cpu_scaling_min_freq(i);
-			max_freq = cpu_scaling_max_freq(i);
-			if (min_freq != -1 && max_freq != -1)
-				printf(", scaling frequencies: [%dMHz .. %dMHz]",
-						max_freq/1000, min_freq/1000);
-			puts("");
+	std::printf("CPU information:\n");
+	if (!cpus_al.empty())
+		std::printf("    CPUs allowed: %s\n", cpus_al.c_str());
+	if (auto boost = cpu_boost_enabled())
+		std::printf("    Turbo/boost: %s\n", *boost ? "on" : "off");
+	for (int i=0; i < maxcpu; ++i) {
+		if (!CPU_ISSET_S(i, cpus_setsize, cpus))
+			continue;
+		const cpu_info info = cpu_info_for(i);
+		std::printf("    CPU%d", i);
+		switch (info.klass) {
+		case cpu_info::core_class::performance: std::printf(" (P-core)"); break;
+		case cpu_info::core_class::efficiency:  std::printf(" (E-core)"); break;
+		case cpu_info::core_class::unknown: break;
 		}
+		if (info.scaling_min_khz && info.scaling_max_khz)
+			std::printf(", scaling [%dMHz .. %dMHz]",
+					*info.scaling_min_khz/1000,
+					*info.scaling_max_khz/1000);
+		if (info.hw_max_khz && info.scaling_max_khz &&
+		    *info.hw_max_khz > *info.scaling_max_khz)
+			std::printf(", hw peak %dMHz", *info.hw_max_khz/1000);
+		std::puts("");
 	}
-	putchar('\n');
-	free(cpus_al);
-	free(cpus);
+	std::putchar('\n');
+	if (cpus)
+		CPU_FREE(cpus);
 }
 
-static void
+void
 usage(void)
 {
-	puts(
+	std::puts(
 	     "String sorting\n"
 	     "--------------\n"
 	     "\n"
@@ -614,17 +600,18 @@ usage(void)
 	     "\n");
 }
 
-static void
+void
 print_cmdline(int argc, char **argv, FILE *fp)
 {
-	int i;
 	if (!fp)
 		return;
-	fprintf(fp, "Command line:");
-	for (i=0; i < argc; ++i)
-		fprintf(fp, " %s", argv[i]);
-	fprintf(fp, "\n");
+	std::fprintf(fp, "Command line:");
+	for (int i=0; i < argc; ++i)
+		std::fprintf(fp, " %s", argv[i]);
+	std::fprintf(fp, "\n");
 }
+
+} // namespace
 
 int main(int argc, char **argv)
 {
@@ -663,33 +650,33 @@ int main(int argc, char **argv)
 			print_alg_names();
 			return 0;
 		case 1003:
-			opts.check_result = 1;
+			opts.check_result = true;
 			break;
 		case 1004:
-			opts.suffixsorting = 1;
+			opts.suffixsorting = true;
 			break;
 		case 1005:
-			opts.write = 1;
+			opts.write = true;
 			if (optarg)
 				opts.write_filename = optarg;
 			break;
 		case 1007:
-			opts.oprofile = 1;
+			opts.oprofile = true;
 			break;
 		case 1008:
-			opts.xml_stats = 1;
+			opts.xml_stats = true;
 			break;
 		case 1009:
-			opts.hugetlb_text = 1;
+			opts.hugetlb_text = true;
 			break;
 		case 1010:
-			opts.hugetlb_pointers = 1;
+			opts.hugetlb_pointers = true;
 			break;
 		case 1011:
-			opts.text_raw = 1;
+			opts.text_raw = true;
 			break;
 		case 1012:
-			opts.perf_control_fd = atoi(optarg);
+			opts.perf_control_fd = std::atoi(optarg);
 			break;
 		case '?':
 		default:
@@ -697,50 +684,51 @@ int main(int argc, char **argv)
 		}
 	}
 	if (argc - 2 != optind) {
-		fprintf(stderr,
+		std::fprintf(stderr,
 			"ERROR: wrong number of arguments.\n");
 		return 1;
 	}
 	const char *algorithm = argv[optind];
-	if (!algorithm || strlen(algorithm) == 0) {
-		fprintf(stderr,
+	if (!algorithm || std::strlen(algorithm) == 0) {
+		std::fprintf(stderr,
 			"ERROR: please specify algorithm name.\n");
 		return 1;
 	}
-	opts.r = routine_from_name(algorithm);
-	if (!opts.r) {
-		fprintf(stderr,
+	if (auto r = routine_from_name(algorithm); r) {
+		opts.r = *r;
+	} else {
+		std::fprintf(stderr,
 			"ERROR: no match found for algorithm '%s'!\n",
 			algorithm);
 		return 1;
 	}
 	const char *filename = argv[optind+1];
-	if (!filename || strlen(filename) == 0) {
-		fprintf(stderr,
+	if (!filename || std::strlen(filename) == 0) {
+		std::fprintf(stderr,
 			"ERROR: please specify input filename.\n");
 		return 1;
 	}
 	open_log_file();
 	if (log_file)
-		fprintf(log_file, "===START===\n");
+		std::fprintf(log_file, "===START===\n");
 	print_cmdline(argc, argv, log_file);
 	routine_information(opts.r);
 	cpu_information();
-	unsigned long seed = getpid()*time(0);
+	unsigned long seed = getpid() * std::time(nullptr);
 	//seed = 0xdeadbeef;
 	srand48(seed);
 	if (log_file)
-		fprintf(log_file, "Random seed: %lu.\n", seed);
-	printf("Input (%s): %s ...\n",
+		std::fprintf(log_file, "Random seed: %lu.\n", seed);
+	std::printf("Input (%s): %s ...\n",
 			opts.text_raw ? "RAW" : "plain",
-			bazename(filename));
+			bazename(filename).c_str());
 	unsigned char *text;
 	unsigned char **strings;
 	size_t text_len, strings_len;
 	readbytes(filename, &text, &text_len);
 	if (opts.suffixsorting) {
 		if (log_file)
-			fprintf(log_file, "Suffix sorting mode!\n");
+			std::fprintf(log_file, "Suffix sorting mode!\n");
 		create_suffixes(text, text_len, &strings, &strings_len);
 	} else {
 		create_strings(text, text_len, &strings, &strings_len);
@@ -750,8 +738,8 @@ int main(int argc, char **argv)
 	free_text(text, text_len);
 	free_pointers(strings, strings_len);
 	if (log_file) {
-		fprintf(log_file, "===DONE===\n");
-		fclose(log_file);
+		std::fprintf(log_file, "===DONE===\n");
+		std::fclose(log_file);
 	}
 	return ret;
 }

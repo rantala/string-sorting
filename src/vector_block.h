@@ -45,6 +45,7 @@ struct vector_block
 	{
 		if (__builtin_expect(is_full(), false)) {
 			_insertpos = static_cast<T*>(malloc(B*sizeof(T)));
+			if (!_insertpos) abort();
 			_index_block.push_back(_insertpos);
 			_left_in_block = B;
 		}

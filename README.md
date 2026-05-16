@@ -40,8 +40,10 @@ purposes, and are copyright by their respective authors.
 Requirements
 ------------
 
-  * C++11
-  * CMake
+  * C++17
+  * CMake >= 3.16
+  * OpenMP
+  * Ninja (optional; the default Make generator also works)
 
 
 Compilation
@@ -49,18 +51,56 @@ Compilation
 
 Default compilation with GCC:
 
-    $ git clone git://github.com/rantala/string-sorting.git
-    $ mkdir string-sorting-build
-    $ cd string-sorting-build
-    $ cmake -DCMAKE_BUILD_TYPE=Release ../string-sorting
-    $ make
-    $ ./sortstring
+    $ git clone https://github.com/rantala/string-sorting.git
+    $ cd string-sorting
+    $ cmake -B build -G Ninja && ninja -C build
+    $ ./build/sortstring
 
 Use a separate debug build for easier debugging:
 
-    $ mkdir debug-build
-    $ cd debug-build
-    $ cmake -DCMAKE_BUILD_TYPE=Debug ../string-sorting
+    $ cmake -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug && ninja -C build-debug
+
+
+GCC static analyzer
+-------------------
+
+The build can be configured to run the GCC static analyzer (`-fanalyzer`) on
+the project's own sources. Third-party code under `external/` is excluded.
+
+    $ cmake -B build-gcc-analyzer -G Ninja -DENABLE_GCC_ANALYZER=ON && ninja -C build-gcc-analyzer
+
+The option requires GCC >= 13 for both C and C++; configuration fails fast
+with any other compiler or older version. Analyzer diagnostics are emitted as
+build warnings; the build still succeeds. Expect significantly longer compile
+times when the option is enabled.
+
+
+Clang static analyzer
+---------------------
+
+The build can also be configured to run the Clang static analyzer via
+`clang-tidy`, scoped to the `clang-analyzer-*` check group. Third-party code
+under `external/` is excluded.
+
+    $ cmake -B build-clang-analyzer -G Ninja -DENABLE_CLANG_ANALYZER=ON && ninja -C build-clang-analyzer
+
+The option requires `clang-tidy` on `PATH` (Ubuntu: `apt install clang-tidy`);
+configuration fails fast if it is not found. Diagnostics appear inline like
+compiler warnings and the build still succeeds. The configured C/C++ compiler
+does not need to be Clang. `ENABLE_GCC_ANALYZER` and `ENABLE_CLANG_ANALYZER`
+can be combined when building with GCC >= 13.
+
+
+Target architecture
+-------------------
+
+The compiler `-march=` value can be overridden via the `MARCH` cache
+variable (default `native`):
+
+    $ cmake -B build-v3 -G Ninja -DMARCH=x86-64-v3 && ninja -C build-v3
+
+Useful for targeting a portable ISA level or restricting the instructions
+emitted by the compiler.
 
 
 Huge pages

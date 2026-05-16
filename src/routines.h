@@ -25,15 +25,11 @@
 
 #include "routine.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <optional>
+#include <string_view>
+#include <utility>
 
-const struct routine *routine_from_name(const char *);
-void routine_get_all(const struct routine ***, unsigned *);
-
-#ifdef __cplusplus
-}
-#endif
+[[nodiscard]] std::optional<const routine *> routine_from_name(std::string_view name);
+[[nodiscard]] std::pair<const routine *const *, unsigned> routine_get_all();
 
 #endif /* ROUTINES_H */

@@ -24,21 +24,13 @@
 #define UTIL_H
 
 #include "get_char.h"
+#include <algorithm>
 
 template <typename CharT>
 CharT
 med3char(CharT a, CharT b, CharT c)
 {
-	if (a == b)           return a;
-	if (c == a || c == b) return c;
-	if (a < b) {
-		if (b < c) return b;
-		if (a < c) return c;
-		return a;
-	}
-	if (b > c) return b;
-	if (a < c) return a;
-	return c;
+	return std::max(std::min(a, b), std::min(std::max(a, b), c));
 }
 
 template <typename CharT, typename Cmp>

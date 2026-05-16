@@ -63,7 +63,9 @@ private:
 		if (_capacity == 0) {
 			_capacity = InitialSize;
 		}
-		_data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		T* data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		if (!data) abort();
+		_data = data;
 	}
 	T* _data;
 	size_t _size;
@@ -99,7 +101,9 @@ private:
 		if (_capacity == 0) {
 			_capacity = InitialSize;
 		}
-		_data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		T* data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		if (!data) abort();
+		_data = data;
 	}
 	T* _data;
 	size_t _size;
@@ -139,14 +143,19 @@ private:
 		if (_capacity == 0) {
 			_capacity = InitialSize;
 		}
-		_data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		T* data = static_cast<T*>(realloc(_data, _capacity*sizeof(T)));
+		if (!data) abort();
+		_data = data;
 	}
 	void shrink()
 	{
 		if (_capacity > 0x80000) {
-			_capacity = _capacity / 2;
-			_data = static_cast<T*>(
-				realloc(_data, _capacity*sizeof(T)));
+			const size_t capacity = _capacity / 2;
+			T* data = static_cast<T*>(
+				realloc(_data, capacity*sizeof(T)));
+			if (!data) abort();
+			_data = data;
+			_capacity = capacity;
 		}
 	}
 	T* _data;

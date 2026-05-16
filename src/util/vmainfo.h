@@ -23,7 +23,8 @@
 #ifndef VMAINFO_H
 #define VMAINFO_H
 
-/* Release return value with free() when no longer needed. */
-char *vma_info(void *ptr);
+#include <string>
+
+[[nodiscard]] std::string vma_info(const void *ptr);
 
 #endif /* VMAINFO_H */

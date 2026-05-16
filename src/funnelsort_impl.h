@@ -77,6 +77,9 @@
  *     }
  */
 
+#ifndef FUNNELSORT_IMPL_H
+#define FUNNELSORT_IMPL_H
+
 #include "routine.h"
 #include "util/debug.h"
 #include "util/insertion_sort.h"
@@ -650,7 +653,7 @@ struct fill<16,I,BufferLayout>
 // splitting the input into K streams, and using a fixed size K-merger.
 // Then use K/4 or K/2 on the next level of recursion.
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
-static void
+void
 funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 {
 	debug() << __func__ << "(), n=" << n << "\n";
@@ -683,64 +686,36 @@ funnelsort(unsigned char** strings, size_t n, unsigned char** restrict tmp)
 
 // Switch to 4-way mergesort on small inputs/lower levels of recursion.
 void mergesort_4way(unsigned char**, size_t, unsigned char**);
-//template <> void funnelsort<2,buffer_layout_bfs>(unsigned char** strings,
-//	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
-//template <> void funnelsort<2,buffer_layout_dfs>(unsigned char** strings,
-//	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
-template <> void funnelsort<4,buffer_layout_bfs>(unsigned char** strings,
-	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
-template <> void funnelsort<4,buffer_layout_dfs>(unsigned char** strings,
-	size_t n, unsigned char** tmp) { mergesort_4way(strings, n, tmp); }
+
+template <> void funnelsort<4, buffer_layout_bfs>(
+		unsigned char**, size_t, unsigned char**);
+template <> void funnelsort<4, buffer_layout_dfs>(
+		unsigned char**, size_t, unsigned char**);
+
+#define FUNNELSORT_EXTERN(K, LAYOUT) \
+	extern template void funnelsort<K, LAYOUT>( \
+			unsigned char**, size_t, unsigned char**);
+FUNNELSORT_EXTERN(8,   buffer_layout_bfs)
+FUNNELSORT_EXTERN(16,  buffer_layout_bfs)
+FUNNELSORT_EXTERN(32,  buffer_layout_bfs)
+FUNNELSORT_EXTERN(64,  buffer_layout_bfs)
+FUNNELSORT_EXTERN(128, buffer_layout_bfs)
+FUNNELSORT_EXTERN(8,   buffer_layout_dfs)
+FUNNELSORT_EXTERN(16,  buffer_layout_dfs)
+FUNNELSORT_EXTERN(32,  buffer_layout_dfs)
+FUNNELSORT_EXTERN(64,  buffer_layout_dfs)
+FUNNELSORT_EXTERN(128, buffer_layout_dfs)
+#undef FUNNELSORT_EXTERN
 
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
 void funnelsort_Kway(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	funnelsort<K, BufferLayout>(strings, n, tmp);
 	free(tmp);
 }
 
-void funnelsort_8way_bfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<8, buffer_layout_bfs>(strings, n); }
-void funnelsort_16way_bfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<16, buffer_layout_bfs>(strings, n); }
-void funnelsort_32way_bfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<32, buffer_layout_bfs>(strings, n); }
-void funnelsort_64way_bfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<64, buffer_layout_bfs>(strings, n); }
-void funnelsort_128way_bfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<128, buffer_layout_bfs>(strings, n); }
-
-void funnelsort_8way_dfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<8, buffer_layout_dfs>(strings, n); }
-void funnelsort_16way_dfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<16, buffer_layout_dfs>(strings, n); }
-void funnelsort_32way_dfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<32, buffer_layout_dfs>(strings, n); }
-void funnelsort_64way_dfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<64, buffer_layout_dfs>(strings, n); }
-void funnelsort_128way_dfs(unsigned char** strings, size_t n)
-{ funnelsort_Kway<128, buffer_layout_dfs>(strings, n); }
-
-ROUTINE_REGISTER_SINGLECORE(funnelsort_8way_bfs,
-		"funnelsort_8way_bfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_16way_bfs,
-		"funnelsort_16way_bfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_32way_bfs,
-		"funnelsort_32way_bfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_64way_bfs,
-		"funnelsort_64way_bfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_128way_bfs,
-		"funnelsort_128way_bfs")
-
-ROUTINE_REGISTER_SINGLECORE(funnelsort_8way_dfs,
-		"funnelsort_8way_dfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_16way_dfs,
-		"funnelsort_16way_dfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_32way_dfs,
-		"funnelsort_32way_dfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_64way_dfs,
-		"funnelsort_64way_dfs")
-ROUTINE_REGISTER_SINGLECORE(funnelsort_128way_dfs,
-		"funnelsort_128way_dfs")
+#endif

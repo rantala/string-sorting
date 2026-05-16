@@ -254,6 +254,7 @@ burst_insert(TSTNode<CharT>* root, unsigned char** strings, size_t N)
 			}
 			CharT* oracle = static_cast<CharT*>(
 				malloc(buck->size()*sizeof(CharT)));
+			if (!oracle) abort();
 			for (unsigned j=0; j < buck->size(); ++j) {
 				oracle[j] = get_char<CharT>((*buck)[j], depth);
 			}
@@ -327,6 +328,7 @@ template <typename CharT>
 static inline void
 burstsort_mkq_simpleburst(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	typedef std::vector<unsigned char*> BucketT;
 	typedef BurstSimple<CharT> BurstImpl;
 	TSTNode<CharT> root;
@@ -355,6 +357,7 @@ template <typename CharT>
 static inline void
 burstsort_mkq_recursiveburst(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	typedef std::vector<unsigned char*> BucketT;
 	typedef BurstRecursive<CharT> BurstImpl;
 	TSTNode<CharT> root;

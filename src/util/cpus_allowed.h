@@ -23,12 +23,33 @@
 #ifndef CPUS_ALLOWED_H
 #define CPUS_ALLOWED_H
 
-#define _GNU_SOURCE
 #include <sched.h>
 
-char *cpus_allowed_list(void);
-cpu_set_t *cpus_allowed(size_t *, int *maxcpu);
-int cpu_scaling_max_freq(int cpu);
-int cpu_scaling_min_freq(int cpu);
+#include <cstddef>
+#include <optional>
+#include <string>
+
+struct cpus_info {
+	cpu_set_t *set     = nullptr;
+	size_t     setsize = 0;
+	int        maxcpu  = 0;
+};
+
+struct cpu_info {
+	enum class core_class {
+		unknown,
+		performance, // Intel P-core (cpu_core PMU)
+		efficiency,  // Intel E-core (cpu_atom PMU)
+	};
+	std::optional<int> scaling_min_khz;
+	std::optional<int> scaling_max_khz;
+	std::optional<int> hw_max_khz; // amd_pstate_max_freq or cpuinfo_max_freq
+	core_class         klass = core_class::unknown;
+};
+
+[[nodiscard]] std::string cpus_allowed_list();
+[[nodiscard]] cpus_info cpus_allowed();
+[[nodiscard]] cpu_info cpu_info_for(int cpu);
+[[nodiscard]] std::optional<bool> cpu_boost_enabled();
 
 #endif /* CPUS_ALLOWED_H */

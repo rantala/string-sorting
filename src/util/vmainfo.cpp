@@ -20,11 +20,14 @@
  * IN THE SOFTWARE.
  */
 
-#define _GNU_SOURCE
 #include "vmainfo.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+
+#include <cstdio>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /* Format the /proc/pid/smaps key-value pairs into two columns:
  *
@@ -53,77 +56,58 @@
  * Private_Clean:         0 kB  |  MMUPageSize:           4 kB
  * Private_Dirty:    390636 kB  |  Locked:                0 kB
  */
-static void
-add_smaps(char *buf, char **pairs, unsigned pairs_cnt)
-{
-	unsigned i, j;
-	for (i=0, j=pairs_cnt/2; i < pairs_cnt/2; ++i, ++j) {
-		pairs[i][strlen(pairs[i])-1] = '\0';
-		strcat(buf, "    ");
-		strcat(buf, pairs[i]);
-		strcat(buf, "  |  ");
-		strcat(buf, pairs[j]);
-	}
-	if (j < pairs_cnt) {
-		strcat(buf, "    ");
-		strcat(buf, pairs[j]);
-	}
-}
 
-static void
-free_pairs(char **pairs, unsigned pairs_cnt)
-{
-	unsigned i;
-	for (i=0; i < pairs_cnt; ++i)
-		free(pairs[i]);
-	free(pairs);
-}
+namespace {
 
-char *
-vma_info(void *ptr)
+struct Entry {
+	std::string header;
+	std::vector<std::string> pairs;
+};
+
+Entry
+find_entry(unsigned long target)
 {
-	FILE *fp = NULL;
-	char *buf = NULL;
-	char *line = NULL;
-	char **pairs = NULL, **tmp = NULL;
-	unsigned pairs_cnt = 0;
-	size_t line_n = 0;
-	buf = malloc(2048);
-	if (!buf)
-		goto done;
-	buf[0] = 0;
-	fp = fopen("/proc/self/smaps", "r");
-	if (!fp)
-		goto done;
-	while (getline(&line, &line_n, fp) != -1) {
+	Entry e;
+	std::ifstream f("/proc/self/smaps");
+	if (!f) return e;
+	for (std::string line; std::getline(f, line); ) {
 		unsigned long a, b;
-		if (sscanf(line, "%lx-%lx", &a, &b) != 2)
+		if (std::sscanf(line.c_str(), "%lx-%lx", &a, &b) != 2)
 			continue;
-		if (a <= (unsigned long)ptr && (unsigned long)ptr < b) {
-			/* OK, found it! */
-			strcat(buf, "    ");
-			strcat(buf, line);
-			while (getline(&line, &line_n, fp) != -1) {
-				if (line[0] >= 'A' && line[0] <= 'Z'
-						&& strchr(line, ':') != NULL) {
-					tmp = realloc(pairs, (pairs_cnt+1) * sizeof(char *));
-					if (!tmp)
-						goto done;
-					pairs = tmp;
-					pairs[pairs_cnt++] = line;
-					line = NULL;
-					line_n = 0;
-				} else {
-					free(line);
-					goto done;
-				}
-			}
+		if (!(a <= target && target < b))
+			continue;
+		e.header = std::move(line);
+		while (std::getline(f, line)) {
+			if (line.empty()) break;
+			if (line[0] < 'A' || line[0] > 'Z') break;
+			if (line.find(':') == std::string::npos) break;
+			e.pairs.push_back(std::move(line));
 		}
+		break;
 	}
-done:
-	add_smaps(buf, pairs, pairs_cnt);
-	free_pairs(pairs, pairs_cnt);
-	if (fp)
-		fclose(fp);
-	return buf;
+	return e;
+}
+
+std::string
+format(const Entry &e)
+{
+	if (e.header.empty()) return std::string();
+	std::ostringstream out;
+	out << "    " << e.header << '\n';
+	const size_t n = e.pairs.size();
+	const size_t half = n / 2;
+	for (size_t i = 0, j = half; i < half; ++i, ++j)
+		out << "    " << e.pairs[i] << "  |  " << e.pairs[j] << '\n';
+	if (half * 2 < n)
+		out << "    " << e.pairs.back() << '\n';
+	return out.str();
+}
+
+} // namespace
+
+std::string
+vma_info(const void *ptr)
+{
+	auto target = reinterpret_cast<unsigned long>(ptr);
+	return format(find_entry(target));
 }

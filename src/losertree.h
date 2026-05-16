@@ -83,6 +83,7 @@ struct loser_tree
 		assert(_nonempty_streams>1);
 		void* raw = malloc(_stream_offset*sizeof(unsigned) +
 		                   _stream_offset*sizeof(Stream));
+		if (!raw) abort();
 		_nodes = static_cast<unsigned*>(raw);
 		_streams = reinterpret_cast<Stream*>(
 				static_cast<char*>(raw) +

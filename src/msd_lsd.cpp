@@ -93,6 +93,7 @@ msd_lsd(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 			++bucketsize[cache[i].chars[byte]];
 		Cacheblock<CachedChars>* sorted = (Cacheblock<CachedChars>*)
 			malloc(N*sizeof(Cacheblock<CachedChars>));
+		if (!sorted) abort();
 		size_t bucketindex[256];
 		bucketindex[0] = 0;
 		for (size_t i=1; i < 256; ++i)
@@ -142,6 +143,7 @@ msd_lsd_adaptive(Cacheblock<CachedChars>* cache, size_t N, size_t depth)
 		}
 		Cacheblock<CachedChars>* sorted = (Cacheblock<CachedChars>*)
 			malloc(N*sizeof(Cacheblock<CachedChars>));
+		if (!sorted) abort();
 		static size_t bucketindex[0x10000];
 		bucketindex[0] = 0;
 		for (size_t i=1; i < 0x10000; ++i)
@@ -178,8 +180,10 @@ template <unsigned CachedChars>
 static void
 msd_A_lsd(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	Cacheblock<CachedChars>* cache = static_cast<Cacheblock<CachedChars>*>(
 			malloc(N*sizeof(Cacheblock<CachedChars>)));
+	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
 	fill_cache(cache, N, 0);
 	msd_lsd(cache, N, 0);
@@ -191,8 +195,10 @@ template <unsigned CachedChars>
 static void
 msd_A_lsd_adaptive(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	Cacheblock<CachedChars>* cache = static_cast<Cacheblock<CachedChars>*>(
 			malloc(N*sizeof(Cacheblock<CachedChars>)));
+	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
 	fill_cache(cache, N, 0);
 	msd_lsd_adaptive(cache, N, 0);

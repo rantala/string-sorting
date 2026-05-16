@@ -137,6 +137,7 @@ msd_D_adaptive(unsigned char** strings, size_t n, size_t depth, Bucket* buckets)
 		return;
 	}
 	size_t* bucketsize = (size_t*) malloc(0x10000 * sizeof(size_t));
+	if (!bucketsize) abort();
 	size_t i=0;
 	for (; i < n-n%16; i+=16) {
 		uint16_t cache[16];

@@ -69,36 +69,46 @@ mergesort_losertree(unsigned char** strings, size_t n, unsigned char** tmp)
 
 void mergesort_losertree_64way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree<64>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_128way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree<128>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_256way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree<256>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_512way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree<512>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_1024way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree<1024>(strings, n, tmp);
 	free(tmp);
 }
@@ -144,36 +154,46 @@ mergesort_losertree_parallel(unsigned char** strings, size_t n, unsigned char** 
 
 void mergesort_losertree_64way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree_parallel<64>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_128way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree_parallel<128>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_256way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree_parallel<256>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_512way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree_parallel<512>(strings, n, tmp);
 	free(tmp);
 }
 void mergesort_losertree_1024way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_losertree_parallel<1024>(strings, n, tmp);
 	free(tmp);
 }

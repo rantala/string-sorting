@@ -147,8 +147,10 @@ mergesort_2way_unstable(unsigned char** strings, size_t n, unsigned char** tmp)
 }
 void mergesort_2way_unstable(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_2way_unstable(strings, n, tmp);
 	free(tmp);
 }
@@ -328,8 +330,10 @@ mergesort_3way_unstable(unsigned char** strings, size_t n, unsigned char** tmp)
 }
 void mergesort_3way_unstable(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_3way_unstable(strings, n, tmp);
 	free(tmp);
 }
@@ -1871,8 +1875,10 @@ mergesort_4way_unstable(unsigned char** strings, size_t n, unsigned char** tmp)
 }
 void mergesort_4way_unstable(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
+	if (!tmp) abort();
 	mergesort_4way_unstable(strings, n, tmp);
 	free(tmp);
 }

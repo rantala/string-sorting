@@ -115,6 +115,36 @@ read_int_file(const std::string &path)
 	return v;
 }
 
+/* Parse a Linux cpulist string ("0-3,5,7-9") and report whether `cpu`
+ * is a member. Returns std::nullopt if the file cannot be read; false
+ * if the file is readable but `cpu` is not listed. */
+std::optional<bool>
+cpu_in_cpulist_file(int cpu, const std::string &path)
+{
+	std::ifstream f(path);
+	if (!f) return std::nullopt;
+	std::string list;
+	std::getline(f, list);
+	std::stringstream ss(list);
+	std::string tok;
+	while (std::getline(ss, tok, ',')) {
+		auto dash = tok.find('-');
+		int lo, hi;
+		try {
+			if (dash == std::string::npos) {
+				lo = hi = std::stoi(tok);
+			} else {
+				lo = std::stoi(tok.substr(0, dash));
+				hi = std::stoi(tok.substr(dash + 1));
+			}
+		} catch (...) {
+			continue;
+		}
+		if (cpu >= lo && cpu <= hi) return true;
+	}
+	return false;
+}
+
 } // namespace
 
 std::string
@@ -141,18 +171,39 @@ cpus_allowed()
 	return info;
 }
 
-std::optional<int>
-cpu_scaling_min_freq(int cpu)
+cpu_info
+cpu_info_for(int cpu)
 {
-	std::ostringstream path;
-	path << "/sys/devices/system/cpu/cpu" << cpu << "/cpufreq/scaling_min_freq";
-	return read_int_file(path.str());
+	std::ostringstream base;
+	base << "/sys/devices/system/cpu/cpu" << cpu << "/cpufreq/";
+	const std::string b = base.str();
+
+	cpu_info info;
+	info.scaling_min_khz = read_int_file(b + "scaling_min_freq");
+	info.scaling_max_khz = read_int_file(b + "scaling_max_freq");
+	/* Hardware peak (boost-capable) frequency:
+	 *  - AMD pstate: amd_pstate_max_freq is the per-core boost cap;
+	 *    cpuinfo_max_freq tracks scaling_max_freq when boost is off.
+	 *  - Intel:      cpuinfo_max_freq is the turbo cap. */
+	info.hw_max_khz = read_int_file(b + "amd_pstate_max_freq");
+	if (!info.hw_max_khz)
+		info.hw_max_khz = read_int_file(b + "cpuinfo_max_freq");
+	/* Intel hybrid topology: cpu_core PMU lists P-cores, cpu_atom E-cores. */
+	if (cpu_in_cpulist_file(cpu, "/sys/devices/cpu_core/cpus").value_or(false))
+		info.klass = cpu_info::core_class::performance;
+	else if (cpu_in_cpulist_file(cpu, "/sys/devices/cpu_atom/cpus").value_or(false))
+		info.klass = cpu_info::core_class::efficiency;
+	return info;
 }
 
-std::optional<int>
-cpu_scaling_max_freq(int cpu)
+/* Turbo/boost state, reported as the inverse-sense pair the kernel
+ * exposes for each driver family. */
+std::optional<bool>
+cpu_boost_enabled()
 {
-	std::ostringstream path;
-	path << "/sys/devices/system/cpu/cpu" << cpu << "/cpufreq/scaling_max_freq";
-	return read_int_file(path.str());
+	if (auto v = read_int_file("/sys/devices/system/cpu/cpufreq/boost"))
+		return *v != 0;
+	if (auto v = read_int_file("/sys/devices/system/cpu/intel_pstate/no_turbo"))
+		return *v == 0;
+	return std::nullopt;
 }

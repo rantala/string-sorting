@@ -521,16 +521,26 @@ cpu_information(void)
 	std::printf("CPU information:\n");
 	if (!cpus_al.empty())
 		std::printf("    CPUs allowed: %s\n", cpus_al.c_str());
+	if (auto boost = cpu_boost_enabled())
+		std::printf("    Turbo/boost: %s\n", *boost ? "on" : "off");
 	for (int i=0; i < maxcpu; ++i) {
-		if (CPU_ISSET_S(i, cpus_setsize, cpus)) {
-			std::printf("    CPU%d", i);
-			auto min_freq = cpu_scaling_min_freq(i);
-			auto max_freq = cpu_scaling_max_freq(i);
-			if (min_freq && max_freq)
-				std::printf(", scaling frequencies: [%dMHz .. %dMHz]",
-						*max_freq/1000, *min_freq/1000);
-			std::puts("");
+		if (!CPU_ISSET_S(i, cpus_setsize, cpus))
+			continue;
+		const cpu_info info = cpu_info_for(i);
+		std::printf("    CPU%d", i);
+		switch (info.klass) {
+		case cpu_info::core_class::performance: std::printf(" (P-core)"); break;
+		case cpu_info::core_class::efficiency:  std::printf(" (E-core)"); break;
+		case cpu_info::core_class::unknown: break;
 		}
+		if (info.scaling_min_khz && info.scaling_max_khz)
+			std::printf(", scaling [%dMHz .. %dMHz]",
+					*info.scaling_min_khz/1000,
+					*info.scaling_max_khz/1000);
+		if (info.hw_max_khz && info.scaling_max_khz &&
+		    *info.hw_max_khz > *info.scaling_max_khz)
+			std::printf(", hw peak %dMHz", *info.hw_max_khz/1000);
+		std::puts("");
 	}
 	std::putchar('\n');
 	if (cpus)

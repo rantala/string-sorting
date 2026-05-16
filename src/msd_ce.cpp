@@ -367,6 +367,7 @@ msd_CE5(unsigned char** strings, size_t n, size_t depth,
 
 void msd_CE5(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
 	if (!oracle) abort();
@@ -424,6 +425,7 @@ msd_CE6(unsigned char** strings, size_t n, size_t depth,
 }
 void msd_CE6(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
 	if (!oracle) abort();
@@ -500,6 +502,7 @@ in_order:
 }
 void msd_CE7(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
 	if (!oracle) abort();
@@ -587,6 +590,7 @@ in_order:
 }
 void msd_CE8(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	uint16_t* restrict oracle = (uint16_t*)
 		malloc(n*sizeof(uint16_t));
 	if (!oracle) abort();

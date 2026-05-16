@@ -379,6 +379,7 @@ multikey_simd_b(unsigned char** strings, size_t N, size_t depth,
 
 void multikey_simd_b_1(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
 	if (!sorted) abort();
@@ -392,6 +393,7 @@ void multikey_simd_b_1(unsigned char** strings, size_t n)
 
 void multikey_simd_b_2(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
 	if (!sorted) abort();
@@ -405,6 +407,7 @@ void multikey_simd_b_2(unsigned char** strings, size_t n)
 
 void multikey_simd_b_4(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** sorted =
 		static_cast<unsigned char**>(malloc(n*sizeof(unsigned char*)));
 	if (!sorted) abort();

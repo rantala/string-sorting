@@ -695,6 +695,7 @@ template <> void funnelsort<4,buffer_layout_dfs>(unsigned char** strings,
 template <unsigned K, template <unsigned, unsigned> class BufferLayout>
 void funnelsort_Kway(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	unsigned char** tmp = static_cast<unsigned char**>(
 			malloc(n*sizeof(unsigned char*)));
 	if (!tmp) abort();

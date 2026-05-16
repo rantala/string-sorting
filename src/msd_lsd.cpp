@@ -180,6 +180,7 @@ template <unsigned CachedChars>
 static void
 msd_A_lsd(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	Cacheblock<CachedChars>* cache = static_cast<Cacheblock<CachedChars>*>(
 			malloc(N*sizeof(Cacheblock<CachedChars>)));
 	if (!cache) abort();
@@ -194,6 +195,7 @@ template <unsigned CachedChars>
 static void
 msd_A_lsd_adaptive(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	Cacheblock<CachedChars>* cache = static_cast<Cacheblock<CachedChars>*>(
 			malloc(N*sizeof(Cacheblock<CachedChars>)));
 	if (!cache) abort();

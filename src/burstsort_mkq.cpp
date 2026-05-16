@@ -328,6 +328,7 @@ template <typename CharT>
 static inline void
 burstsort_mkq_simpleburst(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	typedef std::vector<unsigned char*> BucketT;
 	typedef BurstSimple<CharT> BurstImpl;
 	TSTNode<CharT> root;
@@ -356,6 +357,7 @@ template <typename CharT>
 static inline void
 burstsort_mkq_recursiveburst(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	typedef std::vector<unsigned char*> BucketT;
 	typedef BurstRecursive<CharT> BurstImpl;
 	TSTNode<CharT> root;

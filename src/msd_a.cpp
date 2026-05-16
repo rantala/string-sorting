@@ -163,6 +163,7 @@ msd_A_adaptive(cacheblock_t* cache,
 void
 msd_A(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	cacheblock_t* cache = (cacheblock_t*) malloc(N*sizeof(cacheblock_t));
 	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];
@@ -176,6 +177,7 @@ ROUTINE_REGISTER_SINGLECORE(msd_A, "msd_A")
 void
 msd_A_adaptive(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	cacheblock_t* cache = (cacheblock_t*) malloc(N*sizeof(cacheblock_t));
 	if (!cache) abort();
 	for (size_t i=0; i < N; ++i) cache[i].ptr = strings[i];

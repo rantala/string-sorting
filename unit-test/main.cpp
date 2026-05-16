@@ -217,7 +217,7 @@ test_routines()
 		std::cerr << __PRETTY_FUNCTION__
 			<< " [" << routines[i]->name << ']' << std::endl;
 
-		for (size_t k=1; k < 2000; k += 200) {
+		for (size_t k=0; k < 2000; k += 200) {
 			std::vector<char *> input;
 			for (size_t i=0; i < k; ++i)
 				input.push_back(strdup("aaa"));
@@ -231,7 +231,7 @@ test_routines()
 			for (size_t i=0; i < n; ++i)
 				free(input[i]);
 		}
-		for (size_t k=1; k < 1000; k += 200) {
+		for (size_t k=0; k < 1000; k += 200) {
 			std::vector<char *> input;
 			for (size_t i=0; i < k; ++i) {
 				input.push_back(strdup("bb"));
@@ -252,7 +252,7 @@ test_routines()
 			for (size_t i=0; i < n; ++i)
 				free(input[i]);
 		}
-		for (size_t k=1; k < 10000; k += 2000) {
+		for (size_t k=0; k < 10000; k += 2000) {
 			std::vector<char *> input;
 			for (size_t i=0; i < k; ++i) {
 				char buf[10];

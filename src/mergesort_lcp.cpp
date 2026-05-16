@@ -263,6 +263,7 @@ mergesort_lcp_2way(unsigned char** restrict strings_input,
 void
 mergesort_lcp_2way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
 	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
@@ -337,6 +338,7 @@ mergesort_lcp_2way_parallel(
 void
 mergesort_lcp_2way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
 	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
@@ -824,6 +826,7 @@ mergesort_lcp_3way(unsigned char** restrict strings_input,
 void
 mergesort_lcp_3way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	debug() << __func__ << '\n';
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
 	if (!lcp_input) abort();
@@ -949,6 +952,7 @@ mergesort_lcp_3way_parallel(unsigned char** restrict strings_input,
 void
 mergesort_lcp_3way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	debug() << __func__ << '\n';
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
 	if (!lcp_input) abort();
@@ -1419,6 +1423,7 @@ template <typename CharT>
 static void
 mergesort_cache_lcp_2way(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
 	if (!lcp_input) abort();
 	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
@@ -1540,6 +1545,7 @@ template <typename CharT>
 static void
 mergesort_cache_lcp_2way_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input = (lcp_t*) malloc(n*sizeof(lcp_t));
 	if (!lcp_input) abort();
 	lcp_t* lcp_tmp   = (lcp_t*) malloc(n*sizeof(lcp_t));
@@ -1759,6 +1765,7 @@ mergesort_lcp_2way_unstable(unsigned char** restrict strings_input,
 void
 mergesort_lcp_2way_unstable(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
 	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
@@ -1835,6 +1842,7 @@ mergesort_lcp_2way_unstable_parallel(unsigned char** restrict strings_input,
 void
 mergesort_lcp_2way_unstable_parallel(unsigned char** strings, size_t n)
 {
+	if (n == 0) return;
 	lcp_t* lcp_input  = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));
 	if (!lcp_input) abort();
 	lcp_t* lcp_output = static_cast<lcp_t*>(malloc(n*sizeof(lcp_t)));

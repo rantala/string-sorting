@@ -228,6 +228,7 @@ msd_A2_adaptive(cacheblock_t* cache,
 void
 msd_A2(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	cacheblock_t* cache =
 		static_cast<cacheblock_t*>(malloc(N*sizeof(cacheblock_t)));
 	if (!cache) abort();
@@ -243,6 +244,7 @@ ROUTINE_REGISTER_SINGLECORE(msd_A2, "msd_A2")
 void
 msd_A2_adaptive(unsigned char** strings, size_t N)
 {
+	if (N == 0) return;
 	cacheblock_t* cache =
 		static_cast<cacheblock_t*>(malloc(N*sizeof(cacheblock_t)));
 	if (!cache) abort();
